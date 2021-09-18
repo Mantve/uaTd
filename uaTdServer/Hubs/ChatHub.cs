@@ -5,9 +5,9 @@ namespace uaTdServer.Hubs
 {
     public class ChatHub : Hub
     {
-        public async Task NewMessage(long username, string message)
+        public async Task ClientMessage(string jsonData)
         {
-            await Clients.All.SendAsync("messageReceived", username, message);
+            await Clients.All.SendAsync("serverDataMessage", jsonData);
         }
     }
 }
