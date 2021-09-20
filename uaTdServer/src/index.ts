@@ -1,4 +1,4 @@
-import "./css/reset.css";
+﻿import "./css/reset.css";
 import "./css/game.css";
 import * as signalR from "@microsoft/signalr";
 import { connect } from "net";
@@ -30,9 +30,39 @@ function processServerMessage(encodedData: string) {
         case 2:
             sendChatMessage(data.data)
             break;
+        case 100:
+            updateCashBalance(data.data)
+            break;
         default:
     }
 }
+
+// Game stuff
+
+let storeTowers = [
+    {
+        name: 'Spicy Milk',
+        price: 100
+    },
+    {
+        name: 'Banana Milk',
+        price: 85
+    },
+    {
+        name: 'Choco Milk',
+        price: 150
+    },
+    {
+        name: 'Strawberry Milk',
+        price: 125
+    },
+    {
+        name: 'Almond Milk',
+        price: 50
+    }
+]
+
+let cashBalance = 1000;
 
 // Chat related functions
 
@@ -57,6 +87,13 @@ function sendChatMessage(messageData: any) {
     divChatMessages.appendChild(newMessage);
 }
 
+// Cash related functions
+
+function updateCashBalance(data) {
+    cashBalance -= data.change;
+    updateCashBalanceUI();
+}
+
 // UI stuff
 
 const inputMeetUsername: HTMLInputElement = document.querySelector("#meet-form-username");
@@ -64,6 +101,9 @@ const inputChatMessage: HTMLTextAreaElement = document.querySelector("#chat-form
 
 const btnMeetEnter: HTMLButtonElement = document.querySelector("#meet-form-enter");
 const btnChatMessageSend: HTMLButtonElement = document.querySelector("#chat-form-send");
+
+const divCashBalance: HTMLDivElement = document.querySelector("#cash-balance");
+const divPlayerName: HTMLDivElement = document.querySelector("#player-name");
 
 btnMeetEnter.addEventListener("click", meet);
 function meet() {
@@ -80,7 +120,10 @@ function meet() {
         };
 
         connection.send('clientMessage', JSON.stringify(message))
-            .then(() => switchScreen('game'));
+            .then(() => {
+                switchScreen('game');
+                updatePlayerNameUI();
+            });
     }
 }
 
@@ -115,4 +158,37 @@ function switchScreen(newScreen: string) {
     }
 }
 
+const divTowersStore: HTMLDivElement = document.querySelector("#towers-store");
+storeTowers.forEach(st => {
+    let stItem = document.createElement('button');
+    stItem.classList.add('item');
+
+    stItem.innerHTML = `<div><b>${st.name}</b></div><div>${st.price} Pinigų</div>`;
+    stItem.onclick = function () {
+        if (st.price <= cashBalance) {
+            let message = {
+                type: 100,
+                data: {
+                    change: st.price
+                }
+            };
+
+            connection.send('clientMessage', JSON.stringify(message))
+                .then(() => switchScreen('game'));
+        }
+    }
+
+    divTowersStore.appendChild(stItem);
+})
+
+function updateCashBalanceUI() {
+    divCashBalance.innerHTML = `${cashBalance} Pinigų`;
+}
+
+function updatePlayerNameUI() {
+    divPlayerName.innerHTML = `${username}`;
+}
+
 switchScreen("meet");
+updateCashBalanceUI();
+updatePlayerNameUI();

@@ -10,33 +10,6 @@ var connection = new signalR.HubConnectionBuilder()
     .withUrl("/hub")
     .build();
 connection.start().catch(function (err) { return document.write(err); });
-/* legacy code
-
-connection.on("messageReceived", (username: string, message: string) => {
-    let m = document.createElement("div");
-
-    m.innerHTML =
-        `<div class="message-author">${username}</div><div>${message}</div>`;
-
-    divMessages.appendChild(m);
-    divMessages.scrollTop = divMessages.scrollHeight;
-});
-
-connection.start().catch(err => document.write(err));
-tbMessage.addEventListener("keyup", (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-        send();
-    }
-});
-
-btnSend.addEventListener("click", send);
-
-function send() {
-    connection.send("newMessage", username, tbMessage.value)
-        .then(() => tbMessage.value = "");
-}
-
-*/
 // Server messages processing
 connection.on("serverDataMessage", function (data) {
     processServerMessage(data);
@@ -50,9 +23,36 @@ function processServerMessage(encodedData) {
         case 2:
             sendChatMessage(data.data);
             break;
+        case 100:
+            updateCashBalance(data.data);
+            break;
         default:
     }
 }
+// Game stuff
+var storeTowers = [
+    {
+        name: 'Spicy Milk',
+        price: 100
+    },
+    {
+        name: 'Banana Milk',
+        price: 85
+    },
+    {
+        name: 'Choco Milk',
+        price: 150
+    },
+    {
+        name: 'Strawberry Milk',
+        price: 125
+    },
+    {
+        name: 'Almond Milk',
+        price: 50
+    }
+];
+var cashBalance = 1000;
 // Chat related functions
 var divChatMessages = divGameContainer.querySelector(".chat-messages");
 function notifyOfJoinedPlayer(messageData) {
@@ -68,11 +68,18 @@ function sendChatMessage(messageData) {
     newMessage.innerHTML = "<div class=\"author\">" + messageData.username + "</div><div class=\"message\">" + messageData.message + "</div>";
     divChatMessages.appendChild(newMessage);
 }
+// Cash related functions
+function updateCashBalance(data) {
+    cashBalance -= data.change;
+    updateCashBalanceUI();
+}
 // UI stuff
 var inputMeetUsername = document.querySelector("#meet-form-username");
 var inputChatMessage = document.querySelector("#chat-form-chat-message");
 var btnMeetEnter = document.querySelector("#meet-form-enter");
 var btnChatMessageSend = document.querySelector("#chat-form-send");
+var divCashBalance = document.querySelector("#cash-balance");
+var divPlayerName = document.querySelector("#player-name");
 btnMeetEnter.addEventListener("click", meet);
 function meet() {
     var newUsername = inputMeetUsername.value;
@@ -85,7 +92,10 @@ function meet() {
             }
         };
         connection.send('clientMessage', JSON.stringify(message))
-            .then(function () { return switchScreen('game'); });
+            .then(function () {
+            switchScreen('game');
+            updatePlayerNameUI();
+        });
     }
 }
 btnChatMessageSend.addEventListener("click", sendChat);
@@ -113,4 +123,31 @@ function switchScreen(newScreen) {
         }
     }
 }
+var divTowersStore = document.querySelector("#towers-store");
+storeTowers.forEach(function (st) {
+    var stItem = document.createElement('button');
+    stItem.classList.add('item');
+    stItem.innerHTML = "<div><b>" + st.name + "</b></div><div>" + st.price + " Pinig\u0173</div>";
+    stItem.onclick = function () {
+        if (st.price <= cashBalance) {
+            var message = {
+                type: 100,
+                data: {
+                    change: st.price
+                }
+            };
+            connection.send('clientMessage', JSON.stringify(message))
+                .then(function () { return switchScreen('game'); });
+        }
+    };
+    divTowersStore.appendChild(stItem);
+});
+function updateCashBalanceUI() {
+    divCashBalance.innerHTML = cashBalance + " Pinig\u0173";
+}
+function updatePlayerNameUI() {
+    divPlayerName.innerHTML = "" + username;
+}
 switchScreen("meet");
+updateCashBalanceUI();
+updatePlayerNameUI();

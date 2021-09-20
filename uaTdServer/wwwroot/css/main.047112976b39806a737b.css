@@ -165,3 +165,34 @@ body {
     display: inline-block;
     border-radius: .5rem;
 }
+
+.towers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: .5rem;
+    padding: .5rem;
+}
+
+.towers-grid .item {
+    padding: 1rem;
+    background: white;
+    border-radius: .5rem;
+    text-decoration: none;
+    color: black;
+    border: 0;
+    text-align: left;
+}
+
+.game-window {
+    position: relative;
+}
+
+.game-window .header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: .5rem;
+    display: flex;
+    justify-content: space-between;
+}
