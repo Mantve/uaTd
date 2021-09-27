@@ -121,4 +121,5 @@ body {
     padding: .5rem;
     display: flex;
     justify-content: space-between;
+    color: white;
 }

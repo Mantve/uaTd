@@ -1,5 +1,7 @@
 ﻿import "./css/reset.css";
 import "./css/game.css";
+import "./game.ts";
+
 import * as signalR from "@microsoft/signalr";
 import { connect } from "net";
 
@@ -106,6 +108,11 @@ const divCashBalance: HTMLDivElement = document.querySelector("#cash-balance");
 const divPlayerName: HTMLDivElement = document.querySelector("#player-name");
 
 btnMeetEnter.addEventListener("click", meet);
+inputMeetUsername.addEventListener("keyup", function (event) {
+    if (event.keyCode === 13) {
+        meet();
+    }
+});
 function meet() {
     let newUsername = inputMeetUsername.value;
 

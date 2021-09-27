@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 require("./css/reset.css");
 require("./css/game.css");
+require("./game.ts");
 var signalR = require("@microsoft/signalr");
 var divGameContainer = document.querySelector(".game-container");
 var username = new Date().getTime().toString();
@@ -81,6 +82,11 @@ var btnChatMessageSend = document.querySelector("#chat-form-send");
 var divCashBalance = document.querySelector("#cash-balance");
 var divPlayerName = document.querySelector("#player-name");
 btnMeetEnter.addEventListener("click", meet);
+inputMeetUsername.addEventListener("keyup", function (event) {
+    if (event.keyCode === 13) {
+        meet();
+    }
+});
 function meet() {
     var newUsername = inputMeetUsername.value;
     if (newUsername.length > 3) {
