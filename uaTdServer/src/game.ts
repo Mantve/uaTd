@@ -222,7 +222,6 @@ class Bullet extends Phaser.GameObjects.Image {
         this.speed = Phaser.Math.GetSpeed(600, 1);
     }
 
-
     fire(x, y, angle) {
         this.setActive(true);
         this.setVisible(true);
@@ -234,6 +233,7 @@ class Bullet extends Phaser.GameObjects.Image {
         this.dy = Math.sin(angle);
         this.lifespan = 300;
     }
+
     update(time, delta) {
         this.lifespan -= delta;
         this.x += this.dx * (this.speed * delta);
