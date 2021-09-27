@@ -24,16 +24,21 @@ connection.on("serverDataMessage", (data: string) => {
 
 function processServerMessage(encodedData: string) {
     const data = JSON.parse(encodedData);
+    console.log(data);
 
     switch (data.type) {
+        case 0:
+            chatServerMessage(`${data.data.username} has joined the game.`);
+            break;
         case 1:
-            notifyOfJoinedPlayer(data.data)
+            chatServerMessage(`You have joined the game.`);
+            switchScreen("game");
             break;
         case 2:
-            sendChatMessage(data.data)
+            sendChatMessage(data.data);
             break;
         case 100:
-            updateCashBalance(data.data)
+            updateCashBalance(data.data);
             break;
         default:
     }
@@ -70,12 +75,12 @@ let cashBalance = 1000;
 
 const divChatMessages: HTMLDivElement = divGameContainer.querySelector(".chat-messages");
 
-function notifyOfJoinedPlayer(messageData: any) {
+function chatServerMessage(messageData: any) {
     let newMessage = document.createElement('div');
     newMessage.classList.add('chat-message');
     newMessage.classList.add('message-new-player');
 
-    newMessage.innerHTML = `${messageData.username} has joined the game.`;
+    newMessage.innerHTML = messageData;
 
     divChatMessages.appendChild(newMessage);
 }
@@ -120,7 +125,7 @@ function meet() {
         username = newUsername;
 
         let message = {
-            type: 1,
+            type: 0,
             data: {
                 username: username
             }
@@ -128,7 +133,7 @@ function meet() {
 
         connection.send('clientMessage', JSON.stringify(message))
             .then(() => {
-                switchScreen('game');
+                //switchScreen('game');
                 updatePlayerNameUI();
             });
     }

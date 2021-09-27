@@ -17,9 +17,14 @@ connection.on("serverDataMessage", function (data) {
 });
 function processServerMessage(encodedData) {
     var data = JSON.parse(encodedData);
+    console.log(data);
     switch (data.type) {
+        case 0:
+            chatServerMessage(data.data.username + " has joined the game.");
+            break;
         case 1:
-            notifyOfJoinedPlayer(data.data);
+            chatServerMessage("You have joined the game.");
+            switchScreen("game");
             break;
         case 2:
             sendChatMessage(data.data);
@@ -56,11 +61,11 @@ var storeTowers = [
 var cashBalance = 1000;
 // Chat related functions
 var divChatMessages = divGameContainer.querySelector(".chat-messages");
-function notifyOfJoinedPlayer(messageData) {
+function chatServerMessage(messageData) {
     var newMessage = document.createElement('div');
     newMessage.classList.add('chat-message');
     newMessage.classList.add('message-new-player');
-    newMessage.innerHTML = messageData.username + " has joined the game.";
+    newMessage.innerHTML = messageData;
     divChatMessages.appendChild(newMessage);
 }
 function sendChatMessage(messageData) {
@@ -92,14 +97,14 @@ function meet() {
     if (newUsername.length > 3) {
         username = newUsername;
         var message = {
-            type: 1,
+            type: 0,
             data: {
                 username: username
             }
         };
         connection.send('clientMessage', JSON.stringify(message))
             .then(function () {
-            switchScreen('game');
+            //switchScreen('game');
             updatePlayerNameUI();
         });
     }
