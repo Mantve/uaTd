@@ -7,20 +7,20 @@ namespace uaTdServer.Class
 {
     public class GameState
     {
-        public double money { get; set; }
-        public double score { get; set; }
-        public double difficulty { get; set; }
-        public double health { get; set; }
-        public List<Player> players { get; set; }
+        public double Money { get; set; }
+        public double Score { get; set; }
+        public double Difficulty { get; set; }
+        public double Health { get; set; }
+        public List<Player> Players { get; set; }
 
         public GameState()
         {
-            money = 1000;
-            score = 0;
-            difficulty = 1.0;
-            health = 100;
+            Money = 1000;
+            Score = 0;
+            Difficulty = 1.0;
+            Health = 100;
 
-            players = new List<Player>();
+            Players = new List<Player>();
         }
     }
 }

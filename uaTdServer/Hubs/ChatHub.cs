@@ -18,16 +18,17 @@ namespace uaTdServer.Hubs
             switch (messageType)
             {
                 case 0:
-                    Player player = gameState.players.FirstOrDefault(p => p.username == data.username);
+                    Player player = gameState.Players.FirstOrDefault(p => p.Username == data.username);
+                    var username = data.data.username.ToString();
 
-                    if(player == null)
+                    if (player == null)
                     {
-                        gameState.players.Add(new Player(data)); // TODO: parse data.data.username;
+                        gameState.Players.Add(new Player(username)); 
 
                         dynamic messageBody = new JObject();
-                        messageBody.money = gameState.money;
-                        messageBody.score = gameState.score;
-                        messageBody.players = new JArray(gameState.players.Select(p => p.username).ToArray());
+                        messageBody.money = gameState.Money;
+                        messageBody.score = gameState.Score;
+                        messageBody.players = new JArray(gameState.Players.Select(p => p.Username).ToArray());
 
                         dynamic messageMain = new JObject();
 

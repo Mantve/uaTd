@@ -7,13 +7,13 @@ namespace uaTdServer.Class
 {
     public class Player
     {
-        public string username { get; set; }
-        public double score { get; set; }
+        public string Username { get; set; }
+        public double Score { get; set; }
 
         public Player(string username)
         {
-            this.username = username;
-            score = 0;
+            this.Username = username;
+            Score = 0;
         }
     }
 }
