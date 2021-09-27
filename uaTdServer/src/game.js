@@ -131,7 +131,7 @@ function update(time, delta) {
 var Enemy = /** @class */ (function (_super) {
     __extends(Enemy, _super);
     function Enemy(scene) {
-        var _this = _super.call(this, scene, 0, 0, 'enemy') || this;
+        var _this = _super.call(this, scene, 0, 0, 'sprites', 'enemy') || this;
         _this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
         return _this;
     }
@@ -171,7 +171,7 @@ var Enemy = /** @class */ (function (_super) {
 var Turret = /** @class */ (function (_super) {
     __extends(Turret, _super);
     function Turret(scene) {
-        var _this = _super.call(this, scene, 0, 0, 'turret') || this;
+        var _this = _super.call(this, scene, 0, 0, 'sprites', 'turret') || this;
         _this.nextTic = 0;
         return _this;
     }
