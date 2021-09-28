@@ -1,4 +1,5 @@
 ﻿import * as Phaser from 'phaser';
+import { start } from 'repl';
 
 var config = {
     type: Phaser.AUTO,
@@ -22,6 +23,8 @@ var path;
 var enemies;
 var turrets;
 var bullets;
+var started=false;
+var enemySpawned = 0;
 var map =
     [[0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -36,7 +39,8 @@ var map =
     [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0]];
 var ENEMY_SPEED = 1 / 10000;
 var BULLET_DAMAGE = 14.58;
-
+var ENEMY_SPACING = 100;
+var enemiesPerRound = 10;
 function preload() {
     // load the game assets – enemy and turret atlas
     this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
@@ -114,19 +118,28 @@ function canPlaceTurret(i, j) {
 }
 
 function update(time, delta) {
-    // if its time for the next enemy
-    if (time > this.nextEnemy) {
-        var enemy = enemies.get();
-        if (enemy) {
-            enemy.setActive(true);
-            enemy.setVisible(true);
+    if (started) {
+        // if its time for the next enemy
+        if (time > this.nextEnemy) {
+            var enemy = enemies.get();
+            if (enemy) {
+                enemy.setActive(true);
+                enemy.setVisible(true);
 
-            // place the enemy at the start of the path
-            enemy.startOnPath();
+                // place the enemy at the start of the path
+                enemy.startOnPath();
 
-            this.nextEnemy = time + 2000;
+                this.nextEnemy = time + ENEMY_SPACING;
+            }
+            enemySpawned = enemySpawned + 1;
+            if (enemySpawned === enemiesPerRound) {
+                enemySpawned = 0;
+                started = false
+            }
         }
+
     }
+    
 }
 
 class Enemy extends Phaser.GameObjects.Image {
@@ -247,13 +260,17 @@ class Bullet extends Phaser.GameObjects.Image {
 
 function drawGrid(graphics) {
     graphics.lineStyle(1, 0x0000ff, 0.8);
-    for (var i = 0; i <= config.width / 64; i++) {
+    for (var i = 0; i <= (config.width / 64) + 1; i++) {
         graphics.moveTo(0, i * 64);
         graphics.lineTo(config.width, i * 64);
     }
-    for (var j = 0; j <= config.height / 64; j++) {
+    for (var j = 0; j <= (config.height / 64) + 1; j++) {
         graphics.moveTo(j * 64, 0);
         graphics.lineTo(j * 64, config.height);
     }
     graphics.strokePath();
+}
+
+export function startRound() {
+    started = true;
 }

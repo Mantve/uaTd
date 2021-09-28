@@ -1,7 +1,7 @@
 ﻿import "./css/reset.css";
 import "./css/game.css";
-import "./game.ts";
-
+//import "./game.ts";
+import { startRound } from './game';
 import * as signalR from "@microsoft/signalr";
 import { connect } from "net";
 
@@ -192,6 +192,28 @@ storeTowers.forEach(st => {
 
     divTowersStore.appendChild(stItem);
 })
+
+const divGameControls: HTMLDivElement = document.querySelector("#game-controls");
+
+let btnStart = document.createElement('button');
+//btnStart.classList.add('item');
+
+btnStart.innerHTML = `<div><b>Pradėti lygį</b></div>`;
+btnStart.onclick = function () {
+    startRound();
+    /*  if (st.price <= cashBalance) {
+          let message = {
+              type: 100,
+              data: {
+                  change: st.price
+              }
+          };
+  
+          connection.send('clientMessage', JSON.stringify(message))
+              .then(() => switchScreen('game'));
+      }*/
+}
+divGameControls.appendChild(btnStart);
 
 function updateCashBalanceUI() {
     divCashBalance.innerHTML = `${cashBalance} Pinigų`;
