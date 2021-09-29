@@ -2,15 +2,39 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>ASP.NET Core SignalR</title>
-<link href="/css/main.106ce6c978d3a95e7ae7.css" rel="stylesheet"></head>
+    <title>uaTd</title>
+<link href="/css/main.eb966882c563355d886e.css" rel="stylesheet"></head>
 <body>
-    <div id="divMessages" class="messages">
+    <div class="game-container">
+        <div class="screen meet-screen" screen="meet">
+            <div class="meet-form">
+                <label for="username">Įveskite slapyvardį</label>
+                <input type="text" name="username" id="meet-form-username">
+                <button id="meet-form-enter">Enter Game</button>
+            </div>
+        </div>
+        <div class="screen game-screen" screen="game">
+            <div class="game-window">
+                <div id="content"></div>
+                <div class="header">
+                    <div id="player-name"></div>
+                    <div id="cash-balance"></div>
+                </div>
+            </div>
+            <div class="game-sidebar">
+                <div class="game-towers">
+                    Towers
+                    <div class="towers-grid" id="towers-store"></div>
+                </div>
+                <div class="game-chat">
+                    <div class="chat-messages"></div>
+                    <div class="chat-form">
+                        <textarea placeholder="Nauja žinutė..." id="chat-form-chat-message"></textarea>
+                        <button id="chat-form-send">Siųsti</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="input-zone">
-        <label id="lblMessage" for="tbMessage">Message:</label>
-        <input id="tbMessage" class="input-zone-input" type="text" />
-        <button id="btnSend">Send</button>
-    </div>
-<script type="text/javascript" src="/main.106ce6c978d3a95e7ae7.js"></script></body>
+<script type="text/javascript" src="/main.eb966882c563355d886e.js"></script></body>
 </html>
