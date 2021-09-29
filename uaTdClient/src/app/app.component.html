@@ -1,0 +1,46 @@
+<div class="game-container">
+  <div class="screen meet-screen" [ngClass]="shownScreen == 'meet' ? 'shown' : ''">
+      <div class="meet-form">
+          <label for="username">Įveskite slapyvardį</label>
+          <form (submit)="meet()">
+            <input [(ngModel)]="username" [ngModelOptions]="{standalone: true}">
+            <button type="submit">Jungtis</button>
+          </form>
+      </div>
+  </div>
+  <div class="screen game-screen" [ngClass]="shownScreen == 'game' ? 'shown' : ''">
+      <div class="game-window">
+          <div id="content"></div>
+          <div class="header">
+              <div id="player-name">{{username}}</div>
+              <div id="cash-balance">{{money}} Pinigų</div>
+          </div>
+      </div>
+      <div class="game-sidebar">
+          <div class="game-towers">
+              Towers
+              <div class="towers-grid" id="towers-store">
+                <button class="item" *ngFor="let tower of storeTowers; index as i" (click)="purchase(i)">
+                  <div><b>{{tower.name}}</b></div>
+                  <div>{{tower.price}} Pinigų</div>
+                </button>
+              </div>
+          </div>
+          <div class="game-chat">
+              <div class="chat-messages">
+                <div class="chat-message" *ngFor="let msg of chatMessages">
+                  <div class="author" *ngIf="msg.username != 'Server'">{{msg.username}}</div>
+                  <div class="message" *ngIf="msg.username != 'Server'">{{msg.text}}</div>
+                  <div *ngIf="msg.username == 'Server'" class="message-new-player">{{msg.text}}</div>
+                </div>
+              </div>
+              <div class="chat-form">
+                <form (submit)="sendChat()">
+                  <textarea placeholder="Nauja žinutė..." [(ngModel)]="message" [ngModelOptions]="{standalone: true}"></textarea>
+                  <button type="submit">Siųsti</button>
+                </form>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
