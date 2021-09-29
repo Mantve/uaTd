@@ -118,11 +118,15 @@ export class AppComponent implements OnInit {
             username: "Server",
             text: "You have joined the game"
           };
+          this.money = data.data.money;
           this.chatMessages.push(youHaveJoinedMessage);
           break;
         case 2:
           let newChatMessage: ChatMessage = data.data;
           this.chatMessages.push(newChatMessage);
+          break;
+        case 3:
+          this.money = data.data.money;
           break;
         case 100:
           this.money -= data.data.change;
