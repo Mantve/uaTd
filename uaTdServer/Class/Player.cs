@@ -9,6 +9,7 @@ namespace uaTdServer.Class
     {
         public string Username { get; set; }
         public double Score { get; set; }
+        public List<string> ConnectionIDs { get; set; }
 
         public Player(string username)
         {

@@ -58,7 +58,7 @@ namespace uaTdServer
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<ChatHub>("/hub");
+                endpoints.MapHub<GameHub>("/hub");
             });
         }
     }
