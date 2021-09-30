@@ -20,11 +20,11 @@ namespace uaTdServer.Hubs
         {
             var data = JsonConvert.DeserializeObject<dynamic>(jsonData);
 
-            int messageType = data.type;
+            string messageType = (string)data.type;
 
             switch (messageType)
             {
-                case 0:
+                case "JOIN":
                     string username = (string)data.data.username;
                     if (!gameState.GetPlayers().Contains(username))
                         gameState.NewPlayer(new Player(username));
@@ -35,10 +35,15 @@ namespace uaTdServer.Hubs
                     // Notify others of a new player
                     await Clients.Others.SendAsync("serverDataMessage", jsonData);
                     break;
-                case 100:
+                case "TOWER_PURCHASE":
                     gameState.UpdateMoney((double)data.data.change);
 
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState(3)));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
+                case "TOWER_BUILD":
+                    gameState.AddTower((int)data.data.x, (int)data.data.y);
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y)));
                     break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
@@ -46,19 +51,18 @@ namespace uaTdServer.Hubs
             }
         }
 
-        private JObject GetGameState(int messageType = 1)
+        private Message<Message_GameState> GetGameState(string messageType = "GAMESTATE_INIT") { 
+            Message_GameState messageGameState = new();
+            messageGameState.map = gameState.GetMap().map;
+            messageGameState.money = gameState.GetMoney();
+            messageGameState.score = gameState.GetScore();
+
+            return new Message<Message_GameState>(messageType, messageGameState);
+        }
+
+        private Message<Message_Tower_Build> TowerBuildMessage(int x, int y)
         {
-            dynamic messageBody = new JObject();
-            dynamic messageMain = new JObject();
-
-            messageBody.money = gameState.GetMoney();
-            messageBody.score = gameState.GetScore();
-            messageBody.players = new JArray(gameState.GetPlayers());
-
-            messageMain.type = messageType;
-            messageMain.data = messageBody;
-
-            return messageMain;
+            return new Message<Message_Tower_Build>("TOWER_BUILD", new Message_Tower_Build() { x = x, y = y });
         }
     }
 }

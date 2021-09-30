@@ -1,6 +1,6 @@
+import { ThrowStmt } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
-import { getDataDetail } from '@microsoft/signalr/dist/esm/Utils';
 import Game from "./class/game";
 
 interface ChatMessage {
@@ -20,8 +20,9 @@ export class AppComponent implements OnInit {
   username: string = new Date().getTime().toString();
   message: string = '';
   chatMessages: ChatMessage[] = [];
-  game: any;
   money: number = 1000;
+  game: any;
+  initFlag: boolean = false;
   
   storeTowers = [
     {
@@ -61,25 +62,25 @@ export class AppComponent implements OnInit {
   }
   
   ngOnInit(): void {
-    
+    this.game = new Game(this.connection, [])
   }
 
-  meet() {
+  join() {
     if (this.username.length > 3) {
-        let message = {
-            type: 0,
-            data: {
-                username: this.username
-            }
-        };
+      let message = {
+        type: 'JOIN',
+        data: {
+          username: this.username
+        }
+      };
 
-        this.connection.send('clientMessage', JSON.stringify(message));
+      this.connection.send('clientMessage', JSON.stringify(message));
     }
   }
 
-  loadGame() {
-    let tgame = new Game;
-    this.game = tgame.game;
+  loadGame(map) {
+    this.game = new Game(this.connection, map);
+    //this.initFlag = true;
   }
 
   sendChat() {
@@ -87,7 +88,7 @@ export class AppComponent implements OnInit {
       return;
 
     let message = {
-      type: 2,
+      type: 'CHAT_SEND',
       data: {
           username: this.username,
           text: this.message
@@ -100,36 +101,45 @@ export class AppComponent implements OnInit {
   }
 
   processServerMessage(encodedData: string) {
-    const data = JSON.parse(encodedData);
-    console.log(data);
+    const serverMessage = JSON.parse(encodedData);
+    console.log(serverMessage);
+    let tempMessage;
 
-    switch (data.type) {
-        case 0:
-          let userHasJoinedMessage: ChatMessage = {
+    switch (serverMessage.type) {
+        case 'JOIN':
+          tempMessage = {
             username: "Server",
-            text: data.data.username + " has joined the game"
+            text: serverMessage.data.username + " has joined the game"
           };
-          this.chatMessages.push(userHasJoinedMessage);
+          this.chatMessages.push(tempMessage);
           break;
-        case 1:
-          this.loadGame();
-          this.shownScreen = 'game';
-          let youHaveJoinedMessage: ChatMessage = {
+        case 'GAMESTATE_INIT':
+          //this.loadGame(serverMessage.data.map);
+          //this.initFlag = true;
+          this.money = serverMessage.data.money;
+          this.game.updateMap(serverMessage.data.map);
+          this.game.populateMapWithTowers();
+          tempMessage = {
             username: "Server",
             text: "You have joined the game"
           };
-          this.money = data.data.money;
-          this.chatMessages.push(youHaveJoinedMessage);
+          this.chatMessages.push(tempMessage);
+
+          this.shownScreen = 'game';
           break;
-        case 2:
-          let newChatMessage: ChatMessage = data.data;
-          this.chatMessages.push(newChatMessage);
+        case 'GAMESTATE_UPDATE':
+          this.money = serverMessage.data.money;
+          this.game.updateMap(serverMessage.data.map);
           break;
-        case 3:
-          this.money = data.data.money;
+        case 'CHAT_SEND':
+          tempMessage = serverMessage.data;
+          this.chatMessages.push(tempMessage);
           break;
-        case 100:
-          this.money -= data.data.change;
+        case 'TOWER_PURCHASE':
+          this.money -= serverMessage.data.change;
+          break;
+        case 'TOWER_BUILD':
+          this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y)
           break;
         default:
     }
@@ -137,7 +147,7 @@ export class AppComponent implements OnInit {
 
   purchase(i: integer) {
     let message = {
-      type: 100,
+      type: 'TOWER_PURCHASE',
       data: {
           change: this.storeTowers[i].price
       }
