@@ -99,7 +99,7 @@ namespace uaTdServer.Class
             if(!existingTower)
             {
                 Towers.Add((x, y));
-                GetMap().SetTurret(x, y);
+                GetMap().SetTower(x, y);
             }
         }
 

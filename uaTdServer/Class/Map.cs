@@ -33,9 +33,9 @@ namespace uaTdServer.Class
             //map = new int[size, size};
         }
 
-        public void SetTurret(int i, int j)
+        public void SetTower(int x, int y)
         {
-            map[i, j] = 1;
+            map[y, x] = 1;
         }
     }
 }

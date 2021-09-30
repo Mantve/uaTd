@@ -65,7 +65,7 @@ function create() {
     path = this.add.path(96, -32);
     path.lineTo(96, 164);
     path.lineTo(480, 164);
-    path.lineTo(480, 544);
+    path.lineTo(480, 720);
 
     graphics.lineStyle(3, 0xffffff, 1);
     // visualize the path
@@ -109,28 +109,30 @@ function getEnemy(x, y, distance) {
 }
 
 function placeTurret(pointer) {
-
     var i = Math.floor(pointer.y / 64);
     var j = Math.floor(pointer.x / 64);
 
-    let message = {
-        type: 'TOWER_BUILD',
-        data: {
-            x: j,
-            y: i
-        }
-    };
-
-    connection.send('clientMessage', JSON.stringify(message));
-
     if (canPlaceTurret(i, j)) {
+    
+        let message = {
+            type: 'TOWER_BUILD',
+            data: {
+                x: j,
+                y: i
+            }
+        };
+    
+        connection.send('clientMessage', JSON.stringify(message));
+    }
+
+    /*if (canPlaceTurret(i, j)) {
         var turret = turrets.get();
         if (turret) {
             turret.setActive(true);
             turret.setVisible(true);
             turret.place(i, j);
         }
-    }
+    }*/
 }
 
 function placeTurretFromServer(j, i) {
@@ -143,6 +145,7 @@ function placeTurretFromServer(j, i) {
 }
 
 function canPlaceTurret(i, j) {
+    console.log(map[i][j])
     return map[i][j] === 0;
 }
 
