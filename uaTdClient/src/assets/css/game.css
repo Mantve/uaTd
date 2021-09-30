@@ -11,12 +11,12 @@ body {
     font-size: 12pt;
 
     min-width: max(100vw, 1280px);
-    min-height: max(100vh, 704px);
+    min-height: max(100vh, 720px);
 }
 
 .game-container {
     width: 1280px;
-    height: 704px;
+    height: 720px;
     background: white;
     position: relative;
 }
