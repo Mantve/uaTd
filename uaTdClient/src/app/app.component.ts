@@ -1,3 +1,4 @@
+import { ThrowStmt } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
 import { getDataDetail } from '@microsoft/signalr/dist/esm/Utils';
@@ -78,8 +79,7 @@ export class AppComponent implements OnInit {
   }
 
   loadGame() {
-    let tgame = new Game;
-    this.game = tgame.game;
+    this.game = new Game(this.connection);
   }
 
   sendChat() {
@@ -119,6 +119,10 @@ export class AppComponent implements OnInit {
             text: "You have joined the game"
           };
           this.money = data.data.money;
+          let map = this.sliceIntoChunks(data.data.map, 13);
+          console.log(map);
+          console.log(this.game);
+          this.game.updateMap(map);
           this.chatMessages.push(youHaveJoinedMessage);
           break;
         case 2:
@@ -127,12 +131,24 @@ export class AppComponent implements OnInit {
           break;
         case 3:
           this.money = data.data.money;
+          console.log("3 connection state")
+          let map1 = this.sliceIntoChunks(data.data.map, 13);
+          this.game.updateMap(map1);
           break;
         case 100:
           this.money -= data.data.change;
           break;
         default:
     }
+  }
+
+  sliceIntoChunks(arr, chunkSize) {
+    const res = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        const chunk = arr.slice(i, i + chunkSize);
+        res.push(chunk);
+    }
+    return res;
   }
 
   purchase(i: integer) {

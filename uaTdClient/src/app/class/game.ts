@@ -16,8 +16,19 @@ var config = {
     }
 };
 
-export default class Game {
-    game = new Phaser.Game(config);
+let connection;
+
+export default class Game extends Phaser.Game {
+
+    constructor(connection1) {
+        super(config);
+        connection = connection1;
+    }
+
+    updateMap(arr) {
+        map = arr;
+        console.log("HELLO")
+    }
 }
 
 var graphics;
@@ -100,8 +111,20 @@ function getEnemy(x, y, distance) {
 }
 
 function placeTurret(pointer) {
+
     var i = Math.floor(pointer.y / 64);
     var j = Math.floor(pointer.x / 64);
+
+    let message = {
+        type: 300,
+        data: {
+            xCoordinate: j,
+            yCoordinate: i
+        }
+    };
+
+    connection.send('clientMessage', JSON.stringify(message));
+
     if (canPlaceTurret(i, j)) {
         var turret = turrets.get();
         if (turret) {
@@ -254,7 +277,7 @@ function drawGrid(graphics) {
         graphics.moveTo(0, i * 64);
         graphics.lineTo(config.width, i * 64);
     }
-    for (var j = 0; j <= config.height / 64; j++) {
+    for (var j = 0; j <= config.height / 64 + 2; j++) {
         graphics.moveTo(j * 64, 0);
         graphics.lineTo(j * 64, config.height);
     }

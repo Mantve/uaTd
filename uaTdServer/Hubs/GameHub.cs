@@ -40,6 +40,11 @@ namespace uaTdServer.Hubs
 
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState(3)));
                     break;
+                case 300:
+                    int xcoord = (int)data.data.xCoordinate;
+                    gameState.GetMap().SetTurret((int)data.data.xCoordinate, (int)data.data.yCoordinate);
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState(3)));
+                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
@@ -54,6 +59,7 @@ namespace uaTdServer.Hubs
             messageBody.money = gameState.GetMoney();
             messageBody.score = gameState.GetScore();
             messageBody.players = new JArray(gameState.GetPlayers());
+            messageBody.map = new JArray(gameState.GetMap().map.Cast<int>().ToArray());
 
             messageMain.type = messageType;
             messageMain.data = messageBody;

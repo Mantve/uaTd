@@ -13,6 +13,7 @@ namespace uaTdServer.Class
             playersByConnectionID = new Dictionary<string, Player>();
             Money = 1000;
             Score = 0;
+            Map = new Map("Map", 64, 1000);
         }
 
         private static GameState singleton;
@@ -26,6 +27,7 @@ namespace uaTdServer.Class
 
         Dictionary<string, Player> playersByUsername;
         Dictionary<string, Player> playersByConnectionID;
+        Map Map;
 
         public Player GetPlayerByUsername(string username)
         {
@@ -78,6 +80,10 @@ namespace uaTdServer.Class
         public List<String> GetPlayers()
         {
             return playersByUsername.Keys.ToList();
+        }
+        public Map GetMap()
+        {
+            return Map;
         }
     }
 }
