@@ -92,7 +92,7 @@ body {
     width: 440px;
     display: grid;
     grid-template-rows: auto 1fr auto;
-    background: #111111;
+    background: linear-gradient(rgba(255,255,255,.1), transparent);
 }
 
 .game-chat {
@@ -102,6 +102,10 @@ body {
     display: flex;
     flex-direction: column;
     gap: .2rem;
+}
+
+.game-chat .chat-message {
+    max-width: 100%;
 }
 
 .game-chat .chat-message.my-message {
@@ -128,14 +132,19 @@ body {
     background: #ffffff;
     border: 2px solid #111111;
     user-select: none;
+    max-width: 100%;
 }
 
 .game-chat .message:hover {
     border-color: #1c7fb0;
+    box-shadow: 0 0.25rem 1rem rgb(28 127 176 / 50%);
 }
 
 .game-chat .message span {
     display: block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
 }
 
 .chat-form {
@@ -224,6 +233,7 @@ body {
 
 .towers-grid .item:hover {
     border-color: #1c7fb0;
+    box-shadow: 0 0.25rem 1rem rgb(28 127 176 / 50%);
 }
 
 .towers-grid .item .item-title {
