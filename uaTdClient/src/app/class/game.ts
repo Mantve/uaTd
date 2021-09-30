@@ -4,8 +4,8 @@ import * as Phaser from 'phaser';
 var config = {
     type: Phaser.AUTO,
     parent: 'content',
-    width: 840,
-    height: 720,
+    width: 832,
+    height: 704,
     physics: {
         default: 'arcade'
     },
@@ -68,9 +68,19 @@ function create() {
     // the path for our enemies
     // parameters are the start x and y of our path
     path = this.add.path(96, -32);
-    path.lineTo(96, 164);
-    path.lineTo(480, 164);
-    path.lineTo(480, 720);
+    path.lineTo(96, 160);
+    path.lineTo(352, 160);
+    path.lineTo(352, 288);
+    path.lineTo(544, 288);
+    path.lineTo(544, 96);
+    path.lineTo(736, 96);
+    path.lineTo(736, 416);
+    path.lineTo(160, 416);
+    path.lineTo(160, 608);
+    path.lineTo(352, 608);
+    path.lineTo(352, 544);
+    path.lineTo(672, 544);
+    path.lineTo(672, 736);
 
     graphics.lineStyle(3, 0xffffff, 1);
     // visualize the path
@@ -298,12 +308,12 @@ class Bullet extends Phaser.GameObjects.Image {
 function drawGrid(graphics) {
     graphics.lineStyle(1, 0x0000ff, 0.8);
     for (var i = 0; i <= config.width / 64; i++) {
-        graphics.moveTo(0, i * 64);
-        graphics.lineTo(config.width, i * 64);
+        graphics.moveTo(i * 64, 0);
+        graphics.lineTo(i * 64, config.height);
     }
-    for (var j = 0; j <= config.height / 64 + 2; j++) {
-        graphics.moveTo(j * 64, 0);
-        graphics.lineTo(j * 64, config.height);
+    for (var j = 0; j <= config.height / 64; j++) {
+        graphics.moveTo(0, j * 64);
+        graphics.lineTo(config.width, j * 64);
     }
     graphics.strokePath();
 }
