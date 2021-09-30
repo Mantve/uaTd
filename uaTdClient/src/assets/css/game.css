@@ -10,13 +10,13 @@ body {
     align-items: center;
     font-size: 12pt;
 
-    min-width: max(100vw, 1280px);
-    min-height: max(100vh, 720px);
+    min-width: max(100vw, 1272px);
+    min-height: max(100vh, 704px);
 }
 
 .game-container {
-    width: 1280px;
-    height: 720px;
+    width: 1272px;
+    height: 704px;
     background: #111111;
     position: relative;
 }
