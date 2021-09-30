@@ -2,7 +2,7 @@
   <div class="screen meet-screen" [ngClass]="shownScreen == 'meet' ? 'shown' : ''">
       <div class="meet-form">
           <label for="username">Įveskite slapyvardį</label>
-          <form (submit)="meet()">
+          <form (submit)="join()">
             <input [(ngModel)]="username" [ngModelOptions]="{standalone: true}">
             <button type="submit">Jungtis</button>
           </form>

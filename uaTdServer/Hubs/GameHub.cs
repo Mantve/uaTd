@@ -20,11 +20,11 @@ namespace uaTdServer.Hubs
         {
             var data = JsonConvert.DeserializeObject<dynamic>(jsonData);
 
-            int messageType = data.type;
+            string messageType = (string)data.type;
 
             switch (messageType)
             {
-                case 0:
+                case "JOIN":
                     string username = (string)data.data.username;
                     if (!gameState.GetPlayers().Contains(username))
                         gameState.NewPlayer(new Player(username));
@@ -35,15 +35,14 @@ namespace uaTdServer.Hubs
                     // Notify others of a new player
                     await Clients.Others.SendAsync("serverDataMessage", jsonData);
                     break;
-                case 100:
+                case "TOWER_PURCHASE":
                     gameState.UpdateMoney((double)data.data.change);
 
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState(3)));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
-                case 300:
-                    int xcoord = (int)data.data.xCoordinate;
+                case "TOWER_BUILD":
                     gameState.GetMap().SetTurret((int)data.data.xCoordinate, (int)data.data.yCoordinate);
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState(3)));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
@@ -51,20 +50,13 @@ namespace uaTdServer.Hubs
             }
         }
 
-        private JObject GetGameState(int messageType = 1)
-        {
-            dynamic messageBody = new JObject();
-            dynamic messageMain = new JObject();
+        private Message<Message_GameState> GetGameState(string messageType = "GAMESTATE_INIT") { 
+            Message_GameState messageGameState = new();
+            messageGameState.map = gameState.GetMap().map;
+            messageGameState.money = gameState.GetMoney();
+            messageGameState.score = gameState.GetScore();
 
-            messageBody.money = gameState.GetMoney();
-            messageBody.score = gameState.GetScore();
-            messageBody.players = new JArray(gameState.GetPlayers());
-            messageBody.map = new JArray(gameState.GetMap().map.Cast<int>().ToArray());
-
-            messageMain.type = messageType;
-            messageMain.data = messageBody;
-
-            return messageMain;
+            return new Message<Message_GameState>(messageType, messageGameState);
         }
     }
 }

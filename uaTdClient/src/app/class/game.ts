@@ -20,14 +20,18 @@ let connection;
 
 export default class Game extends Phaser.Game {
 
-    constructor(connection1) {
+    constructor(connection1, map1) {
         super(config);
         connection = connection1;
+        map = map1;
     }
 
-    updateMap(arr) {
-        map = arr;
-        console.log("HELLO")
+    updateMap(map1) {
+        map = map1;
+    }
+
+    printMap() {
+        console.log(map)
     }
 }
 
@@ -36,18 +40,8 @@ var path;
 var enemies;
 var turrets;
 var bullets;
-var map =
-    [[0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0]];
+var map = [];
+    
 var ENEMY_SPEED = 1 / 10000;
 var BULLET_DAMAGE = 14.58;
 

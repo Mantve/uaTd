@@ -1,7 +1,6 @@
 import { ThrowStmt } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
-import { getDataDetail } from '@microsoft/signalr/dist/esm/Utils';
 import Game from "./class/game";
 
 interface ChatMessage {
@@ -21,8 +20,8 @@ export class AppComponent implements OnInit {
   username: string = new Date().getTime().toString();
   message: string = '';
   chatMessages: ChatMessage[] = [];
-  game: any;
   money: number = 1000;
+  game: any;
   
   storeTowers = [
     {
@@ -65,21 +64,21 @@ export class AppComponent implements OnInit {
     
   }
 
-  meet() {
+  join() {
     if (this.username.length > 3) {
-        let message = {
-            type: 0,
-            data: {
-                username: this.username
-            }
-        };
+      let message = {
+        type: 'JOIN',
+        data: {
+          username: this.username
+        }
+      };
 
-        this.connection.send('clientMessage', JSON.stringify(message));
+      this.connection.send('clientMessage', JSON.stringify(message));
     }
   }
 
-  loadGame() {
-    this.game = new Game(this.connection);
+  loadGame(map) {
+    this.game = new Game(this.connection, map);
   }
 
   sendChat() {
@@ -87,7 +86,7 @@ export class AppComponent implements OnInit {
       return;
 
     let message = {
-      type: 2,
+      type: 'CHAT_SEND',
       data: {
           username: this.username,
           text: this.message
@@ -100,60 +99,51 @@ export class AppComponent implements OnInit {
   }
 
   processServerMessage(encodedData: string) {
-    const data = JSON.parse(encodedData);
-    console.log(data);
+    const serverMessage = JSON.parse(encodedData);
+    console.log(serverMessage);
 
-    switch (data.type) {
-        case 0:
-          let userHasJoinedMessage: ChatMessage = {
+    let tempMessage;
+
+    switch (serverMessage.type) {
+        case 'JOIN':
+          tempMessage = {
             username: "Server",
-            text: data.data.username + " has joined the game"
+            text: serverMessage.data.username + " has joined the game"
           };
-          this.chatMessages.push(userHasJoinedMessage);
+          this.chatMessages.push(tempMessage);
           break;
-        case 1:
-          this.loadGame();
-          this.shownScreen = 'game';
-          let youHaveJoinedMessage: ChatMessage = {
+        case 'GAMESTATE_INIT':
+          this.loadGame(serverMessage.data.map);
+          
+          this.money = serverMessage.data.money;
+          this.game.updateMap(serverMessage.data.map);
+
+          tempMessage = {
             username: "Server",
             text: "You have joined the game"
           };
-          this.money = data.data.money;
-          let map = this.sliceIntoChunks(data.data.map, 13);
-          console.log(map);
-          console.log(this.game);
-          this.game.updateMap(map);
-          this.chatMessages.push(youHaveJoinedMessage);
+          this.chatMessages.push(tempMessage);
+
+          this.shownScreen = 'game';
           break;
-        case 2:
-          let newChatMessage: ChatMessage = data.data;
-          this.chatMessages.push(newChatMessage);
+        case 'CHAT_SEND':
+          tempMessage = serverMessage.data;
+          this.chatMessages.push(tempMessage);
           break;
-        case 3:
-          this.money = data.data.money;
-          console.log("3 connection state")
-          let map1 = this.sliceIntoChunks(data.data.map, 13);
-          this.game.updateMap(map1);
+        case 'TOWER_PURCHASE':
+          this.money -= serverMessage.data.change;
           break;
-        case 100:
-          this.money -= data.data.change;
+        case 'GAMESTATE_UPDATE':
+          this.money = serverMessage.data.money;
+          this.game.updateMap(serverMessage.data.map);
           break;
         default:
     }
   }
 
-  sliceIntoChunks(arr, chunkSize) {
-    const res = [];
-    for (let i = 0; i < arr.length; i += chunkSize) {
-        const chunk = arr.slice(i, i + chunkSize);
-        res.push(chunk);
-    }
-    return res;
-  }
-
   purchase(i: integer) {
     let message = {
-      type: 100,
+      type: 'TOWER_PURCHASE',
       data: {
           change: this.storeTowers[i].price
       }
