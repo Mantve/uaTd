@@ -229,6 +229,7 @@ body {
     border: 2px solid #111111;
     position: relative;
     overflow: hidden;
+    user-select: none;
 }
 
 .towers-grid .item:hover {
@@ -250,12 +251,19 @@ body {
 
 .towers-grid .item .preview {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 80%;
+    height: 80%;
     right: 0;
     bottom: 0;
-    transform: translate(40%, 40%);
+    transform: translate(25%, 25%);
     opacity: .2;
+    user-select: none;
+}
+
+.towers-grid .item .preview img {
+    width: 100%;
+    height: 100%;
+    user-select: none;
 }
 
 .game-window {
