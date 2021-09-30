@@ -10,7 +10,7 @@
 			"scale": 1,
 			"frames": [
 				{
-					"filename": "turret",
+					"filename": "tower",
 					"rotated": false,
 					"trimmed": true,
 					"sourceSize": {

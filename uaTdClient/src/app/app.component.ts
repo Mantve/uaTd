@@ -22,6 +22,7 @@ export class AppComponent implements OnInit {
   chatMessages: ChatMessage[] = [];
   money: number = 1000;
   game: any;
+  initFlag: boolean = false;
   
   storeTowers = [
     {
@@ -61,7 +62,7 @@ export class AppComponent implements OnInit {
   }
   
   ngOnInit(): void {
-    
+    this.game = new Game(this.connection, [])
   }
 
   join() {
@@ -79,6 +80,7 @@ export class AppComponent implements OnInit {
 
   loadGame(map) {
     this.game = new Game(this.connection, map);
+    //this.initFlag = true;
   }
 
   sendChat() {
@@ -101,7 +103,6 @@ export class AppComponent implements OnInit {
   processServerMessage(encodedData: string) {
     const serverMessage = JSON.parse(encodedData);
     console.log(serverMessage);
-
     let tempMessage;
 
     switch (serverMessage.type) {
@@ -113,11 +114,11 @@ export class AppComponent implements OnInit {
           this.chatMessages.push(tempMessage);
           break;
         case 'GAMESTATE_INIT':
-          this.loadGame(serverMessage.data.map);
-          
+          //this.loadGame(serverMessage.data.map);
+          //this.initFlag = true;
           this.money = serverMessage.data.money;
           this.game.updateMap(serverMessage.data.map);
-
+          this.game.populateMapWithTowers();
           tempMessage = {
             username: "Server",
             text: "You have joined the game"
@@ -138,7 +139,7 @@ export class AppComponent implements OnInit {
           this.money -= serverMessage.data.change;
           break;
         case 'TOWER_BUILD':
-          this.game.placeTurretFromServer(serverMessage.data.x, serverMessage.data.y)
+          this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y)
           break;
         default:
     }

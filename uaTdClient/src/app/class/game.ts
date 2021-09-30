@@ -1,3 +1,4 @@
+import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 import * as Phaser from 'phaser';
 
 var config = {
@@ -26,7 +27,7 @@ export default class Game extends Phaser.Game {
         map = map1;
     }
 
-    updateMap(map1) {
+    updateMap(map1) { 
         map = map1;
     }
 
@@ -34,15 +35,19 @@ export default class Game extends Phaser.Game {
         console.log(map)
     }
 
-    placeTurretFromServer(x, y) {
-        return placeTurretFromServer(x, y)
+    placeTowerFromServer(x, y) {
+        return placeTowerFromServer(x, y)
     }
+
+    populateMapWithTowers() {
+        return populateMapWithTowers();
+    };
 }
 
 var graphics;
 var path;
 var enemies;
-var turrets;
+var towers;
 var bullets;
 var map = [];
     
@@ -50,7 +55,7 @@ var ENEMY_SPEED = 1 / 10000;
 var BULLET_DAMAGE = 14.58;
 
 function preload() {
-    // load the game assets – enemy and turret atlas
+    // load the game assets – enemy and tower atlas
     this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
     this.load.image('bullet', 'assets/bullet.png');
 }
@@ -73,8 +78,8 @@ function create() {
 
     enemies = this.physics.add.group({ classType: Enemy, runChildUpdate: true });
     this.nextEnemy = 0;
-    turrets = this.add.group({ classType: Turret, runChildUpdate: true });
-    this.input.on('pointerdown', placeTurret);
+    towers = this.add.group({ classType: Tower, runChildUpdate: true });
+    this.input.on('pointerdown', placeTower);
     bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
     this.physics.add.overlap(enemies, bullets, damageEnemy);
 
@@ -108,11 +113,21 @@ function getEnemy(x, y, distance) {
     return false;
 }
 
-function placeTurret(pointer) {
+function populateMapWithTowers() {
+    map.forEach((row, j) => {
+        row.forEach((col, i) => {
+            if(row[i] === 1) {
+                placeTowerFromServer(i, j);
+            }
+        });
+    })
+}
+
+function placeTower(pointer) {
     var i = Math.floor(pointer.y / 64);
     var j = Math.floor(pointer.x / 64);
 
-    if (canPlaceTurret(i, j)) {
+    if (canPlaceTower(i, j)) {
     
         let message = {
             type: 'TOWER_BUILD',
@@ -125,27 +140,26 @@ function placeTurret(pointer) {
         connection.send('clientMessage', JSON.stringify(message));
     }
 
-    /*if (canPlaceTurret(i, j)) {
-        var turret = turrets.get();
-        if (turret) {
-            turret.setActive(true);
-            turret.setVisible(true);
-            turret.place(i, j);
+    /*if (canPlaceTower(i, j)) {
+        var tower = towers.get();
+        if (tower) {
+            tower.setActive(true);
+            tower.setVisible(true);
+            tower.place(i, j);
         }
     }*/
 }
 
-function placeTurretFromServer(j, i) {
-    var turret = turrets.get();
-    if (turret) {
-        turret.setActive(true);
-        turret.setVisible(true);
-        turret.place(i, j);
+function placeTowerFromServer(j, i) {
+    var tower = towers.get();
+    if (tower) {
+        tower.setActive(true);
+        tower.setVisible(true);
+        tower.place(i, j);
     }
 }
 
-function canPlaceTurret(i, j) {
-    console.log(map[i][j])
+function canPlaceTower(i, j) {
     return map[i][j] === 0;
 }
 
@@ -214,15 +228,15 @@ class Enemy extends Phaser.GameObjects.Image {
     }
 };
 
-class Turret extends Phaser.GameObjects.Image {
+class Tower extends Phaser.GameObjects.Image {
     nextTic;
 
     constructor(scene) {
-        super(scene, 0, 0, 'sprites', 'turret');
+        super(scene, 0, 0, 'sprites', 'tower');
         this.nextTic = 0;
     }
 
-    // we will place the turret according to the grid
+    // we will place the tower according to the grid
     place(i, j) {
         this.y = i * 64 + 64 / 2;
         this.x = j * 64 + 64 / 2;
