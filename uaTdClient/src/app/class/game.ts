@@ -33,6 +33,10 @@ export default class Game extends Phaser.Game {
     printMap() {
         console.log(map)
     }
+
+    placeTurretFromServer(x, y) {
+        return placeTurretFromServer(x, y)
+    }
 }
 
 var graphics;
@@ -110,10 +114,10 @@ function placeTurret(pointer) {
     var j = Math.floor(pointer.x / 64);
 
     let message = {
-        type: 300,
+        type: 'TOWER_BUILD',
         data: {
-            xCoordinate: j,
-            yCoordinate: i
+            x: j,
+            y: i
         }
     };
 
@@ -126,6 +130,15 @@ function placeTurret(pointer) {
             turret.setVisible(true);
             turret.place(i, j);
         }
+    }
+}
+
+function placeTurretFromServer(j, i) {
+    var turret = turrets.get();
+    if (turret) {
+        turret.setActive(true);
+        turret.setVisible(true);
+        turret.place(i, j);
     }
 }
 

@@ -41,8 +41,9 @@ namespace uaTdServer.Hubs
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 case "TOWER_BUILD":
-                    gameState.GetMap().SetTurret((int)data.data.xCoordinate, (int)data.data.yCoordinate);
+                    gameState.AddTower((int)data.data.x, (int)data.data.y);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y)));
                     break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
@@ -57,6 +58,11 @@ namespace uaTdServer.Hubs
             messageGameState.score = gameState.GetScore();
 
             return new Message<Message_GameState>(messageType, messageGameState);
+        }
+
+        private Message<Message_Tower_Build> TowerBuildMessage(int x, int y)
+        {
+            return new Message<Message_Tower_Build>("TOWER_BUILD", new Message_Tower_Build() { x = x, y = y });
         }
     }
 }

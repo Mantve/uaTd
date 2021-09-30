@@ -7,6 +7,15 @@ namespace uaTdServer.Class
 {
     public class GameState
     {
+        private static GameState singleton;
+
+        Dictionary<string, Player> playersByUsername;
+        Dictionary<string, Player> playersByConnectionID;
+        Map Map;
+        double Money;
+        double Score;
+        List<(int, int)> Towers;
+
         private GameState()
         {
             playersByUsername = new Dictionary<string, Player>();
@@ -14,9 +23,9 @@ namespace uaTdServer.Class
             Money = 1000;
             Score = 0;
             Map = new Map("Map", 64, 1000);
+            Towers = new();
         }
 
-        private static GameState singleton;
         public static GameState Get()
         {
             if (singleton == null)
@@ -24,10 +33,6 @@ namespace uaTdServer.Class
 
             return singleton;
         }
-
-        Dictionary<string, Player> playersByUsername;
-        Dictionary<string, Player> playersByConnectionID;
-        Map Map;
 
         public Player GetPlayerByUsername(string username)
         {
@@ -58,32 +63,49 @@ namespace uaTdServer.Class
             playersByUsername[username].ConnectionIDs.Add(connectionID);
         }
 
-        double Money;
-        double Score;
-
         public double GetMoney()
         {
             return Money;
         }
+
         public void UpdateMoney(double change)
         {
             Money -= change;
         }
+
         public double GetScore()
         {
             return Score;
         }
+
         public void UpdateScore(double change)
         {
             Score -= change;
         }
+
         public List<String> GetPlayers()
         {
             return playersByUsername.Keys.ToList();
         }
+
         public Map GetMap()
         {
             return Map;
+        }
+
+        public void AddTower(int x, int y)
+        {
+            var existingTower = Towers.Any(t => t == (x, y));
+            if(!existingTower)
+            {
+                Towers.Add((x, y));
+                GetMap().SetTurret(x, y);
+            }
+        }
+
+        public List<(int, int)> GetTowers()
+        {
+            return Towers;
         }
     }
 }

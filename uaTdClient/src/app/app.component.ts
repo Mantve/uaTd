@@ -126,6 +126,10 @@ export class AppComponent implements OnInit {
 
           this.shownScreen = 'game';
           break;
+        case 'GAMESTATE_UPDATE':
+          this.money = serverMessage.data.money;
+          this.game.updateMap(serverMessage.data.map);
+          break;
         case 'CHAT_SEND':
           tempMessage = serverMessage.data;
           this.chatMessages.push(tempMessage);
@@ -133,9 +137,8 @@ export class AppComponent implements OnInit {
         case 'TOWER_PURCHASE':
           this.money -= serverMessage.data.change;
           break;
-        case 'GAMESTATE_UPDATE':
-          this.money = serverMessage.data.money;
-          this.game.updateMap(serverMessage.data.map);
+        case 'TOWER_BUILD':
+          this.game.placeTurretFromServer(serverMessage.data.x, serverMessage.data.y)
           break;
         default:
     }
