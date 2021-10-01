@@ -18,6 +18,8 @@ var config = {
 };
 
 let connection;
+var game;
+var scene: Phaser.Scene;
 
 export default class Game extends Phaser.Game {
 
@@ -25,6 +27,8 @@ export default class Game extends Phaser.Game {
         super(config);
         connection = connection1;
         map = map1;
+        game = this;
+        scene = game.scene;
     }
 
     updateMap(map1) { 
@@ -50,6 +54,7 @@ var enemies;
 var towers;
 var bullets;
 var map = [];
+var indicator;
     
 var ENEMY_SPEED = 1 / 10000;
 var BULLET_DAMAGE = 14.58;
@@ -93,6 +98,8 @@ function create() {
     bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
     this.physics.add.overlap(enemies, bullets, damageEnemy);
 
+    indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
+    this.children.add(indicator);
 }
 
 function damageEnemy(enemy, bullet) {
@@ -170,6 +177,9 @@ function placeTowerFromServer(j, i) {
 }
 
 function canPlaceTower(i, j) {
+    if(!map || map.length == 0 || map[i] === undefined || map[i][j] === undefined)
+        return false;
+
     return map[i][j] === 0;
 }
 
@@ -186,6 +196,18 @@ function update(time, delta) {
 
             this.nextEnemy = time + 2000;
         }
+    }
+
+    let ix = Math.floor(this.input.activePointer.x / 64);
+    let iy = Math.floor(this.input.activePointer.y / 64);
+
+    indicator.x = ix * 64 + 32;
+    indicator.y = iy * 64 + 32;
+    if(!canPlaceTower(iy, ix)) {
+        indicator.fillColor = 0xff0000;
+    }
+    else {
+        indicator.fillColor = 0x00ff00;
     }
 }
 
@@ -252,6 +274,7 @@ class Tower extends Phaser.GameObjects.Image {
         this.x = j * 64 + 64 / 2;
         map[i][j] = 1;
     }
+
     fire() {
         var enemy = getEnemy(this.x, this.y, 100);
         if (enemy) {
@@ -260,6 +283,7 @@ class Tower extends Phaser.GameObjects.Image {
             this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
         }
     }
+
     update(time, delta) {
         if (time > this.nextTic) {
             this.fire();

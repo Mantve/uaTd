@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
         price: 150
     },
     {
-        name: 'Strawberry Milk',
+        name: 'Berry Milk',
         price: 125
     },
     {
@@ -109,7 +109,7 @@ export class AppComponent implements OnInit {
         case 'JOIN':
           tempMessage = {
             username: "Server",
-            text: serverMessage.data.username + " has joined the game"
+            text: serverMessage.data.username + " prisijungė prie žaidimo"
           };
           this.chatMessages.push(tempMessage);
           break;
@@ -121,7 +121,7 @@ export class AppComponent implements OnInit {
           this.game.populateMapWithTowers();
           tempMessage = {
             username: "Server",
-            text: "You have joined the game"
+            text: "Prisijungei prie žaidimo"
           };
           this.chatMessages.push(tempMessage);
 

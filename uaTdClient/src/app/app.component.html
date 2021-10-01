@@ -25,7 +25,7 @@
       </div>
       <div class="game-sidebar">
           <div class="game-towers">
-              <div class="title">Purchase Towers</div>
+              <div class="title">Bokšteliai</div>
               <div class="towers-grid" id="towers-store">
                 <button class="item" *ngFor="let tower of storeTowers; index as i" (click)="purchase(i)">
                   <div class="item-title">{{tower.name}}</div>
@@ -39,7 +39,7 @@
           <div class="game-chat">
             <div class="chat-message" *ngFor="let msg of chatMessages" [ngClass]="msg.username == username ? 'my-message' : ''">
               <div class="message" *ngIf="msg.username != 'Server'">
-                <div class="author"><b>From</b> {{msg.username}}</div>
+                <div class="author"><b>Nuo</b> {{msg.username}}</div>
                 <span>{{msg.text}}</span>
               </div>
               <div *ngIf="msg.username == 'Server'" class="message-new-player">{{msg.text}}</div>
