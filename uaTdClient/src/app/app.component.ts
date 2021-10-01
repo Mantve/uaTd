@@ -23,34 +23,34 @@ export class AppComponent implements OnInit {
   money: number = 1000;
   game: any;
   initFlag: boolean = false;
-  
+
   storeTowers = [
     {
-        name: 'Spicy Milk',
-        price: 100
+      name: 'Spicy Milk',
+      price: 100
     },
     {
-        name: 'Banana Milk',
-        price: 85
+      name: 'Banana Milk',
+      price: 85
     },
     {
-        name: 'Choco Milk',
-        price: 150
+      name: 'Choco Milk',
+      price: 150
     },
     {
-        name: 'Berry Milk',
-        price: 125
+      name: 'Berry Milk',
+      price: 125
     },
     {
-        name: 'Almond Milk',
-        price: 50
+      name: 'Almond Milk',
+      price: 50
     }
-]
+  ]
 
   constructor() {
     this.connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:5001/hub")
-    .build();
+      .withUrl("https://localhost:5001/hub")
+      .build();
 
     this.connection.start().catch(err => document.write(err));
 
@@ -60,7 +60,7 @@ export class AppComponent implements OnInit {
       this.processServerMessage(data);
     });
   }
-  
+
   ngOnInit(): void {
     this.game = new Game(this.connection, [])
   }
@@ -84,14 +84,14 @@ export class AppComponent implements OnInit {
   }
 
   sendChat() {
-    if(this.message.length == 0) 
+    if (this.message.length == 0)
       return;
 
     let message = {
       type: 'CHAT_SEND',
       data: {
-          username: this.username,
-          text: this.message
+        username: this.username,
+        text: this.message
       }
     };
 
@@ -106,42 +106,42 @@ export class AppComponent implements OnInit {
     let tempMessage;
 
     switch (serverMessage.type) {
-        case 'JOIN':
-          tempMessage = {
-            username: "Server",
-            text: serverMessage.data.username + " prisijungė prie žaidimo"
-          };
-          this.chatMessages.push(tempMessage);
-          break;
-        case 'GAMESTATE_INIT':
-          //this.loadGame(serverMessage.data.map);
-          //this.initFlag = true;
-          this.money = serverMessage.data.money;
-          this.game.updateMap(serverMessage.data.map);
-          this.game.populateMapWithTowers();
-          tempMessage = {
-            username: "Server",
-            text: "Prisijungei prie žaidimo"
-          };
-          this.chatMessages.push(tempMessage);
+      case 'JOIN':
+        tempMessage = {
+          username: "Server",
+          text: serverMessage.data.username + " prisijungė prie žaidimo"
+        };
+        this.chatMessages.push(tempMessage);
+        break;
+      case 'GAMESTATE_INIT':
+        //this.loadGame(serverMessage.data.map);
+        //this.initFlag = true;
+        this.money = serverMessage.data.money;
+        this.game.updateMap(serverMessage.data.map);
+        this.game.populateMapWithTowers();
+        tempMessage = {
+          username: "Server",
+          text: "Prisijungei prie žaidimo"
+        };
+        this.chatMessages.push(tempMessage);
 
-          this.shownScreen = 'game';
-          break;
-        case 'GAMESTATE_UPDATE':
-          this.money = serverMessage.data.money;
-          this.game.updateMap(serverMessage.data.map);
-          break;
-        case 'CHAT_SEND':
-          tempMessage = serverMessage.data;
-          this.chatMessages.push(tempMessage);
-          break;
-        case 'TOWER_PURCHASE':
-          this.money -= serverMessage.data.change;
-          break;
-        case 'TOWER_BUILD':
-          this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y)
-          break;
-        default:
+        this.shownScreen = 'game';
+        break;
+      case 'GAMESTATE_UPDATE':
+        this.money = serverMessage.data.money;
+        this.game.updateMap(serverMessage.data.map);
+        break;
+      case 'CHAT_SEND':
+        tempMessage = serverMessage.data;
+        this.chatMessages.push(tempMessage);
+        break;
+      case 'TOWER_PURCHASE':
+        this.money -= serverMessage.data.change;
+        break;
+      case 'TOWER_BUILD':
+        this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y)
+        break;
+      default:
     }
   }
 
@@ -149,7 +149,7 @@ export class AppComponent implements OnInit {
     let message = {
       type: 'TOWER_PURCHASE',
       data: {
-          change: this.storeTowers[i].price
+        change: this.storeTowers[i].price
       }
     };
 

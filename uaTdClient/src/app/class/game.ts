@@ -31,7 +31,7 @@ export default class Game extends Phaser.Game {
         scene = game.scene;
     }
 
-    updateMap(map1) { 
+    updateMap(map1) {
         map = map1;
     }
 
@@ -55,7 +55,7 @@ var towers;
 var bullets;
 var map = [];
 var indicator;
-    
+
 var ENEMY_SPEED = 1 / 10000;
 var BULLET_DAMAGE = 14.58;
 
@@ -136,7 +136,7 @@ function getEnemy(x, y, distance) {
 function populateMapWithTowers() {
     map.forEach((row, j) => {
         row.forEach((col, i) => {
-            if(row[i] === 1) {
+            if (row[i] === 1) {
                 placeTowerFromServer(i, j);
             }
         });
@@ -148,7 +148,7 @@ function placeTower(pointer) {
     var j = Math.floor(pointer.x / 64);
 
     if (canPlaceTower(i, j)) {
-    
+
         let message = {
             type: 'TOWER_BUILD',
             data: {
@@ -156,7 +156,7 @@ function placeTower(pointer) {
                 y: i
             }
         };
-    
+
         connection.send('clientMessage', JSON.stringify(message));
     }
 
@@ -180,7 +180,7 @@ function placeTowerFromServer(j, i) {
 }
 
 function canPlaceTower(i, j) {
-    if(!map || map.length == 0 || map[i] === undefined || map[i][j] === undefined)
+    if (!map || map.length == 0 || map[i] === undefined || map[i][j] === undefined)
         return false;
 
     return map[i][j] === 0;
@@ -206,7 +206,7 @@ function update(time, delta) {
 
     indicator.x = ix * 64 + 32;
     indicator.y = iy * 64 + 32;
-    if(!canPlaceTower(iy, ix)) {
+    if (!canPlaceTower(iy, ix)) {
         indicator.fillColor = 0xff0000;
     }
     else {

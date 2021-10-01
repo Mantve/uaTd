@@ -1,58 +1,66 @@
 <div class="game-container">
   <div class="screen meet-screen" [ngClass]="shownScreen == 'meet' ? 'shown' : ''">
-      <div class="meet-form">
-          <form (submit)="join()">
-            <label for="username">Įveskite slapyvardį</label>
-            <input [(ngModel)]="username" [ngModelOptions]="{standalone: true}">
-            <button type="submit">Jungtis</button>
-          </form>
-      </div>
+    <div class="meet-form">
+      <form (submit)="join()">
+        <label for="username">Įveskite slapyvardį</label>
+        <input [(ngModel)]="username" [ngModelOptions]="{standalone: true}">
+        <button type="submit">Jungtis</button>
+      </form>
+    </div>
   </div>
   <div class="screen game-screen" [ngClass]="shownScreen == 'game' ? 'shown' : ''">
+    <div class="game-stack">
       <div class="game-window">
-          <div id="content"></div>
-          <div class="header">
-              <div id="player-name">{{username}}</div>
-              <div id="cash-balance">{{money}} Pinigų</div>
+        <div id="content"></div>
+        <div class="header">
+          <div id="player-name">{{username}}</div>
+          <div id="cash-balance">{{money}} Pinigų</div>
+        </div>
+        <div class="footer">
+          <div class="left"></div>
+          <div class="start">
+            <button>Pradėti Žaidimą</button>
           </div>
-          <div class="footer">
-            <div class="left"></div>
-            <div class="start">
-              <button>Pradėti Žaidimą</button>
-            </div>
-            <div class="right"></div>
-          </div>
+          <div class="right"></div>
+        </div>
       </div>
-      <div class="game-sidebar">
-          <div class="game-towers">
-              <div class="title">Bokšteliai</div>
-              <div class="towers-grid" id="towers-store">
-                <button class="item" *ngFor="let tower of storeTowers; index as i" (click)="purchase(i)">
-                  <div class="item-title">{{tower.name}}</div>
-                  <div><span>{{tower.price}} P</span></div>
-                  <div class="preview">
-                    <img src="./assets/milk.png" alt="" draggable="false">
-                  </div>
-                </button>
-              </div>
-          </div>
-          <div class="game-chat">
-            <div class="chat-message" *ngFor="let msg of chatMessages" [ngClass]="msg.username == username ? 'my-message' : ''">
-              <div class="message" *ngIf="msg.username != 'Server'">
-                <div class="author"><b>Nuo</b> {{msg.username}}</div>
-                <span>{{msg.text}}</span>
-              </div>
-              <div *ngIf="msg.username == 'Server'" class="message-new-player">{{msg.text}}</div>
-            </div>
-          </div>
-          <div class="chat-form">
-            <form (submit)="sendChat()">
-              <textarea placeholder="Nauja žinutė..." [(ngModel)]="message" [ngModelOptions]="{standalone: true}"></textarea>
-              <button type="submit" *ngIf="message.length > 0">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </form>
-          </div>
+      <div class="game-info">
+        <div class="left"><b>Roundas</b> 1 / 10</div>
+        <div class="right">100 <b>Gyvybių</b></div>
       </div>
+    </div>
+    <div class="game-sidebar">
+      <div class="game-towers">
+        <div class="title">Bokšteliai</div>
+        <div class="towers-grid" id="towers-store">
+          <button class="item" *ngFor="let tower of storeTowers; index as i" (click)="purchase(i)">
+            <div class="item-title">{{tower.name}}</div>
+            <div><span>{{tower.price}} P</span></div>
+            <div class="preview">
+              <img src="./assets/milk.png" alt="" draggable="false">
+            </div>
+          </button>
+        </div>
+      </div>
+      <div class="game-chat">
+        <div class="chat-message" *ngFor="let msg of chatMessages"
+          [ngClass]="msg.username == username ? 'my-message' : ''">
+          <div class="message" *ngIf="msg.username != 'Server'">
+            <div class="author"><b>Nuo</b> {{msg.username}}</div>
+            <span>{{msg.text}}</span>
+          </div>
+          <div *ngIf="msg.username == 'Server'" class="message-new-player">{{msg.text}}</div>
+        </div>
+      </div>
+      <div class="chat-form">
+        <form (submit)="sendChat()">
+          <textarea placeholder="Nauja žinutė..." [(ngModel)]="message"
+            [ngModelOptions]="{standalone: true}"></textarea>
+          <button type="submit" *ngIf="message.length > 0">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
