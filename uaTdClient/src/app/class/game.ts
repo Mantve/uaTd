@@ -63,9 +63,12 @@ function preload() {
     // load the game assets – enemy and tower atlas
     this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
     this.load.image('bullet', 'assets/bullet.png');
+    this.load.image('map', 'assets/map.png');
 }
 
 function create() {
+    let map = new Phaser.GameObjects.Image(this, this.game.config.width / 2, this.game.config.height / 2, 'map');
+    this.children.add(map); // https://blurymind.github.io/tilemap-editor/
     // this graphics element is only for visualization, 
     // its not related to our path
     var graphics = this.add.graphics();
@@ -330,7 +333,7 @@ class Bullet extends Phaser.GameObjects.Image {
 };
 
 function drawGrid(graphics) {
-    graphics.lineStyle(1, 0x0000ff, 0.8);
+    graphics.lineStyle(1, 0xffffff, 0.15);
     for (var i = 0; i <= config.width / 64; i++) {
         graphics.moveTo(i * 64, 0);
         graphics.lineTo(i * 64, config.height);
