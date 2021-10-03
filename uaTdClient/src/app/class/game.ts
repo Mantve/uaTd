@@ -18,6 +18,8 @@ var config = {
 };
 
 let connection;
+var game;
+var scene: Phaser.Scene;
 
 export default class Game extends Phaser.Game {
 
@@ -25,9 +27,11 @@ export default class Game extends Phaser.Game {
         super(config);
         connection = connection1;
         map = map1;
+        game = this;
+        scene = game.scene;
     }
 
-    updateMap(map1) { 
+    updateMap(map1) {
         map = map1;
     }
 
@@ -50,7 +54,8 @@ var enemies;
 var towers;
 var bullets;
 var map = [];
-    
+var indicator;
+
 var ENEMY_SPEED = 1 / 10000;
 var BULLET_DAMAGE = 14.58;
 
@@ -58,9 +63,12 @@ function preload() {
     // load the game assets – enemy and tower atlas
     this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
     this.load.image('bullet', 'assets/bullet.png');
+    this.load.image('map', 'assets/map.png');
 }
 
 function create() {
+    let map = new Phaser.GameObjects.Image(this, this.game.config.width / 2, this.game.config.height / 2, 'map');
+    this.children.add(map); // https://blurymind.github.io/tilemap-editor/
     // this graphics element is only for visualization, 
     // its not related to our path
     var graphics = this.add.graphics();
@@ -93,6 +101,8 @@ function create() {
     bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
     this.physics.add.overlap(enemies, bullets, damageEnemy);
 
+    indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
+    this.children.add(indicator);
 }
 
 function damageEnemy(enemy, bullet) {
@@ -126,7 +136,7 @@ function getEnemy(x, y, distance) {
 function populateMapWithTowers() {
     map.forEach((row, j) => {
         row.forEach((col, i) => {
-            if(row[i] === 1) {
+            if (row[i] === 1) {
                 placeTowerFromServer(i, j);
             }
         });
@@ -138,7 +148,7 @@ function placeTower(pointer) {
     var j = Math.floor(pointer.x / 64);
 
     if (canPlaceTower(i, j)) {
-    
+
         let message = {
             type: 'TOWER_BUILD',
             data: {
@@ -146,7 +156,7 @@ function placeTower(pointer) {
                 y: i
             }
         };
-    
+
         connection.send('clientMessage', JSON.stringify(message));
     }
 
@@ -170,6 +180,9 @@ function placeTowerFromServer(j, i) {
 }
 
 function canPlaceTower(i, j) {
+    if (!map || map.length == 0 || map[i] === undefined || map[i][j] === undefined)
+        return false;
+
     return map[i][j] === 0;
 }
 
@@ -186,6 +199,18 @@ function update(time, delta) {
 
             this.nextEnemy = time + 2000;
         }
+    }
+
+    let ix = Math.floor(this.input.activePointer.x / 64);
+    let iy = Math.floor(this.input.activePointer.y / 64);
+
+    indicator.x = ix * 64 + 32;
+    indicator.y = iy * 64 + 32;
+    if (!canPlaceTower(iy, ix)) {
+        indicator.fillColor = 0xff0000;
+    }
+    else {
+        indicator.fillColor = 0x00ff00;
     }
 }
 
@@ -252,6 +277,7 @@ class Tower extends Phaser.GameObjects.Image {
         this.x = j * 64 + 64 / 2;
         map[i][j] = 1;
     }
+
     fire() {
         var enemy = getEnemy(this.x, this.y, 100);
         if (enemy) {
@@ -260,6 +286,7 @@ class Tower extends Phaser.GameObjects.Image {
             this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
         }
     }
+
     update(time, delta) {
         if (time > this.nextTic) {
             this.fire();
@@ -306,7 +333,7 @@ class Bullet extends Phaser.GameObjects.Image {
 };
 
 function drawGrid(graphics) {
-    graphics.lineStyle(1, 0x0000ff, 0.8);
+    graphics.lineStyle(1, 0xffffff, 0.15);
     for (var i = 0; i <= config.width / 64; i++) {
         graphics.moveTo(i * 64, 0);
         graphics.lineTo(i * 64, config.height);
