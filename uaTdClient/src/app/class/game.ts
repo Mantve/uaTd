@@ -1,5 +1,11 @@
 import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 import * as Phaser from 'phaser';
+import { constants } from './_constants';
+import Bacteria from './enemy';
+import Tower from './tower';
+import Bullet from './bullet';
+import { BigObstacleFactory, MediumObstacleFactory, Obstacle, SmallObstacleFactory } from './obstacle';
+import BacteriaCreator from './enemy';
 
 var config = {
     type: Phaser.AUTO,
@@ -53,11 +59,9 @@ var path;
 var enemies;
 var towers;
 var bullets;
+var obstacles;
 var map = [];
 var indicator;
-
-var ENEMY_SPEED = 1 / 10000;
-var BULLET_DAMAGE = 14.58;
 
 function preload() {
     // load the game assets – enemy and tower atlas
@@ -94,12 +98,13 @@ function create() {
     // visualize the path
     path.draw(graphics);
 
-    enemies = this.physics.add.group({ classType: Enemy, runChildUpdate: true });
+    enemies = this.physics.add.group({ classType: Bacteria, runChildUpdate: true });
     this.nextEnemy = 0;
     towers = this.add.group({ classType: Tower, runChildUpdate: true });
     this.input.on('pointerdown', placeTower);
     bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
     this.physics.add.overlap(enemies, bullets, damageEnemy);
+    obstacles = this.add.group({ classType: Obstacle, runChildUpdate: true });
 
     indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
     this.children.add(indicator);
@@ -113,24 +118,8 @@ function damageEnemy(enemy, bullet) {
         bullet.setVisible(false);
 
         // decrease the enemy hp with BULLET_DAMAGE
-        enemy.receiveDamage(BULLET_DAMAGE);
+        enemy.receiveDamage(constants.BULLET_DAMAGE);
     }
-}
-
-function addBullet(x, y, angle) {
-    var bullet = bullets.get();
-    if (bullet) {
-        bullet.fire(x, y, angle);
-    }
-}
-
-function getEnemy(x, y, distance) {
-    var enemyUnits = enemies.getChildren();
-    for (var i = 0; i < enemyUnits.length; i++) {
-        if (enemyUnits[i].active && Phaser.Math.Distance.Between(x, y, enemyUnits[i].x, enemyUnits[i].y) <= distance)
-            return enemyUnits[i];
-    }
-    return false;
 }
 
 function populateMapWithTowers() {
@@ -138,6 +127,9 @@ function populateMapWithTowers() {
         row.forEach((col, i) => {
             if (row[i] === 1) {
                 placeTowerFromServer(i, j);
+            }
+            else if (row[i] === -2) {
+                placeObstacleFromServer(i, j, row[i]);
             }
         });
     })
@@ -173,6 +165,7 @@ function placeTower(pointer) {
 function placeTowerFromServer(j, i) {
     var tower = towers.get();
     if (tower) {
+        tower.setGameData(enemies, bullets, map);
         tower.setActive(true);
         tower.setVisible(true);
         tower.place(i, j);
@@ -186,18 +179,70 @@ function canPlaceTower(i, j) {
     return map[i][j] === 0;
 }
 
+function placeObstacleFromServer(j, i, type) {
+    var smallObstacleFactory = new SmallObstacleFactory();
+    var mediumObstacleFactory = new MediumObstacleFactory();
+    var bigObstacleFactory = new BigObstacleFactory();
+    var obstacle;
+
+    console.log(j, i, type);
+
+    switch(type) {
+        case -2: {
+            obstacle = smallObstacleFactory.createPlantObstacle(this);
+            break;
+        }
+        case -3: {
+            obstacle = mediumObstacleFactory.createPlantObstacle(this);
+            break;
+        }
+        case -4: {
+            obstacle = bigObstacleFactory.createPlantObstacle(this);
+            break;
+        }
+        case -5: {
+            obstacle = smallObstacleFactory.createRockObstacle(this);
+            break;
+        }
+        case -6: {
+            obstacle = mediumObstacleFactory.createRockObstacle(this);
+            break;
+        }
+        case -7: {
+            obstacle = bigObstacleFactory.createRockObstacle(this);
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
+    if (obstacle) {
+        obstacle.setActive(true);
+        obstacle.setVisible(true);
+        obstacle.place(i, j);
+        obstacles.add(obstacle);
+        this.children.add(obstacle);
+    }
+}
+
 function update(time, delta) {
     // if its time for the next enemy
     if (time > this.nextEnemy) {
-        var enemy = enemies.get();
+        var enemy = new BacteriaCreator().createBacteria(this);
+        //var enemy = enemies.get();
         if (enemy) {
+            enemy.setPath(path);
             enemy.setActive(true);
             enemy.setVisible(true);
-
+            
             // place the enemy at the start of the path
             enemy.startOnPath();
-
+            
             this.nextEnemy = time + 2000;
+
+            enemies.add(enemy);
+            this.children.add(enemy);
         }
     }
 
@@ -213,124 +258,6 @@ function update(time, delta) {
         indicator.fillColor = 0x00ff00;
     }
 }
-
-class Enemy extends Phaser.GameObjects.Image {
-    follower;
-    hp;
-
-    constructor(scene) {
-        super(scene, 0, 0, 'sprites', 'enemy');
-        this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
-    }
-
-    update(time, delta) {
-        // move the t point along the path, 0 is the start and 0 is the end
-        this.follower.t += ENEMY_SPEED * delta;
-
-        // get the new x and y coordinates in vec
-        path.getPoint(this.follower.t, this.follower.vec);
-
-        // update enemy x and y to the newly obtained x and y
-        this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        // if we have reached the end of the path, remove the enemy
-        if (this.follower.t >= 1) {
-            this.setActive(false);
-            this.setVisible(false);
-        }
-    }
-
-    startOnPath() {
-        // set the t parameter at the start of the path
-        this.follower.t = 0;
-
-        // get x and y of the given t point            
-        path.getPoint(this.follower.t, this.follower.vec);
-
-        // set the x and y of our enemy to the received from the previous step
-        this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        this.hp = 100;
-
-    }
-
-    receiveDamage(damage) {
-        this.hp -= damage;
-
-        // if hp drops below 0 we deactivate this enemy
-        if (this.hp <= 0) {
-            this.setActive(false);
-            this.setVisible(false);
-        }
-    }
-};
-
-class Tower extends Phaser.GameObjects.Image {
-    nextTic;
-
-    constructor(scene) {
-        super(scene, 0, 0, 'sprites', 'tower');
-        this.nextTic = 0;
-    }
-
-    // we will place the tower according to the grid
-    place(i, j) {
-        this.y = i * 64 + 64 / 2;
-        this.x = j * 64 + 64 / 2;
-        map[i][j] = 1;
-    }
-
-    fire() {
-        var enemy = getEnemy(this.x, this.y, 100);
-        if (enemy) {
-            var angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
-            addBullet(this.x, this.y, angle);
-            this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
-        }
-    }
-
-    update(time, delta) {
-        if (time > this.nextTic) {
-            this.fire();
-            this.nextTic = time + 1000;
-        }
-    }
-};
-
-class Bullet extends Phaser.GameObjects.Image {
-    dx;
-    dy;
-    lifespan;
-    speed;
-
-    constructor(scene) {
-        super(scene, 0, 0, 'bullet');
-        this.dx = 0;
-        this.dy = 0;
-        this.lifespan = 0;
-        this.speed = Phaser.Math.GetSpeed(600, 1);
-    }
-
-    fire(x, y, angle) {
-        this.setActive(true);
-        this.setVisible(true);
-        //  Bullets fire from the middle of the screen to the given x/y
-        this.setPosition(x, y);
-        //  we don't need to rotate the bullets as they are round
-        //  this.setRotation(angle);
-        this.dx = Math.cos(angle);
-        this.dy = Math.sin(angle);
-        this.lifespan = 300;
-    }
-
-    update(time, delta) {
-        this.lifespan -= delta;
-        this.x += this.dx * (this.speed * delta);
-        this.y += this.dy * (this.speed * delta);
-        if (this.lifespan <= 0) {
-            this.setActive(false);
-            this.setVisible(false);
-        }
-    }
-};
 
 function drawGrid(graphics) {
     graphics.lineStyle(1, 0xffffff, 0.15);
