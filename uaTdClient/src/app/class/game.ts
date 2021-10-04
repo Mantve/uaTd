@@ -206,7 +206,7 @@ function placeObstacleFromServer(scene, j, i, type) {
             break;
         }
         case -4: {
-            let bpo = mediumObstacleFactory.createPlantObstacle(scene);
+            let bpo = bigObstacleFactory.createPlantObstacle(scene);
             if (bpo) {
                 bpo.setActive(true);
                 bpo.setVisible(true);
