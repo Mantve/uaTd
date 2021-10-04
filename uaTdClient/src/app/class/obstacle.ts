@@ -1,20 +1,8 @@
 import * as Phaser from 'phaser';
 
 export abstract class Obstacle extends Phaser.GameObjects.Image {
-    positionX;
-    positionY;
-
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
-    }
-
-    // we will place the obstacle according to the grid
-    place(i, j) {
-        this.y = i * 64 + 64 / 2;
-        this.x = j * 64 + 64 / 2;
-    }
-
-    update(time, delta) {
     }
 };
 
@@ -34,11 +22,27 @@ export class SmallPlant extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'small_plant');
     }
+
+    place(i, j) {
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
+    }
+
+    update(time, delta) {
+    }
 }
 
 export class MediumPlant extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'medium_plant');
+    }
+
+    place(i, j) {
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
+    }
+
+    update(time, delta) {
     }
 }
 
@@ -46,11 +50,27 @@ export class BigPlant extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'big_plant');
     }
+
+    place(i, j) {
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
+    }
+
+    update(time, delta) {
+    }
 }
 
 export class SmallRock extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'small_rock');
+    }
+
+    place(i, j) {
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
+    }
+
+    update(time, delta) {
     }
 }
 
@@ -58,11 +78,27 @@ export class MediumRock extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'medium_rock');
     }
+
+    place(i, j) {
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
+    }
+
+    update(time, delta) {
+    }
 }
 
 export class BigRock extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'big_rock');
+    }
+
+    place(i, j) {
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
+    }
+
+    update(time, delta) {
     }
 }
 

@@ -25,7 +25,6 @@ var config = {
 
 let connection;
 var game;
-var scene: Phaser.Scene;
 
 export default class Game extends Phaser.Game {
 
@@ -34,7 +33,6 @@ export default class Game extends Phaser.Game {
         connection = connection1;
         map = map1;
         game = this;
-        scene = game.scene;
     }
 
     updateMap(map1) {
@@ -50,7 +48,7 @@ export default class Game extends Phaser.Game {
     }
 
     populateMapWithTowers() {
-        return populateMapWithTowers();
+        return populateMapWithTowers(this.scene.scenes[0]);
     };
 }
 
@@ -122,14 +120,14 @@ function damageEnemy(enemy, bullet) {
     }
 }
 
-function populateMapWithTowers() {
+function populateMapWithTowers(scene) {
     map.forEach((row, j) => {
         row.forEach((col, i) => {
             if (row[i] === 1) {
                 placeTowerFromServer(i, j);
             }
-            else if (row[i] === -2) {
-                placeObstacleFromServer(i, j, row[i]);
+            else if ([-2, -3, -4, -5, -6, -7].includes(row[i])) {
+                placeObstacleFromServer(scene, i, j, row[i]);
             }
         });
     })
@@ -179,37 +177,76 @@ function canPlaceTower(i, j) {
     return map[i][j] === 0;
 }
 
-function placeObstacleFromServer(j, i, type) {
+function placeObstacleFromServer(scene, j, i, type) {
     var smallObstacleFactory = new SmallObstacleFactory();
     var mediumObstacleFactory = new MediumObstacleFactory();
     var bigObstacleFactory = new BigObstacleFactory();
-    var obstacle;
-
-    console.log(j, i, type);
 
     switch(type) {
         case -2: {
-            obstacle = smallObstacleFactory.createPlantObstacle(this);
+            let spo = smallObstacleFactory.createPlantObstacle(scene);
+            if (spo) {
+                spo.setActive(true);
+                spo.setVisible(true);
+                spo.place(i, j);
+                obstacles.add(spo);
+                scene.children.add(spo);
+            }
             break;
         }
         case -3: {
-            obstacle = mediumObstacleFactory.createPlantObstacle(this);
+            let mpo = mediumObstacleFactory.createPlantObstacle(scene);
+            if (mpo) {
+                mpo.setActive(true);
+                mpo.setVisible(true);
+                mpo.place(i, j);
+                obstacles.add(mpo);
+                scene.children.add(mpo);
+            }
             break;
         }
         case -4: {
-            obstacle = bigObstacleFactory.createPlantObstacle(this);
+            let bpo = mediumObstacleFactory.createPlantObstacle(scene);
+            if (bpo) {
+                bpo.setActive(true);
+                bpo.setVisible(true);
+                bpo.place(i, j);
+                obstacles.add(bpo);
+                scene.children.add(bpo);
+            }
             break;
         }
         case -5: {
-            obstacle = smallObstacleFactory.createRockObstacle(this);
+            let smo = smallObstacleFactory.createRockObstacle(scene);
+            if (smo) {
+                smo.setActive(true);
+                smo.setVisible(true);
+                smo.place(i, j);
+                obstacles.add(smo);
+                scene.children.add(smo);
+            }
             break;
         }
         case -6: {
-            obstacle = mediumObstacleFactory.createRockObstacle(this);
+            let mmo = mediumObstacleFactory.createRockObstacle(scene);
+            if (mmo) {
+                mmo.setActive(true);
+                mmo.setVisible(true);
+                mmo.place(i, j);
+                obstacles.add(mmo);
+                scene.children.add(mmo);
+            }
             break;
         }
         case -7: {
-            obstacle = bigObstacleFactory.createRockObstacle(this);
+            let bmo = bigObstacleFactory.createRockObstacle(scene);
+            if (bmo) {
+                bmo.setActive(true);
+                bmo.setVisible(true);
+                bmo.place(i, j);
+                obstacles.add(bmo);
+                scene.children.add(bmo);
+            }
             break;
         }
         default: {
@@ -217,13 +254,14 @@ function placeObstacleFromServer(j, i, type) {
         }
     }
 
+    /*
     if (obstacle) {
         obstacle.setActive(true);
         obstacle.setVisible(true);
         obstacle.place(i, j);
         obstacles.add(obstacle);
         this.children.add(obstacle);
-    }
+    }*/
 }
 
 function update(time, delta) {
