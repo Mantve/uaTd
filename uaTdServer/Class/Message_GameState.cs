@@ -9,6 +9,7 @@ namespace uaTdServer.Class
     {
         public double money { get; set; }
         public double score { get; set; }
+        public int health { get; set; }
         public List<string> players { get; set; }
         public int[,] map { get; set; }
     }

@@ -45,6 +45,10 @@ namespace uaTdServer.Hubs
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y)));
                     break;
+                case "HEALTH_UPDATE":
+                    gameState.UpdateHealth((int)data.data.change);
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
@@ -56,6 +60,7 @@ namespace uaTdServer.Hubs
             messageGameState.map = gameState.GetMap().map;
             messageGameState.money = gameState.GetMoney();
             messageGameState.score = gameState.GetScore();
+            messageGameState.health = gameState.GetHealth();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }

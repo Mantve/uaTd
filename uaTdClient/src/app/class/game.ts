@@ -39,6 +39,10 @@ export default class Game extends Phaser.Game {
         map = map1;
     }
 
+    runEnemies() {
+        runEnemies = true;
+    }
+
     printMap() {
         console.log(map)
     }
@@ -60,6 +64,9 @@ var bullets;
 var obstacles;
 var map = [];
 var indicator;
+var finTile;
+var runEnemies: boolean = false;
+var eType = 0;
 
 function preload() {
     // load the game assets – enemy and tower atlas
@@ -106,6 +113,13 @@ function create() {
 
     indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
     this.children.add(indicator);
+    
+    finTile = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
+    let ft = new Phaser.GameObjects.Rectangle(this, 64 * 11 - 32, 64 * 11, 64, 64, 0xff0000, 0.25);
+    ft.setActive(true);
+    ft.setVisible(true);
+    finTile.add(ft);
+    this.physics.add.overlap(enemies, finTile, updateHealth);
 }
 
 function damageEnemy(enemy, bullet) {
@@ -117,6 +131,24 @@ function damageEnemy(enemy, bullet) {
 
         // decrease the enemy hp with BULLET_DAMAGE
         enemy.receiveDamage(constants.BULLET_DAMAGE);
+    }
+}
+
+function updateHealth(enemy, finTile) {
+    // only if both enemy and bullet are alive
+    if (enemy.active === true && finTile.active === true) {
+        // we remove the bullet right away
+        enemy.setActive(false);
+        enemy.setVisible(false);
+
+        let message = {
+            type: 'HEALTH_UPDATE',
+            data: {
+                change: Math.floor(enemy.hp)
+            }
+        };
+
+        connection.send('clientMessage', JSON.stringify(message));
     }
 }
 
@@ -149,15 +181,6 @@ function placeTower(pointer) {
 
         connection.send('clientMessage', JSON.stringify(message));
     }
-
-    /*if (canPlaceTower(i, j)) {
-        var tower = towers.get();
-        if (tower) {
-            tower.setActive(true);
-            tower.setVisible(true);
-            tower.place(i, j);
-        }
-    }*/
 }
 
 function placeTowerFromServer(j, i) {
@@ -253,21 +276,21 @@ function placeObstacleFromServer(scene, j, i, type) {
             break;
         }
     }
-
-    /*
-    if (obstacle) {
-        obstacle.setActive(true);
-        obstacle.setVisible(true);
-        obstacle.place(i, j);
-        obstacles.add(obstacle);
-        this.children.add(obstacle);
-    }*/
 }
 
 function update(time, delta) {
     // if its time for the next enemy
-    if (time > this.nextEnemy) {
-        var enemy = new BacteriaCreator().createBacteria(this);
+    if (runEnemies && time > this.nextEnemy) {
+
+        var enemy;
+        if(eType === 0) {
+            enemy = new BacteriaCreator().createBacteriaBlue(this);
+            eType = 1;
+        }
+        else {
+            enemy = new BacteriaCreator().createBacteriaPink(this);
+            eType = 0;
+        }
         //var enemy = enemies.get();
         if (enemy) {
             enemy.setPath(path);

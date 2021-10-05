@@ -14,6 +14,7 @@ namespace uaTdServer.Class
         Map Map;
         double Money;
         double Score;
+        int Health;
         List<(int, int)> Towers;
 
         private GameState()
@@ -22,6 +23,7 @@ namespace uaTdServer.Class
             playersByConnectionID = new Dictionary<string, Player>();
             Money = 1000;
             Score = 0;
+            Health = 100;
             Map = new Map("Map", 64, 1000);
             Towers = new();
         }
@@ -81,6 +83,16 @@ namespace uaTdServer.Class
         public void UpdateScore(double change)
         {
             Score -= change;
+        }
+
+        public int GetHealth()
+        {
+            return Health;
+        }
+
+        public void UpdateHealth(int change)
+        {
+            Health -= change;
         }
 
         public List<String> GetPlayers()

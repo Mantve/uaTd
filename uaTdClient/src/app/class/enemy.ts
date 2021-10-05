@@ -7,7 +7,7 @@ class Enemy extends  Phaser.GameObjects.Image {
     }
 }
 
-export class Bacteria extends Enemy {
+export class BacteriaBlue extends Enemy {
     follower;
     hp;
     path;
@@ -61,12 +61,71 @@ export class Bacteria extends Enemy {
     }
 };
 
+export class BacteriaPink extends Enemy {
+    follower;
+    hp;
+    path;
+
+    constructor(scene) {
+        super(scene, 0, 0, 'sprites', 'enemy_pink');
+        this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
+    }
+
+    setPath(path) {
+        this.path = path;
+    }
+
+    update(time, delta) {
+        // move the t point along the path, 0 is the start and 0 is the end
+        this.follower.t += constants.ENEMY_SPEED * delta * 2;
+
+        // get the new x and y coordinates in vec
+        this.path.getPoint(this.follower.t, this.follower.vec);
+
+        // update enemy x and y to the newly obtained x and y
+        this.setPosition(this.follower.vec.x, this.follower.vec.y);
+        // if we have reached the end of the path, remove the enemy
+        if (this.follower.t >= 1) {
+            this.setActive(false);
+            this.setVisible(false);
+        }
+    }
+
+    startOnPath() {
+        // set the t parameter at the start of the path
+        this.follower.t = 0;
+
+        // get x and y of the given t point            
+        this.path.getPoint(this.follower.t, this.follower.vec);
+
+        // set the x and y of our enemy to the received from the previous step
+        this.setPosition(this.follower.vec.x, this.follower.vec.y);
+        this.hp = 100 * .5;
+
+    }
+
+    receiveDamage(damage) {
+        this.hp -= damage;
+
+        // if hp drops below 0 we deactivate this enemy
+        if (this.hp <= 0) {
+            this.setActive(false);
+            this.setVisible(false);
+        }
+    }
+};
+
 abstract class EnemyCreator {
-    abstract createBacteria(scene);
+    abstract createBacteriaBlue(scene);
+    abstract createBacteriaPink(scene);
 };
 
 export default class BacteriaCreator extends EnemyCreator {
-    createBacteria(scene) {
-        return new Bacteria(scene);
+    createBacteriaBlue(scene) {
+        return new BacteriaBlue(scene);
+    }
+
+    createBacteriaPink(scene) {
+        return new BacteriaPink(scene);
     }
 }

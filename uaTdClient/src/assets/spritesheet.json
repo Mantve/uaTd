@@ -73,6 +73,27 @@
 					}
 				},
 				{
+					"filename": "enemy_pink",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 64,
+						"h": 64
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 64,
+						"h": 64
+					},
+					"frame": {
+						"x": 128,
+						"y": 64,
+						"w": 64,
+						"h": 64
+					}
+				},
+				{
 					"filename": "medium_plant",
 					"rotated": false,
 					"trimmed": false,

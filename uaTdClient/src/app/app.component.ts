@@ -23,6 +23,7 @@ export class AppComponent implements OnInit {
   money: number = 1000;
   game: any;
   initFlag: boolean = false;
+  health: integer = 0;
 
   storeTowers = [
     {
@@ -118,6 +119,7 @@ export class AppComponent implements OnInit {
         //this.initFlag = true;
         this.money = serverMessage.data.money;
         this.game.updateMap(serverMessage.data.map);
+        this.health = serverMessage.data.health;
         this.game.populateMapWithTowers();
         tempMessage = {
           username: "Server",
@@ -125,11 +127,13 @@ export class AppComponent implements OnInit {
         };
         this.chatMessages.push(tempMessage);
 
+        this.game.runEnemies();
         this.shownScreen = 'game';
         break;
       case 'GAMESTATE_UPDATE':
         this.money = serverMessage.data.money;
         this.game.updateMap(serverMessage.data.map);
+        this.health = serverMessage.data.health;
         break;
       case 'CHAT_SEND':
         tempMessage = serverMessage.data;
