@@ -56,7 +56,7 @@ export default class Game extends Phaser.Game {
     }
 
     spawnNewBacterias(bacterias: Bacteria[]) {
-        return spawnNewBacterias(this.scene.scenes[0].time, bacterias);
+        return spawnNewBacterias(this.scene.scenes[0], this.scene.scenes[0].time, bacterias);
     }
 }
 
@@ -319,31 +319,26 @@ function update(time, delta) {
     }
 }
 
-function spawnNewBacterias(time, bacterias: Bacteria[]) {
+function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
     bacterias.forEach(b => {
-        spawnBacteria(time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y]);
+        spawnBacteria(scene, time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y]);
     })
 }
 
-function spawnBacteria(time, bacteriaType: number, t: number, vec: number[]) {
+function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[]) {
     console.log("SPAWNING", time, bacteriaType, t, vec)
 
     var enemy = new Enemy();
     let bacteria;
-
-    console.log('a')
+    
     if(bacteriaType == 0) {
-        console.log('b')
-        enemy.createBacteria(this, new BacteriaBlueCreator(), t, vec, bacteriaType);
-        console.log(enemy);
+        enemy.createBacteria(scene, new BacteriaBlueCreator(), t, vec, bacteriaType);
         if (enemy) {
             bacteria = enemy.bacteria;
         }
     }
     else {
-        console.log('c')
-        enemy.createBacteria(this, new BacteriaPinkCreator(), t, vec, bacteriaType);
-        console.log(enemy);
+        enemy.createBacteria(scene, new BacteriaPinkCreator(), t, vec, bacteriaType);
         if (enemy) {
             bacteria = enemy.bacteria;
         }
@@ -357,7 +352,7 @@ function spawnBacteria(time, bacteriaType: number, t: number, vec: number[]) {
         bacteria.startOnPath();
 
         enemies.add(bacteria);
-        this.children.add(bacteria);
+        scene.children.add(bacteria);
     }
 }
 
