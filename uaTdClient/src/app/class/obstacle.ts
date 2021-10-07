@@ -1,6 +1,19 @@
 import * as Phaser from 'phaser';
 
-export abstract class Obstacle extends Phaser.GameObjects.Image {
+export class Obstacle {
+    plantObstacle: PlantObstacle;
+    rockObstacle: RockObstacle;
+
+    createPlantObstacle(scene, factory: AbstractObstacleFactory) {
+        this.plantObstacle = factory.createPlantObstacle(scene);
+    }
+
+    createRockObstacle(scene, factory: AbstractObstacleFactory) {
+        this.rockObstacle = factory.createRockObstacle(scene);
+    }
+};
+
+abstract class PlantObstacle extends Phaser.GameObjects.Image {
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
     }
@@ -11,97 +24,63 @@ export abstract class Obstacle extends Phaser.GameObjects.Image {
     }
 
     update(time, delta) { }
-};
+}
 
-export abstract class PlantObstacle extends Obstacle {
+abstract class RockObstacle extends Phaser.GameObjects.Image {
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
     }
-}
 
-export abstract class RockObstacle extends Obstacle {
-    constructor(scene, x, y, spriteFile, sprite){
-        super(scene, x, y, spriteFile, sprite);
+    place(i, j) {
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
     }
+
+    update(time, delta) { }
 }
 
-export class SmallPlant extends PlantObstacle {
+class SmallPlant extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'small_plant');
     }
 }
 
-export class MediumPlant extends PlantObstacle {
+class MediumPlant extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'medium_plant');
     }
 }
 
-export class BigPlant extends PlantObstacle {
+class BigPlant extends PlantObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'big_plant');
     }
 }
 
-export class SmallRock extends PlantObstacle {
+class SmallRock extends RockObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'small_rock');
     }
 }
 
-export class MediumRock extends PlantObstacle {
+class MediumRock extends RockObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'medium_rock');
     }
 }
 
-export class BigRock extends PlantObstacle {
+class BigRock extends RockObstacle {
     constructor(scene){
         super(scene, 0, 0, 'sprites', 'big_rock');
     }
 }
 
-export class ObstacleFactory {
-    createPlantObstacle(scene, size): PlantObstacle {
-        var obstacle;
-        switch(size) {
-            case 'small': {
-                obstacle = new SmallObstacleFactory().createPlantObstacle(scene);
-                break;
-            }
-            case 'medium': {
-                obstacle = new MediumObstacleFactory().createPlantObstacle(scene);
-                break;
-            }
-            case 'big': {
-                obstacle = new BigObstacleFactory().createPlantObstacle(scene);
-                break;
-            }
-        }
-        return obstacle;
-    };
-
-    createRockObstacle(scene, size): RockObstacle {
-        var obstacle;
-        switch(size) {
-            case 'small': {
-                obstacle = new SmallObstacleFactory().createRockObstacle(scene);
-                break;
-            }
-            case 'medium': {
-                obstacle = new MediumObstacleFactory().createRockObstacle(scene);
-                break;
-            }
-            case 'big': {
-                obstacle = new BigObstacleFactory().createRockObstacle(scene);
-                break;
-            }
-        }
-        return obstacle;
-    };
+abstract class AbstractObstacleFactory {
+    abstract createPlantObstacle(scene): PlantObstacle;
+    abstract createRockObstacle(scene): RockObstacle;
 };
 
-export class SmallObstacleFactory implements ObstacleFactory {
+export class SmallObstacleFactory implements AbstractObstacleFactory {
     createPlantObstacle(scene): PlantObstacle {
         return new SmallPlant(scene);
     }
@@ -111,7 +90,7 @@ export class SmallObstacleFactory implements ObstacleFactory {
     }
 }
 
-export class MediumObstacleFactory implements ObstacleFactory {
+export class MediumObstacleFactory implements AbstractObstacleFactory {
     createPlantObstacle(scene): PlantObstacle {
         return new MediumPlant(scene);
     }
@@ -121,7 +100,7 @@ export class MediumObstacleFactory implements ObstacleFactory {
     }
 }
 
-export class BigObstacleFactory implements ObstacleFactory {
+export class BigObstacleFactory implements AbstractObstacleFactory {
     createPlantObstacle(scene): PlantObstacle {
         return new BigPlant(scene);
     }
