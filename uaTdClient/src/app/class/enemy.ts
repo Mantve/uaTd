@@ -1,13 +1,21 @@
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
 
-class Enemy extends  Phaser.GameObjects.Image {
+export class Enemy {
+    bacteria: Bacteria;
+
+    createBacteria(scene, creator: BacteriaCreator) {
+        this.bacteria = creator.createBacteria(scene);
+    }
+}
+
+abstract class Bacteria extends Phaser.GameObjects.Image {
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
     }
 }
 
-export class BacteriaBlue extends Enemy {
+class BacteriaBlue extends Bacteria {
     follower;
     hp;
     path;
@@ -61,7 +69,7 @@ export class BacteriaBlue extends Enemy {
     }
 };
 
-export class BacteriaPink extends Enemy {
+class BacteriaPink extends Bacteria {
     follower;
     hp;
     path;
@@ -115,17 +123,18 @@ export class BacteriaPink extends Enemy {
     }
 };
 
-abstract class EnemyCreator {
-    abstract createBacteriaBlue(scene);
-    abstract createBacteriaPink(scene);
+abstract class BacteriaCreator {
+    abstract createBacteria(scene): Bacteria;
 };
 
-export default class BacteriaCreator extends EnemyCreator {
-    createBacteriaBlue(scene) {
+export class BacteriaBlueCreator implements BacteriaCreator {
+    createBacteria(scene): Bacteria {
         return new BacteriaBlue(scene);
     }
+}
 
-    createBacteriaPink(scene) {
+export class BacteriaPinkCreator implements BacteriaCreator {
+    createBacteria(scene): Bacteria {
         return new BacteriaPink(scene);
     }
 }

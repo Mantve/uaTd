@@ -1,11 +1,10 @@
 import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
-import Bacteria from './enemy';
 import Tower from './tower';
 import Bullet from './bullet';
 import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
-import BacteriaCreator from './enemy';
+import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator } from './enemy';
 
 var config = {
     type: Phaser.AUTO,
@@ -103,8 +102,8 @@ function create() {
     // visualize the path
     path.draw(graphics);
 
-    enemies = this.physics.add.group({ classType: Bacteria, runChildUpdate: true });
-    this.nextEnemy = 0;
+    enemies = this.physics.add.group({ classType: Enemy, runChildUpdate: true });
+    this.nextBacteria = 0;
     towers = this.add.group({ classType: Tower, runChildUpdate: true });
     this.input.on('pointerdown', placeTower);
     bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
@@ -284,30 +283,38 @@ function placeObstacleFromServer(scene, j, i, type) {
 
 function update(time, delta) {
     // if its time for the next enemy
-    if (runEnemies && time > this.nextEnemy) {
+    if (runEnemies && time > this.nextBacteria) {
 
-        var enemy;
+        var enemy = new Enemy();
+        let bacteria;
         if(eType === 0) {
-            enemy = new BacteriaCreator().createBacteriaBlue(this);
-            eType = 1;
+            enemy.createBacteria(this, new BacteriaBlueCreator());
+            if (enemy) {
+                bacteria = enemy.bacteria;
+                eType = 1; 
+            }
         }
         else {
-            enemy = new BacteriaCreator().createBacteriaPink(this);
-            eType = 0;
+            enemy.createBacteria(this, new BacteriaPinkCreator());
+            if (enemy) {
+                console.log(enemy);
+                bacteria = enemy.bacteria;
+                eType = 0; 
+            }
         }
         //var enemy = enemies.get();
-        if (enemy) {
-            enemy.setPath(path);
-            enemy.setActive(true);
-            enemy.setVisible(true);
+        if (bacteria) {
+            bacteria.setPath(path);
+            bacteria.setActive(true);
+            bacteria.setVisible(true);
             
             // place the enemy at the start of the path
-            enemy.startOnPath();
+            bacteria.startOnPath();
             
-            this.nextEnemy = time + 2000;
+            this.nextBacteria = time + 2000;
 
-            enemies.add(enemy);
-            this.children.add(enemy);
+            enemies.add(bacteria);
+            this.children.add(bacteria);
         }
     }
 
