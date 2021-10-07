@@ -4,7 +4,7 @@ import { constants } from './_constants';
 import Bacteria from './enemy';
 import Tower from './tower';
 import Bullet from './bullet';
-import { BigObstacleFactory, MediumObstacleFactory, Obstacle, SmallObstacleFactory } from './obstacle';
+import { ObstacleFactory, BigObstacleFactory, MediumObstacleFactory, Obstacle, SmallObstacleFactory, SmallPlant } from './obstacle';
 import BacteriaCreator from './enemy';
 
 var config = {
@@ -178,13 +178,15 @@ function canPlaceTower(i, j) {
 }
 
 function placeObstacleFromServer(scene, j, i, type) {
-    var smallObstacleFactory = new SmallObstacleFactory();
-    var mediumObstacleFactory = new MediumObstacleFactory();
-    var bigObstacleFactory = new BigObstacleFactory();
+    //var smallObstacleFactory = new SmallObstacleFactory();
+    //var mediumObstacleFactory = new MediumObstacleFactory();
+    //var bigObstacleFactory = new BigObstacleFactory();
+    var factory = new ObstacleFactory();
 
     switch(type) {
         case -2: {
-            let spo = smallObstacleFactory.createPlantObstacle(scene);
+            //let spo = smallObstacleFactory.createPlantObstacle(scene);
+            let spo = factory.createPlantObstacle(scene, 'small');
             if (spo) {
                 spo.setActive(true);
                 spo.setVisible(true);
@@ -195,7 +197,8 @@ function placeObstacleFromServer(scene, j, i, type) {
             break;
         }
         case -3: {
-            let mpo = mediumObstacleFactory.createPlantObstacle(scene);
+            //let mpo = mediumObstacleFactory.createPlantObstacle(scene);
+            let mpo = factory.createPlantObstacle(scene, 'medium');
             if (mpo) {
                 mpo.setActive(true);
                 mpo.setVisible(true);
@@ -206,7 +209,8 @@ function placeObstacleFromServer(scene, j, i, type) {
             break;
         }
         case -4: {
-            let bpo = bigObstacleFactory.createPlantObstacle(scene);
+            //let bpo = bigObstacleFactory.createPlantObstacle(scene);
+            let bpo = factory.createPlantObstacle(scene, 'big');
             if (bpo) {
                 bpo.setActive(true);
                 bpo.setVisible(true);
@@ -217,7 +221,8 @@ function placeObstacleFromServer(scene, j, i, type) {
             break;
         }
         case -5: {
-            let smo = smallObstacleFactory.createRockObstacle(scene);
+            //let smo = smallObstacleFactory.createRockObstacle(scene);
+            let smo = factory.createRockObstacle(scene, 'small');
             if (smo) {
                 smo.setActive(true);
                 smo.setVisible(true);
@@ -228,7 +233,8 @@ function placeObstacleFromServer(scene, j, i, type) {
             break;
         }
         case -6: {
-            let mmo = mediumObstacleFactory.createRockObstacle(scene);
+            //let mmo = mediumObstacleFactory.createRockObstacle(scene);
+            let mmo = factory.createRockObstacle(scene, 'medium');
             if (mmo) {
                 mmo.setActive(true);
                 mmo.setVisible(true);
@@ -239,7 +245,8 @@ function placeObstacleFromServer(scene, j, i, type) {
             break;
         }
         case -7: {
-            let bmo = bigObstacleFactory.createRockObstacle(scene);
+            //let bmo = bigObstacleFactory.createRockObstacle(scene);
+            let bmo = factory.createRockObstacle(scene, 'big');
             if (bmo) {
                 bmo.setActive(true);
                 bmo.setVisible(true);
