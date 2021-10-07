@@ -11,6 +11,7 @@ namespace uaTdServer.Class
         public double score { get; set; }
         public int health { get; set; }
         public List<string> players { get; set; }
+        public List<Bacteria> bacterias { get; set; }
         public int[,] map { get; set; }
     }
 }

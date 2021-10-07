@@ -49,6 +49,10 @@ namespace uaTdServer.Hubs
                     gameState.UpdateHealth((int)data.data.change);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
+                case "SPAWN_BACTERIA":
+                    gameState.AddBacteria((double)data.data.health, (int)data.data.t, data.data.vec.ToObject<double[]>(), (int)data.data.type);
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
@@ -61,6 +65,7 @@ namespace uaTdServer.Hubs
             messageGameState.money = gameState.GetMoney();
             messageGameState.score = gameState.GetScore();
             messageGameState.health = gameState.GetHealth();
+            messageGameState.bacterias = gameState.GetBacterias();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }

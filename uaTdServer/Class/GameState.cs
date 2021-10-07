@@ -16,6 +16,7 @@ namespace uaTdServer.Class
         double Score;
         int Health;
         List<(int, int)> Towers;
+        List<Bacteria> Bacterias;
 
         private GameState()
         {
@@ -26,6 +27,7 @@ namespace uaTdServer.Class
             Health = 100;
             Map = new Map("Map", 64, 1000);
             Towers = new();
+            Bacterias = new();
         }
 
         public static GameState Get()
@@ -118,6 +120,19 @@ namespace uaTdServer.Class
         public List<(int, int)> GetTowers()
         {
             return Towers;
+        }
+
+        public Bacteria AddBacteria(double health, int t = 0, double[] vec = null, int type = 0)
+        {
+            Bacteria newBacteria = new(health, t, vec, type);
+            Bacterias.Add(newBacteria);
+
+            return newBacteria;
+        }
+
+        public List<Bacteria> GetBacterias()
+        {
+            return Bacterias;
         }
     }
 }

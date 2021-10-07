@@ -5,6 +5,7 @@ import Tower from './tower';
 import Bullet from './bullet';
 import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator } from './enemy';
+import { Bacteria } from '.';
 
 var config = {
     type: Phaser.AUTO,
@@ -52,7 +53,11 @@ export default class Game extends Phaser.Game {
 
     populateMapWithTowers() {
         return populateMapWithTowers(this.scene.scenes[0]);
-    };
+    }
+
+    spawnNewBacterias(bacterias: Bacteria[]) {
+        return spawnNewBacterias(this.scene.scenes[0].time, bacterias);
+    }
 }
 
 var graphics;
@@ -130,6 +135,7 @@ function damageEnemy(enemy, bullet) {
 
         // decrease the enemy hp with BULLET_DAMAGE
         enemy.receiveDamage(constants.BULLET_DAMAGE);
+
     }
 }
 
@@ -284,38 +290,20 @@ function placeObstacleFromServer(scene, j, i, type) {
 function update(time, delta) {
     // if its time for the next enemy
     if (runEnemies && time > this.nextBacteria) {
-
-        var enemy = new Enemy();
-        let bacteria;
-        if(eType === 0) {
-            enemy.createBacteria(this, new BacteriaBlueCreator());
-            if (enemy) {
-                bacteria = enemy.bacteria;
-                eType = 1; 
+        let message = {
+            type: 'SPAWN_BACTERIA',
+            data: {
+                health: (eType ? 50 : 100),
+                t: 0,
+                vec: [0, 0],
+                type: eType
             }
-        }
-        else {
-            enemy.createBacteria(this, new BacteriaPinkCreator());
-            if (enemy) {
-                console.log(enemy);
-                bacteria = enemy.bacteria;
-                eType = 0; 
-            }
-        }
-        //var enemy = enemies.get();
-        if (bacteria) {
-            bacteria.setPath(path);
-            bacteria.setActive(true);
-            bacteria.setVisible(true);
-            
-            // place the enemy at the start of the path
-            bacteria.startOnPath();
-            
-            this.nextBacteria = time + 2000;
+        };
 
-            enemies.add(bacteria);
-            this.children.add(bacteria);
-        }
+        this.nextBacteria = time + 2000;
+        this.eType = !this.eType;
+
+        connection.send('clientMessage', JSON.stringify(message));
     }
 
     let ix = Math.floor(this.input.activePointer.x / 64);
@@ -328,6 +316,48 @@ function update(time, delta) {
     }
     else {
         indicator.fillColor = 0x00ff00;
+    }
+}
+
+function spawnNewBacterias(time, bacterias: Bacteria[]) {
+    bacterias.forEach(b => {
+        spawnBacteria(time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y]);
+    })
+}
+
+function spawnBacteria(time, bacteriaType: number, t: number, vec: number[]) {
+    console.log("SPAWNING", time, bacteriaType, t, vec)
+
+    var enemy = new Enemy();
+    let bacteria;
+
+    console.log('a')
+    if(bacteriaType == 0) {
+        console.log('b')
+        enemy.createBacteria(this, new BacteriaBlueCreator(), t, vec, bacteriaType);
+        console.log(enemy);
+        if (enemy) {
+            bacteria = enemy.bacteria;
+        }
+    }
+    else {
+        console.log('c')
+        enemy.createBacteria(this, new BacteriaPinkCreator(), t, vec, bacteriaType);
+        console.log(enemy);
+        if (enemy) {
+            bacteria = enemy.bacteria;
+        }
+    }
+    
+    if (bacteria) {
+        bacteria.setPath(path);
+        bacteria.setActive(true);
+        bacteria.setVisible(true);
+        
+        bacteria.startOnPath();
+
+        enemies.add(bacteria);
+        this.children.add(bacteria);
     }
 }
 

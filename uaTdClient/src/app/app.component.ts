@@ -1,6 +1,7 @@
 import { ThrowStmt } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
+import { Bacteria, GameState } from './class';
 import Game from "./class/game";
 
 interface ChatMessage {
@@ -20,10 +21,11 @@ export class AppComponent implements OnInit {
   username: string = new Date().getTime().toString();
   message: string = '';
   chatMessages: ChatMessage[] = [];
-  money: number = 1000;
+
+  gameState: GameState;
+
   game: any;
   initFlag: boolean = false;
-  health: integer = 0;
 
   storeTowers = [
     {
@@ -60,6 +62,8 @@ export class AppComponent implements OnInit {
     this.connection.on("serverDataMessage", (data: string) => {
       this.processServerMessage(data);
     });
+
+    this.gameState = new GameState();
   }
 
   ngOnInit(): void {
@@ -117,10 +121,11 @@ export class AppComponent implements OnInit {
       case 'GAMESTATE_INIT':
         //this.loadGame(serverMessage.data.map);
         //this.initFlag = true;
-        this.money = serverMessage.data.money;
+        this.gameState = serverMessage.data;
+        
         this.game.updateMap(serverMessage.data.map);
-        this.health = serverMessage.data.health;
         this.game.populateMapWithTowers();
+
         tempMessage = {
           username: "Server",
           text: "Prisijungei prie žaidimo"
@@ -131,16 +136,19 @@ export class AppComponent implements OnInit {
         this.shownScreen = 'game';
         break;
       case 'GAMESTATE_UPDATE':
-        this.money = serverMessage.data.money;
+        let newBacterias = serverMessage.data.bacterias as Bacteria[];
+        newBacterias = newBacterias.slice(this.gameState.bacterias.length);
+
+        this.gameState = serverMessage.data;
         this.game.updateMap(serverMessage.data.map);
-        this.health = serverMessage.data.health;
+        this.game.spawnNewBacterias(newBacterias);
         break;
       case 'CHAT_SEND':
         tempMessage = serverMessage.data;
         this.chatMessages.push(tempMessage);
         break;
       case 'TOWER_PURCHASE':
-        this.money -= serverMessage.data.change;
+        this.gameState.money -= serverMessage.data.change;
         break;
       case 'TOWER_BUILD':
         this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y)

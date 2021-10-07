@@ -4,25 +4,32 @@ import { constants } from './_constants';
 export class Enemy {
     bacteria: Bacteria;
 
-    createBacteria(scene, creator: BacteriaCreator) {
-        this.bacteria = creator.createBacteria(scene);
+    createBacteria(scene, creator: BacteriaCreator, t, vec, type) {
+        this.bacteria = creator.createBacteria(scene, t, vec, type);
     }
 }
 
-abstract class Bacteria extends Phaser.GameObjects.Image {
+export abstract class Bacteria extends Phaser.GameObjects.Image {
+    follower: {
+        t: number,
+        vec: Phaser.Math.Vector2
+    };
+    hp;
+    hitCount;
+    path;
+    type;
+
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
     }
 }
 
 class BacteriaBlue extends Bacteria {
-    follower;
-    hp;
-    path;
-
-    constructor(scene) {
+    constructor(scene, t: number = 0, vec = [], type: number = 0) {
         super(scene, 0, 0, 'sprites', 'enemy');
-        this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
+        this.follower = { t: t, vec: vec ? new Phaser.Math.Vector2(vec[0], vec[1]) : new Phaser.Math.Vector2() };
+        //this.follower = { t: t, vec: new Phaser.Math.Vector2() };
+        this.type = type;
     }
 
     setPath(path) {
@@ -55,7 +62,6 @@ class BacteriaBlue extends Bacteria {
         // set the x and y of our enemy to the received from the previous step
         this.setPosition(this.follower.vec.x, this.follower.vec.y);
         this.hp = 100;
-
     }
 
     receiveDamage(damage) {
@@ -70,13 +76,11 @@ class BacteriaBlue extends Bacteria {
 };
 
 class BacteriaPink extends Bacteria {
-    follower;
-    hp;
-    path;
-
-    constructor(scene) {
+    constructor(scene, t: number = 0, vec = [], type: number = 0) {
         super(scene, 0, 0, 'sprites', 'enemy_pink');
-        this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
+        this.follower = { t: t, vec: vec ? new Phaser.Math.Vector2(vec[0], vec[1]) : new Phaser.Math.Vector2() };
+        //this.follower = { t: t, vec: new Phaser.Math.Vector2() };
+        this.type = type;
     }
 
     setPath(path) {
@@ -124,17 +128,17 @@ class BacteriaPink extends Bacteria {
 };
 
 abstract class BacteriaCreator {
-    abstract createBacteria(scene): Bacteria;
+    abstract createBacteria(scene, t, vec, type): Bacteria;
 };
 
 export class BacteriaBlueCreator implements BacteriaCreator {
-    createBacteria(scene): Bacteria {
-        return new BacteriaBlue(scene);
+    createBacteria(scene, t, vec, type): Bacteria {
+        return new BacteriaBlue(scene, t, vec, type);
     }
 }
 
 export class BacteriaPinkCreator implements BacteriaCreator {
-    createBacteria(scene): Bacteria {
-        return new BacteriaPink(scene);
+    createBacteria(scene, t, vec, type): Bacteria {
+        return new BacteriaPink(scene, t, vec, type);
     }
 }
