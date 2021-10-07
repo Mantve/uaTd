@@ -47,6 +47,7 @@ namespace uaTdServer.Hubs
                     break;
                 case "HEALTH_UPDATE":
                     gameState.UpdateHealth((int)data.data.change);
+                    gameState.RemoveBacteria((long)data.data.removeEnemy);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 case "SPAWN_BACTERIA":

@@ -141,15 +141,21 @@ function damageEnemy(enemy, bullet) {
 
 function updateHealth(enemy, finTile) {
     // only if both enemy and bullet are alive
+    let bacteriaEnemy = enemy as Bacteria
     if (enemy.active === true && finTile.active === true) {
         // we remove the bullet right away
+        //console.log(enemy.bacteria);
+        //console.log(bacteriaEnemy.getBacteriaId());
+        //console.log(enemy.getBacteria())
         enemy.setActive(false);
         enemy.setVisible(false);
+        //enemies
 
         let message = {
             type: 'HEALTH_UPDATE',
             data: {
-                change: Math.floor(enemy.hp)
+                change: Math.floor(enemy.hp),
+                removeEnemy: bacteriaEnemy.getBacteriaId()
             }
         };
 
@@ -290,6 +296,7 @@ function placeObstacleFromServer(scene, j, i, type) {
 function update(time, delta) {
     // if its time for the next enemy
     if (runEnemies && time > this.nextBacteria) {
+        console.log(eType)
         let message = {
             type: 'SPAWN_BACTERIA',
             data: {
@@ -301,7 +308,7 @@ function update(time, delta) {
         };
 
         this.nextBacteria = time + 2000;
-        this.eType = !this.eType;
+        eType = eType == 0 ? 1 : 0;
 
         connection.send('clientMessage', JSON.stringify(message));
     }
@@ -321,24 +328,24 @@ function update(time, delta) {
 
 function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
     bacterias.forEach(b => {
-        spawnBacteria(scene, time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y]);
+        spawnBacteria(scene, time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y], b.id);
     })
 }
 
-function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[]) {
+function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
     console.log("SPAWNING", time, bacteriaType, t, vec)
 
     var enemy = new Enemy();
     let bacteria;
-    
+
     if(bacteriaType == 0) {
-        enemy.createBacteria(scene, new BacteriaBlueCreator(), t, vec, bacteriaType);
+        enemy.createBacteria(scene, new BacteriaBlueCreator(), t, vec, bacteriaType, id);
         if (enemy) {
             bacteria = enemy.bacteria;
         }
     }
     else {
-        enemy.createBacteria(scene, new BacteriaPinkCreator(), t, vec, bacteriaType);
+        enemy.createBacteria(scene, new BacteriaPinkCreator(), t, vec, bacteriaType, id);
         if (enemy) {
             bacteria = enemy.bacteria;
         }

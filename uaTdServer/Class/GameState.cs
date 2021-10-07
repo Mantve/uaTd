@@ -130,6 +130,11 @@ namespace uaTdServer.Class
             return newBacteria;
         }
 
+        public void RemoveBacteria(long id)
+        {
+            Bacterias.RemoveAll(x => x.id == id);
+        }
+
         public List<Bacteria> GetBacterias()
         {
             return Bacterias;

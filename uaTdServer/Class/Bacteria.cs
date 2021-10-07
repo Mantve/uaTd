@@ -19,6 +19,7 @@ namespace uaTdServer.Class
 
     public class Bacteria
     {
+        public long id { get; set; }
         public double health { get; set; }
         public int hitCount { get; set; }
         public bool isDead { get; set; }
@@ -28,6 +29,7 @@ namespace uaTdServer.Class
 
         public Bacteria(double health, int t, double[] vec, int type)
         {
+            id = Counter.getId();
             this.health = health;
             hitCount = 0;
             isDead = false;
@@ -72,6 +74,16 @@ namespace uaTdServer.Class
             }
 
             return this;
+        }
+    }
+
+    public static class Counter
+    {
+        private static int id = 0;
+
+        public static int getId()
+        {
+            return id++;
         }
     }
 }
