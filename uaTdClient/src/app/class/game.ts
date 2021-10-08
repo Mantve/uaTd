@@ -296,7 +296,7 @@ function placeObstacleFromServer(scene, j, i, type) {
 function update(time, delta) {
     // if its time for the next enemy
     if (runEnemies && time > this.nextBacteria) {
-        console.log(eType)
+        //console.log(eType)
         let message = {
             type: 'SPAWN_BACTERIA',
             data: {
@@ -333,7 +333,7 @@ function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
 }
 
 function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
-    console.log("SPAWNING", time, bacteriaType, t, vec)
+    //console.log("SPAWNING", time, bacteriaType, t, vec)
 
     var enemy = new Enemy();
     let bacteria;

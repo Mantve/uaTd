@@ -107,7 +107,7 @@ export class AppComponent implements OnInit {
 
   processServerMessage(encodedData: string) {
     const serverMessage = JSON.parse(encodedData);
-    console.log(serverMessage);
+    //console.log(serverMessage);
     let tempMessage;
 
     switch (serverMessage.type) {
@@ -133,6 +133,9 @@ export class AppComponent implements OnInit {
         this.chatMessages.push(tempMessage);
 
         this.game.runEnemies();
+        let initialBacterias = serverMessage.data.bacterias as Bacteria[];
+        this.game.spawnNewBacterias(initialBacterias);
+
         this.shownScreen = 'game';
         break;
       case 'GAMESTATE_UPDATE':
