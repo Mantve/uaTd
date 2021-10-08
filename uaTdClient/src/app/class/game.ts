@@ -55,6 +55,10 @@ export default class Game extends Phaser.Game {
         return populateMapWithTowers(this.scene.scenes[0]);
     }
 
+    spawnNewBacteria(bacteria: Bacteria) {
+        return spawnBacteria(this.scene.scenes[0], this.scene.scenes[0].time, bacteria.type, bacteria.follower.t, [bacteria.follower.vec.x, bacteria.follower.vec.y], bacteria.id);
+    }
+
     spawnNewBacterias(bacterias: Bacteria[]) {
         return spawnNewBacterias(this.scene.scenes[0], this.scene.scenes[0].time, bacterias);
     }
@@ -301,6 +305,7 @@ function update(time, delta) {
     // if its time for the next enemy
     if (runEnemies && time > this.nextBacteria) {
         //console.log(eType)
+        /*
         let message = {
             type: 'SPAWN_BACTERIA',
             data: {
@@ -315,6 +320,7 @@ function update(time, delta) {
         eType = eType == 0 ? 1 : 0;
 
         connection.send('clientMessage', JSON.stringify(message));
+        */
     }
 
     let ix = Math.floor(this.input.activePointer.x / 64);
@@ -332,6 +338,7 @@ function update(time, delta) {
 
 function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
     bacterias.forEach(b => {
+        console.log(b.follower.t);
         spawnBacteria(scene, time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y], b.id);
     })
 }

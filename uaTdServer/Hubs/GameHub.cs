@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using uaTdServer.Class;
 
@@ -31,6 +32,13 @@ namespace uaTdServer.Hubs
 
                     // Send caller current game state
                     await Clients.Caller.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState()));
+
+                    if (!gameState.gameIsActive)
+                    {
+                        Thread workerThread = new Thread(() => Spawner.SpawnEnemies(Clients));
+                        workerThread.Start();
+                        gameState.gameIsActive = true;
+                    }
 
                     // Notify others of a new player
                     await Clients.Others.SendAsync("serverDataMessage", jsonData);

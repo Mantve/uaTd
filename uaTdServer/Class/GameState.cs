@@ -17,6 +17,7 @@ namespace uaTdServer.Class
         int Health;
         List<(int, int)> Towers;
         List<Bacteria> Bacterias;
+        public bool gameIsActive = false;
 
         private GameState()
         {

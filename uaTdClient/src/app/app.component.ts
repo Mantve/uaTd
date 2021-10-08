@@ -143,7 +143,8 @@ export class AppComponent implements OnInit {
         let bacteriasFromClient = this.gameState.bacterias;
         let newBacterias = bacteriasFromServer.filter(nb => !bacteriasFromClient.some(b => b.id == nb.id));
         let oldBacterias = bacteriasFromClient.filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
-
+        //console.log(oldBacterias);
+        //console.log(newBacterias);
         this.gameState = serverMessage.data;
         this.game.updateMap(serverMessage.data.map);
         this.game.spawnNewBacterias(newBacterias);
@@ -158,6 +159,10 @@ export class AppComponent implements OnInit {
         break;
       case 'TOWER_BUILD':
         this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y)
+        break;
+      case 'SPAWN_ENEMY':
+        let serverEnemy = serverMessage.data as Bacteria;
+        this.game.spawnNewBacteria(serverEnemy)
         break;
       default:
     }
