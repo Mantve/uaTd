@@ -139,12 +139,15 @@ export class AppComponent implements OnInit {
         this.shownScreen = 'game';
         break;
       case 'GAMESTATE_UPDATE':
-        let newBacterias = serverMessage.data.bacterias as Bacteria[];
-        newBacterias = newBacterias.slice(this.gameState.bacterias.length);
+        let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
+        let bacteriasFromClient = this.gameState.bacterias;
+        let newBacterias = bacteriasFromServer.filter(nb => !bacteriasFromClient.some(b => b.id == nb.id));
+        let oldBacterias = bacteriasFromClient.filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
 
         this.gameState = serverMessage.data;
         this.game.updateMap(serverMessage.data.map);
         this.game.spawnNewBacterias(newBacterias);
+        this.game.removeOldBacterias(oldBacterias);
         break;
       case 'CHAT_SEND':
         tempMessage = serverMessage.data;

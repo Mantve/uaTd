@@ -58,6 +58,10 @@ export default class Game extends Phaser.Game {
     spawnNewBacterias(bacterias: Bacteria[]) {
         return spawnNewBacterias(this.scene.scenes[0], this.scene.scenes[0].time, bacterias);
     }
+
+    removeOldBacterias(newBacterias: Bacteria[]) {
+        return removeOldBacterias(this.scene.scenes[0], newBacterias);
+    }
 }
 
 var graphics;
@@ -361,6 +365,19 @@ function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number
         enemies.add(bacteria);
         scene.children.add(bacteria);
     }
+}
+
+function removeOldBacterias(scene, oldBacterias: Bacteria[]) {
+    oldBacterias.forEach(ob => {
+        removeBacteria(scene, ob);
+    })
+}
+
+function removeBacteria(scene, oldBacteria: Bacteria) {
+    oldBacteria.setActive(false);
+    oldBacteria.setVisible(false);
+    enemies.splice(enemies.indexOf(oldBacteria), 1);
+    scene.children.splice(scene.children.indexOf(oldBacteria), 1);
 }
 
 function drawGrid(graphics) {
