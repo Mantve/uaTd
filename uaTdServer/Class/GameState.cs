@@ -17,7 +17,7 @@ namespace uaTdServer.Class
         int Health;
         List<(int, int)> Towers;
         List<Bacteria> Bacterias;
-        public bool gameIsActive = false;
+        bool gameIsActive = false;
 
         private GameState()
         {
@@ -29,6 +29,7 @@ namespace uaTdServer.Class
             Map = new Map("Map", 64, 1000);
             Towers = new();
             Bacterias = new();
+            gameTime = DateTimeOffset.Now.ToUnixTimeSeconds();
         }
 
         public static GameState Get()
@@ -139,6 +140,16 @@ namespace uaTdServer.Class
         public List<Bacteria> GetBacterias()
         {
             return Bacterias;
+        }
+
+        public bool GetGameActiveState()
+        {
+            return gameIsActive;
+        }
+
+        public void SwitchGameActiveState()
+        {
+            gameIsActive = !gameIsActive;
         }
     }
 }

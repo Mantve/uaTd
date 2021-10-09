@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,15 +34,19 @@ namespace uaTdServer.Hubs
                     // Send caller current game state
                     await Clients.Caller.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState()));
 
-                    if (!gameState.gameIsActive)
-                    {
-                        Thread workerThread = new Thread(() => Spawner.SpawnEnemies(Clients));
-                        workerThread.Start();
-                        gameState.gameIsActive = true;
-                    }
-
                     // Notify others of a new player
                     await Clients.Others.SendAsync("serverDataMessage", jsonData);
+                    break;
+                case "GAME_RUN_STOP":
+                    gameState.SwitchGameActiveState();
+                    if (gameState.GetGameActiveState())
+                    {
+                        Spawner.Get().SetClients(Clients);
+
+                        Thread workerThread = new Thread(() => Spawner.SpawnEnemies(gameState));
+                        workerThread.Start();
+                    }
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 case "TOWER_PURCHASE":
                     gameState.UpdateMoney((double)data.data.change);
@@ -75,6 +80,7 @@ namespace uaTdServer.Hubs
             messageGameState.score = gameState.GetScore();
             messageGameState.health = gameState.GetHealth();
             messageGameState.bacterias = gameState.GetBacterias();
+            messageGameState.gameActiveState = gameState.GetGameActiveState();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }

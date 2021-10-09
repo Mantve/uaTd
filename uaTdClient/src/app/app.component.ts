@@ -88,6 +88,15 @@ export class AppComponent implements OnInit {
     //this.initFlag = true;
   }
 
+  startGame() {
+    let message = {
+      type: 'GAME_RUN_STOP',
+      data: {}
+    };
+
+    this.connection.send('clientMessage', JSON.stringify(message));
+  }
+
   sendChat() {
     if (this.message.length == 0)
       return;
@@ -107,7 +116,7 @@ export class AppComponent implements OnInit {
 
   processServerMessage(encodedData: string) {
     const serverMessage = JSON.parse(encodedData);
-    //console.log(serverMessage);
+    console.log(serverMessage);
     let tempMessage;
 
     switch (serverMessage.type) {
@@ -119,9 +128,8 @@ export class AppComponent implements OnInit {
         this.chatMessages.push(tempMessage);
         break;
       case 'GAMESTATE_INIT':
-        //this.loadGame(serverMessage.data.map);
-        //this.initFlag = true;
         this.gameState = serverMessage.data;
+        this.gameState.gameActiveState ? this.game.runEnemies() : this.game.stopEnemies();
         
         this.game.updateMap(serverMessage.data.map);
         this.game.populateMapWithTowers();
@@ -139,16 +147,19 @@ export class AppComponent implements OnInit {
         this.shownScreen = 'game';
         break;
       case 'GAMESTATE_UPDATE':
-        let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
-        let bacteriasFromClient = this.gameState.bacterias;
-        let newBacterias = bacteriasFromServer.filter(nb => !bacteriasFromClient.some(b => b.id == nb.id));
-        let oldBacterias = bacteriasFromClient.filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
-        //console.log(oldBacterias);
-        //console.log(newBacterias);
         this.gameState = serverMessage.data;
+        this.gameState.gameActiveState ? this.game.runEnemies() : this.game.stopEnemies();
+        if(this.gameState.gameActiveState) {
+          let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
+  
+          let newBacterias = bacteriasFromServer.filter(nb => !this.game.bacteria.some(b => b.id == nb.id));
+          let oldBacterias = this.game.bacteria.filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
+          
+          this.game.spawnNewBacterias(newBacterias);
+          this.game.removeOldBacterias(oldBacterias);
+        }
+
         this.game.updateMap(serverMessage.data.map);
-        this.game.spawnNewBacterias(newBacterias);
-        this.game.removeOldBacterias(oldBacterias);
         break;
       case 'CHAT_SEND':
         tempMessage = serverMessage.data;

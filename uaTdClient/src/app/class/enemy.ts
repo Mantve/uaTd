@@ -19,6 +19,7 @@ export abstract class Bacteria extends Phaser.GameObjects.Image {
     hitCount;
     path;
     type;
+    isRunning;
 
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
@@ -27,6 +28,10 @@ export abstract class Bacteria extends Phaser.GameObjects.Image {
     getBacteriaId() {
         return this.id;
     }
+
+    stop() {}
+
+    run() {}
 }
 
 class BacteriaBlue extends Bacteria {
@@ -36,6 +41,7 @@ class BacteriaBlue extends Bacteria {
         this.id = id;
         //this.follower = { t: t, vec: new Phaser.Math.Vector2() };
         this.type = type;
+        this.isRunning = true;
     }
 
     setPath(path) {
@@ -44,17 +50,19 @@ class BacteriaBlue extends Bacteria {
 
     update(time, delta) {
         // move the t point along the path, 0 is the start and 0 is the end
-        this.follower.t += constants.ENEMY_SPEED * delta;
-
-        // get the new x and y coordinates in vec
-        this.path.getPoint(this.follower.t, this.follower.vec);
-
-        // update enemy x and y to the newly obtained x and y
-        this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        // if we have reached the end of the path, remove the enemy
-        if (this.follower.t >= 1) {
-            this.setActive(false);
-            this.setVisible(false);
+        if(this.isRunning) {
+            this.follower.t += constants.ENEMY_SPEED * delta;
+    
+            // get the new x and y coordinates in vec
+            this.path.getPoint(this.follower.t, this.follower.vec);
+    
+            // update enemy x and y to the newly obtained x and y
+            this.setPosition(this.follower.vec.x, this.follower.vec.y);
+            // if we have reached the end of the path, remove the enemy
+            if (this.follower.t >= 1) {
+                this.setActive(false);
+                this.setVisible(false);
+            }
         }
     }
 
@@ -79,6 +87,14 @@ class BacteriaBlue extends Bacteria {
             this.setVisible(false);
         }
     }
+
+    stop() {
+        this.isRunning = false;
+    }
+
+    run() {
+        this.isRunning = true;
+    }
 };
 
 class BacteriaPink extends Bacteria {
@@ -95,18 +111,19 @@ class BacteriaPink extends Bacteria {
     }
 
     update(time, delta) {
-        // move the t point along the path, 0 is the start and 0 is the end
-        this.follower.t += constants.ENEMY_SPEED * delta * 2;
-
-        // get the new x and y coordinates in vec
-        this.path.getPoint(this.follower.t, this.follower.vec);
-
-        // update enemy x and y to the newly obtained x and y
-        this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        // if we have reached the end of the path, remove the enemy
-        if (this.follower.t >= 1) {
-            this.setActive(false);
-            this.setVisible(false);
+        if(this.isRunning) {
+            this.follower.t += constants.ENEMY_SPEED * delta;
+    
+            // get the new x and y coordinates in vec
+            this.path.getPoint(this.follower.t, this.follower.vec);
+    
+            // update enemy x and y to the newly obtained x and y
+            this.setPosition(this.follower.vec.x, this.follower.vec.y);
+            // if we have reached the end of the path, remove the enemy
+            if (this.follower.t >= 1) {
+                this.setActive(false);
+                this.setVisible(false);
+            }
         }
     }
 
@@ -131,6 +148,14 @@ class BacteriaPink extends Bacteria {
             this.setActive(false);
             this.setVisible(false);
         }
+    }
+
+    stop() {
+        this.isRunning = false;
+    }
+
+    run() {
+        this.isRunning = true;
     }
 };
 

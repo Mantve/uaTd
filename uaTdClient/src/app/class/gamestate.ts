@@ -6,4 +6,5 @@ export class GameState {
     score: number;
     health: number;
     bacterias: Bacteria[];
+    gameActiveState: boolean;
 }

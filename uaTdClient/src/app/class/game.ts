@@ -40,7 +40,15 @@ export default class Game extends Phaser.Game {
     }
 
     runEnemies() {
-        runEnemies = true;
+        bacterias.forEach(enemy => {
+            enemy.run();
+        });
+    }
+
+    stopEnemies() {
+        bacterias.forEach(enemy => {
+            enemy.stop();
+        });
     }
 
     printMap() {
@@ -77,8 +85,8 @@ var obstacles;
 var map = [];
 var indicator;
 var finTile;
-var runEnemies: boolean = false;
 var eType = 0;
+var bacterias: Bacteria[] = [];
 
 function preload() {
     // load the game assets – enemy and tower atlas
@@ -151,13 +159,8 @@ function updateHealth(enemy, finTile) {
     // only if both enemy and bullet are alive
     let bacteriaEnemy = enemy as Bacteria
     if (enemy.active === true && finTile.active === true) {
-        // we remove the bullet right away
-        //console.log(enemy.bacteria);
-        //console.log(bacteriaEnemy.getBacteriaId());
-        //console.log(enemy.getBacteria())
         enemy.setActive(false);
         enemy.setVisible(false);
-        //enemies
 
         let message = {
             type: 'HEALTH_UPDATE',
@@ -302,27 +305,6 @@ function placeObstacleFromServer(scene, j, i, type) {
 }
 
 function update(time, delta) {
-    // if its time for the next enemy
-    if (runEnemies && time > this.nextBacteria) {
-        //console.log(eType)
-        /*
-        let message = {
-            type: 'SPAWN_BACTERIA',
-            data: {
-                health: (eType ? 50 : 100),
-                t: 0,
-                vec: [0, 0],
-                type: eType
-            }
-        };
-
-        this.nextBacteria = time + 2000;
-        eType = eType == 0 ? 1 : 0;
-
-        connection.send('clientMessage', JSON.stringify(message));
-        */
-    }
-
     let ix = Math.floor(this.input.activePointer.x / 64);
     let iy = Math.floor(this.input.activePointer.y / 64);
 
@@ -338,7 +320,7 @@ function update(time, delta) {
 
 function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
     bacterias.forEach(b => {
-        console.log(b.follower.t);
+        console.log(b)
         spawnBacteria(scene, time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y], b.id);
     })
 }
@@ -371,6 +353,7 @@ function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number
 
         enemies.add(bacteria);
         scene.children.add(bacteria);
+        bacterias.push(bacteria);
     }
 }
 
@@ -384,6 +367,7 @@ function removeBacteria(scene, oldBacteria: Bacteria) {
     oldBacteria.setActive(false);
     oldBacteria.setVisible(false);
     enemies.splice(enemies.indexOf(oldBacteria), 1);
+    bacterias.splice(bacterias.indexOf(oldBacteria), 1);
     scene.children.splice(scene.children.indexOf(oldBacteria), 1);
 }
 

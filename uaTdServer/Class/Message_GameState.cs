@@ -13,5 +13,6 @@ namespace uaTdServer.Class
         public List<string> players { get; set; }
         public List<Bacteria> bacterias { get; set; }
         public int[,] map { get; set; }
+        public bool gameActiveState { get; set; }
     }
 }

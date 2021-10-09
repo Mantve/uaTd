@@ -11,21 +11,38 @@ namespace uaTdServer.Class
     public class Spawner
     {
         private static Spawner singleton;
-        public static async void SpawnEnemies(IHubCallerClients clients)
+
+        private Spawner() { }
+
+        public static Spawner Get()
+        {
+            if (singleton == null)
+                singleton = new();
+
+            return singleton;
+        }
+
+        private IHubCallerClients clients;
+
+        public void SetClients(IHubCallerClients clients)
+        {
+            this.clients = clients;
+        }
+
+        public IHubCallerClients GetClients()
+        {
+            return clients;
+        }
+
+        public static async void SpawnEnemies(GameState gameState)
         {
             bool isBlue = false;
-            while (true)
+            while (gameState.GetGameActiveState())
             {
-                if (!isBlue)
-                {
-                    await clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetEnemyMessage(new Bacteria(100, 0, new double[] { 0, 0 }, 0))));
-                    isBlue = !isBlue;
-                }
-                else
-                {
-                    await clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetEnemyMessage(new Bacteria(50, 0, new double[] { 0, 0 }, 1))));
-                    isBlue = !isBlue;
-                }
+                Bacteria bacteria = gameState.AddBacteria(isBlue ? 100 : 50, 0, new double[] { 0, 0 }, isBlue ? 0 : 1);
+                isBlue = !isBlue;
+
+                await Get().GetClients().All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetEnemyMessage(bacteria)));
                 Thread.Sleep(2000);
             }
         }
