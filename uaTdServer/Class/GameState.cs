@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace uaTdServer.Class
 {
@@ -18,6 +19,7 @@ namespace uaTdServer.Class
         List<(int, int)> Towers;
         List<Bacteria> Bacterias;
         bool gameIsActive = false;
+        Timer gameTimer = new Timer();
 
         private GameState()
         {
@@ -29,7 +31,6 @@ namespace uaTdServer.Class
             Map = new Map("Map", 64, 1000);
             Towers = new();
             Bacterias = new();
-            gameTime = DateTimeOffset.Now.ToUnixTimeSeconds();
         }
 
         public static GameState Get()
@@ -147,9 +148,24 @@ namespace uaTdServer.Class
             return gameIsActive;
         }
 
+        public double GetGameTimer()
+        {
+            return gameTimer.Interval;
+        }
+
         public void SwitchGameActiveState()
         {
             gameIsActive = !gameIsActive;
+            if(gameIsActive)
+            {
+                Get().gameTimer.Start();
+                Get().Bacterias.ForEach(b => b.ToggleTimer(gameIsActive));
+            }
+            else
+            {
+                Get().gameTimer.Stop();
+                Get().Bacterias.ForEach(b => b.ToggleTimer(gameIsActive));
+            }
         }
     }
 }

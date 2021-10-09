@@ -14,5 +14,6 @@ namespace uaTdServer.Class
         public List<Bacteria> bacterias { get; set; }
         public int[,] map { get; set; }
         public bool gameActiveState { get; set; }
+        public double gameTimer { get; set; }
     }
 }

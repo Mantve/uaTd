@@ -81,6 +81,7 @@ namespace uaTdServer.Hubs
             messageGameState.health = gameState.GetHealth();
             messageGameState.bacterias = gameState.GetBacterias();
             messageGameState.gameActiveState = gameState.GetGameActiveState();
+            messageGameState.gameTimer = gameState.GetGameTimer();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }

@@ -15,14 +15,22 @@ export abstract class Bacteria extends Phaser.GameObjects.Image {
         t: number,
         vec: Phaser.Math.Vector2
     };
+    t;
     hp;
     hitCount;
     path;
     type;
     isRunning;
 
+    label: Phaser.GameObjects.Text;
+
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
+
+        this.label = new Phaser.GameObjects.Text(scene, this.x, this.y, "", {});
+        scene.children.add(this.label);
+        this.label.setVisible(true);
+        this.label.setStroke('0x000000', 3);
     }
 
     getBacteriaId() {
@@ -41,7 +49,9 @@ class BacteriaBlue extends Bacteria {
         this.id = id;
         //this.follower = { t: t, vec: new Phaser.Math.Vector2() };
         this.type = type;
-        this.isRunning = true;
+        this.isRunning = false;
+
+        this.label.setText(`ID: ${id}`);
     }
 
     setPath(path) {
@@ -58,6 +68,7 @@ class BacteriaBlue extends Bacteria {
     
             // update enemy x and y to the newly obtained x and y
             this.setPosition(this.follower.vec.x, this.follower.vec.y);
+            this.label.setPosition(this.follower.vec.x - 32, this.follower.vec.y + 25);
             // if we have reached the end of the path, remove the enemy
             if (this.follower.t >= 1) {
                 this.setActive(false);
@@ -68,7 +79,7 @@ class BacteriaBlue extends Bacteria {
 
     startOnPath() {
         // set the t parameter at the start of the path
-        this.follower.t = 0;
+        this.follower.t = (this.t != undefined ? this.t : 0);
 
         // get x and y of the given t point            
         this.path.getPoint(this.follower.t, this.follower.vec);
@@ -85,6 +96,8 @@ class BacteriaBlue extends Bacteria {
         if (this.hp <= 0) {
             this.setActive(false);
             this.setVisible(false);
+            this.label.setVisible(false);
+            console.log(`${this.type ? "Pink" : "Blue"} Bacteria died: ${this.id}`)
         }
     }
 
@@ -104,6 +117,9 @@ class BacteriaPink extends Bacteria {
         this.id = id;
         //this.follower = { t: t, vec: new Phaser.Math.Vector2() };
         this.type = type;
+        this.isRunning = false;
+
+        this.label.setText(`ID: ${id}`);
     }
 
     setPath(path) {
@@ -112,13 +128,14 @@ class BacteriaPink extends Bacteria {
 
     update(time, delta) {
         if(this.isRunning) {
-            this.follower.t += constants.ENEMY_SPEED * delta;
+            this.follower.t += constants.ENEMY_SPEED * delta * 0.5;
     
             // get the new x and y coordinates in vec
             this.path.getPoint(this.follower.t, this.follower.vec);
     
             // update enemy x and y to the newly obtained x and y
             this.setPosition(this.follower.vec.x, this.follower.vec.y);
+            this.label.setPosition(this.follower.vec.x - 32, this.follower.vec.y + 25);
             // if we have reached the end of the path, remove the enemy
             if (this.follower.t >= 1) {
                 this.setActive(false);
@@ -136,8 +153,7 @@ class BacteriaPink extends Bacteria {
 
         // set the x and y of our enemy to the received from the previous step
         this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        this.hp = 100 * .5;
-
+        this.hp = 50;
     }
 
     receiveDamage(damage) {
@@ -147,6 +163,8 @@ class BacteriaPink extends Bacteria {
         if (this.hp <= 0) {
             this.setActive(false);
             this.setVisible(false);
+            this.label.setVisible(false);
+            console.log(`${this.type ? "Pink" : "Blue"} Bacteria died: ${this.id}`)
         }
     }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace uaTdServer.Class
 {
@@ -26,6 +27,8 @@ namespace uaTdServer.Class
         public BacteriaFollower follower { get; set; }
 
         public int type { get; set; }
+        private Timer timer = new Timer();
+        public double t { get { return timer.Interval / 1000; }}
 
         public Bacteria(double health, int t, double[] vec, int type)
         {
@@ -59,6 +62,16 @@ namespace uaTdServer.Class
                 t = t,
                 vec = newVec
             };
+
+            timer.Start();
+        }
+
+        public void ToggleTimer(bool run)
+        {
+            if(run)
+                timer.Start();
+            else
+                timer.Stop();
         }
 
         public Bacteria registerHit(int hitNo, double damage)

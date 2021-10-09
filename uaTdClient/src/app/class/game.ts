@@ -40,12 +40,14 @@ export default class Game extends Phaser.Game {
     }
 
     runEnemies() {
+        isRunning = true;
         bacterias.forEach(enemy => {
             enemy.run();
         });
     }
 
     stopEnemies() {
+        isRunning = false;
         bacterias.forEach(enemy => {
             enemy.stop();
         });
@@ -85,7 +87,7 @@ var obstacles;
 var map = [];
 var indicator;
 var finTile;
-var eType = 0;
+var isRunning = false;
 var bacterias: Bacteria[] = [];
 
 function preload() {
@@ -321,12 +323,12 @@ function update(time, delta) {
 function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
     bacterias.forEach(b => {
         console.log(b)
-        spawnBacteria(scene, time, b.type, b.follower.t, [b.follower.vec.x, b.follower.vec.y], b.id);
+        spawnBacteria(scene, time, b.type, b.t, [b.follower.vec.x, b.follower.vec.y], b.id);
     })
 }
 
 function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
-    //console.log("SPAWNING", time, bacteriaType, t, vec)
+    //console.log("SPAWNING", bacteriaType, t, vec, id)
 
     var enemy = new Enemy();
     let bacteria;
@@ -350,10 +352,12 @@ function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number
         bacteria.setVisible(true);
         
         bacteria.startOnPath();
-
+        
         enemies.add(bacteria);
         scene.children.add(bacteria);
         bacterias.push(bacteria);
+
+        !isRunning ? bacteria.stop() : '';
     }
 }
 
