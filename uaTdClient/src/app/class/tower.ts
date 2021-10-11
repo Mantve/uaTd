@@ -166,13 +166,13 @@ export default class Tower extends Phaser.GameObjects.Image {
         this.x = j * 64 + 64 / 2;
     }
 
-    fire(type?: string) {
+    fire(type: number = 0) {
         var enemy;
         var angle;
 
         switch (type) {
-            case 'CANNON':
-                enemy = this.getEnemy(this.x, this.y, 50);
+            case 1:
+                enemy = this.getEnemy(this.x, this.y, 100);
                 if (enemy) {
                     angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
                     this.addCannonBullet(this.x, this.y, angle);
@@ -181,7 +181,7 @@ export default class Tower extends Phaser.GameObjects.Image {
                 break;
         
             default:
-                enemy = this.getEnemy(this.x, this.y, 100);
+                enemy = this.getEnemy(this.x, this.y, 125);
                 if (enemy) {
                     angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
                     this.addBullet(this.x, this.y, angle);
@@ -194,6 +194,7 @@ export default class Tower extends Phaser.GameObjects.Image {
     addBullet(x, y, angle) {
         var bullet = this.bullets.get();
         if (bullet) {
+            bullet.damage = constants.BULLET_DAMAGE;
             bullet.fire(x, y, angle);
         }
     }
@@ -227,7 +228,7 @@ export class Village extends Tower {
 
     update(time, delta) {
         if (this.parts.includes('CANNON') && time > this.nextTic) {
-            this.fire('CANNON');
+            this.fire(1);
             this.nextTic = time + 2000;
         }
     }

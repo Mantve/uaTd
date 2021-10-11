@@ -159,7 +159,7 @@ function damageEnemy(enemy, bullet) {
         bullet.setVisible(false);
 
         // decrease the enemy hp with BULLET_DAMAGE
-        enemy.receiveDamage(bullet.damage != undefined ? bullet.damage : constants.BULLET_DAMAGE);
+        enemy.receiveDamage(bullet.damage);
     }
 }
 
