@@ -1,6 +1,179 @@
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
 
+// ################### OBSERVER ####################
+
+export interface Publisher {
+    subscribe(observer: Subscriber);
+    unsubscribe(observer: Subscriber);
+    cloneSubsribers(publisher: Publisher);
+    setSubsribers(Subscribers: Subscriber[]);
+    notify();
+}
+
+export interface Subscriber {
+    getNotified(subject: Publisher);
+}
+
+// ##################################################
+
+export default class Tower extends Phaser.GameObjects.Image {
+    nextTic;
+    enemies;
+    bullets;
+    towers;
+    i;
+    j;
+    
+    modifier: 1;
+    
+    parts: string[];
+    shootingStrategy: ShootingStrategy;
+    //dtype: Phaser.GameObjects.Text;
+
+    constructor(scene, type) {
+        super(scene, 0, 0, 'sprites', type);
+        this.nextTic = 0;
+        this.parts = [];
+    }
+
+    setGameData(enemies, bullets, towers) {
+        this.enemies = enemies;
+        this.bullets = bullets;
+        this.towers = towers;
+    }
+
+    place(i, j) {
+        this.i = i,
+        this.j = j;
+
+        this.y = i * 64 + 64 / 2;
+        this.x = j * 64 + 64 / 2;
+    }
+    
+    setStrategy(strategy: ShootingStrategy) {
+        this.shootingStrategy = strategy;
+    }
+}
+
+export class Village extends Tower implements Publisher {
+    private observers: Subscriber[] = [];
+    setModifier: number = 1;
+    notifiedFor = this.setModifier;
+
+    constructor(scene, strategy: ShootingStrategy) {
+        super(scene, 'village');
+        this.shootingStrategy = strategy;
+    }
+
+    place(i, j) {
+        super.place(i, j);
+    }
+
+    update(time, delta) {
+        if(this.parts.includes('CANNON')) {
+            this.setModifier = 1.15;
+
+            if (time > this.nextTic) {
+                this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
+                this.nextTic = time + 2000;
+            }
+        }
+
+        if(this.parts.includes('WALLS')) {
+            this.setModifier = 1.25;
+        }
+
+        if(this.notifiedFor != this.setModifier) {
+            this.notify();
+            this.notifiedFor = this.setModifier;
+        }
+    }
+
+    subscribe(observer: Subscriber) {
+        this.observers.push(observer);
+    }
+
+    cloneSubsribers(publisher: Publisher) {
+        publisher.setSubsribers(this.observers);
+    }
+
+    setSubsribers(observers: Subscriber[]) {
+        this.observers = observers;
+    }
+
+    unsubscribe(observer: Subscriber) {
+        const observerIndex = this.observers.indexOf(observer);
+        this.observers.splice(observerIndex, 1);
+    }
+
+    notify() {
+        for (let observer of this.observers) {
+            observer.getNotified(this);
+        }
+    }
+    
+    /*addShootersToSubs() {
+        var shooterTowers = this.towers.getChildren();
+        var nearbyShooters: Subscriber[] = [];
+
+        for (var i = 0; i < shooterTowers.length; i++) {
+            if (shooterTowers[i] instanceof Shooter 
+                && shooterTowers[i].active 
+                && Phaser.Math.Distance.Between(this.x, this.y, shooterTowers[i].x, shooterTowers[i].y) <= 256) {
+                
+            console.log('adding to subs')
+                //nearbyShooters.push(shooterSub);
+            }
+        }
+
+        for (var i = 0; i < nearbyShooters.length; i++) {
+            console.log('adding to subs')
+            this.subscribe(nearbyShooters[i]);
+        }
+    }*/
+}
+
+export class Shooter extends Tower implements Subscriber {
+    constructor(scene, strategy: ShootingStrategy) {
+        super(scene, 'shooter');
+        this.shootingStrategy = strategy;
+    }
+
+    place(i, j) {
+        super.place(i, j);
+        this.subToVillages();
+    }
+
+    update(time, delta) {
+        if (time > this.nextTic) {
+            this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
+            this.nextTic = time + 1000;
+        }
+    }
+
+    getNotified(publisher: Publisher) {
+        console.log("i've been notified")
+    }
+    
+    subToVillages() {
+        var villageTowers = this.towers.getChildren();
+        var nearbyVillageTowers: Village[] = [];
+
+        for (var i = 0; i < villageTowers.length; i++) {
+            if (villageTowers[i] instanceof Village && villageTowers[i].active && Phaser.Math.Distance.Between(this.x, this.y, villageTowers[i].x, villageTowers[i].y) <= 256) {
+                nearbyVillageTowers.push(villageTowers[i]);
+            }
+        }
+
+        for (var i = 0; i < nearbyVillageTowers.length; i++) {
+            nearbyVillageTowers[i].subscribe(this);
+        }
+    }
+}
+
+// ################### BUILDER ####################
+
 export interface Builder {
     buildMainPart();
     buildCannon();
@@ -138,97 +311,25 @@ export class Director {
     }
 }
 
-export default class Tower extends Phaser.GameObjects.Image {
-    nextTic;
-    enemies;
-    bullets;
-    i;
-    j;
-
-    mainPart;
-    cannon;
-    parts: string[];
-    shootingStrategy: ShootingStrategy;
-    //dtype: Phaser.GameObjects.Text;
-
-    constructor(scene, type) {
-        super(scene, 0, 0, 'sprites', type);
-        this.nextTic = 0;
-        this.parts = [];
-    }
-
-    setGameData(enemies, bullets) {
-        this.enemies = enemies;
-        this.bullets = bullets;
-    }
-
-    place(i, j) {
-        this.i = i,
-        this.j = j;
-
-        this.y = i * 64 + 64 / 2;
-        this.x = j * 64 + 64 / 2;
-    }
-    
-    getEnemy(x, y, distance) {
-        var enemyUnits = this.enemies.getChildren();
-        for (var i = 0; i < enemyUnits.length; i++) {
-            if (enemyUnits[i].active && Phaser.Math.Distance.Between(x, y, enemyUnits[i].x, enemyUnits[i].y) <= distance)
-                return enemyUnits[i];
-        }
-        return false;
-    }
-    
-    setStrategy(strategy: ShootingStrategy) {
-        this.shootingStrategy = strategy;
-    }
-}
-
-export class Village extends Tower {
-    constructor(scene, strategy: ShootingStrategy) {
-        super(scene, 'village');
-        this.shootingStrategy = strategy;
-    }
-
-    update(time, delta) {
-        if (this.parts.includes('CANNON') && time > this.nextTic) {
-            this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
-            this.nextTic = time + 2000;
-        }
-    }
-}
-
-export class Shooter extends Tower {
-    constructor(scene, strategy: ShootingStrategy) {
-        super(scene, 'shooter');
-        this.shootingStrategy = strategy;
-    }
-
-    update(time, delta) {
-        if (time > this.nextTic) {
-            this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
-            this.nextTic = time + 1000;
-        }
-    }
-}
+// ################### STRATEGY ####################
 
 export interface ShootingStrategy {
     shoot(enemies, bullets, x, y);
 }
 
 export class DoNotShootShootingStrategy implements ShootingStrategy {
-    shoot(enemies, bullets, x, y) {}
+    shoot(enemies, bullets, x, y, multiplier = 1) {}
 }
 
 export class NearShootingStrategy implements ShootingStrategy {
-    shoot(enemies, bullets, x, y) {
+    shoot(enemies, bullets, x, y, multiplier = 1) {
         var enemy;
         var angle;
 
-        enemy = this.getEnemy(enemies, x, y, 125);
+        enemy = this.getEnemy(enemies, x, y, 125 * multiplier);
         if (enemy) {
             angle = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y);
-            this.addBullet(bullets, x, y, angle);
+            this.addBullet(bullets, x, y, angle, multiplier);
             return (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
         }
 
@@ -244,24 +345,26 @@ export class NearShootingStrategy implements ShootingStrategy {
         return false;
     }
 
-    addBullet(bullets, x, y, angle) {
+    addBullet(bullets, x, y, angle, multiplier = 1) {
         var bullet = bullets.get();
         if (bullet) {
-            bullet.damage = constants.BULLET_DAMAGE;
+            bullet.lifespan = bullet.lifespan * multiplier;
+            bullet.damage = constants.BULLET_DAMAGE * multiplier;
+            bullet.speed = bullet.speed * multiplier;
             bullet.fire(x, y, angle);
         }
     }
 }
 
 export class FarShootingStrategy implements ShootingStrategy {
-    shoot(enemies, bullets, x, y) {
+    shoot(enemies, bullets, x, y, multiplier = 1) {
         var enemy;
         var angle;
 
-        enemy = this.getEnemy(enemies, x, y, 200);
+        enemy = this.getEnemy(enemies, x, y, 200 * multiplier);
         if (enemy) {
             angle = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y);
-            this.addBullet(bullets, x, y, angle);
+            this.addBullet(bullets, x, y, angle, multiplier);
             return (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
         }
 
@@ -277,25 +380,26 @@ export class FarShootingStrategy implements ShootingStrategy {
         return false;
     }
 
-    addBullet(bullets, x, y, angle) {
+    addBullet(bullets, x, y, angle, multiplier = 1) {
         var bullet = bullets.get();
         if (bullet) {
-            bullet.damage = constants.BULLET_DAMAGE * 0.75;
-            bullet.lifespan = bullet.lifespan * 1.25;
+            bullet.damage = constants.BULLET_DAMAGE * 0.75 * multiplier;
+            bullet.lifespan = bullet.lifespan * 1.25 * multiplier;
+            bullet.speed = bullet.speed * multiplier;
             bullet.fire(x, y, angle);
         }
     }
 }
 
 export class CannonShootingStrategy implements ShootingStrategy {
-    shoot(enemies, bullets, x, y) {
+    shoot(enemies, bullets, x, y, multiplier = 1) {
         var enemy;
         var angle;
 
-        enemy = this.getEnemy(enemies, x, y, 100);
+        enemy = this.getEnemy(enemies, x, y, 100 * multiplier);
         if (enemy) {
             angle = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y);
-            this.addBullet(bullets, x, y, angle);
+            this.addBullet(bullets, x, y, angle, multiplier);
             return (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
         }
 
@@ -311,11 +415,12 @@ export class CannonShootingStrategy implements ShootingStrategy {
         return false;
     }
 
-    addBullet(bullets, x, y, angle) {
+    addBullet(bullets, x, y, angle, multiplier = 1) {
         var bullet = bullets.get();
         if (bullet) {
-            bullet.damage = constants.CANNON_DAMAGE;
-            bullet.speed = bullet.speed * 0.75;
+            bullet.damage = constants.CANNON_DAMAGE * multiplier;
+            bullet.lifespan = bullet.lifespan * multiplier;
+            bullet.speed = bullet.speed * 0.75 * multiplier;
             bullet.fire(x, y, angle);
         }
     }

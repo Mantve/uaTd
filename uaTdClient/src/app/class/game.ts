@@ -1,7 +1,7 @@
 import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
-import Tower, { Builder, Director, Shooter, ShooterBuilder, Village, VillageBuilder } from './tower';
+import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Village, VillageBuilder } from './tower';
 import Bullet from './bullet';
 import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator } from './enemy';
@@ -251,7 +251,7 @@ function placeTowerFromServer(x, y, type, scene) {
     //var tower = towers.get();
     if (tower) {
         map[y][x] = type;
-        tower.setGameData(enemies, bullets);
+        tower.setGameData(enemies, bullets, towers);
         tower.setActive(true);
         tower.setVisible(true);
         tower.place(y, x);
@@ -297,6 +297,7 @@ function upgradeTower(x, y, scene) {
         }
 
         newTower = villageBuilder.get();
+        newTower.cloneSubsribers(tower);
     }
 
     towers.remove(tower);
