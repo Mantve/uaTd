@@ -252,7 +252,6 @@ function placeTowerFromServer(x, y, type, scene) {
     if (tower) {
         map[y][x] = type;
         tower.setGameData(enemies, bullets);
-        tower.updateFrame();
         tower.setActive(true);
         tower.setVisible(true);
         tower.place(y, x);
@@ -308,7 +307,6 @@ function upgradeTower(x, y, scene) {
     newTower.setActive(true);
     newTower.setVisible(true);
     newTower.setFrame(newTower.parts.join('').toLowerCase())
-    tower.updateFrame();
     newTower.place(y, x);
 
     scene.children.add(newTower);

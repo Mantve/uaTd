@@ -20,7 +20,7 @@ export class VillageBuilder implements Builder {
     }
 
     reset() {
-        this.village = new Village(this.scene)
+        this.village = new Village(this.scene, new DoNotShootShootingStrategy())
     }
 
     buildMainPart() {
@@ -29,6 +29,7 @@ export class VillageBuilder implements Builder {
 
     buildCannon() {
         this.village.parts.push('CANNON');
+        this.village.setStrategy(new CannonShootingStrategy());
     }
 
     buildRadar() {
@@ -60,7 +61,7 @@ export class ShooterBuilder implements Builder {
     }
 
     reset() {
-        this.shooter = new Shooter(this.scene);
+        this.shooter = new Shooter(this.scene, new NearShootingStrategy());
     }
 
     buildMainPart() {
@@ -69,10 +70,12 @@ export class ShooterBuilder implements Builder {
 
     buildCannon() {
         this.shooter.parts.push('CANNON');
+        this.shooter.setStrategy(new CannonShootingStrategy());
     }
 
     buildSniper() {
         this.shooter.parts.push('SNIPER');
+        this.shooter.setStrategy(new FarShootingStrategy());
     }
 
     buildRadar() {
@@ -145,6 +148,7 @@ export default class Tower extends Phaser.GameObjects.Image {
     mainPart;
     cannon;
     parts: string[];
+    shootingStrategy: ShootingStrategy;
     //dtype: Phaser.GameObjects.Text;
 
     constructor(scene, type) {
@@ -165,47 +169,6 @@ export default class Tower extends Phaser.GameObjects.Image {
         this.y = i * 64 + 64 / 2;
         this.x = j * 64 + 64 / 2;
     }
-
-    fire(type: number = 0) {
-        var enemy;
-        var angle;
-
-        switch (type) {
-            case 1:
-                enemy = this.getEnemy(this.x, this.y, 100);
-                if (enemy) {
-                    angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
-                    this.addCannonBullet(this.x, this.y, angle);
-                    this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
-                }
-                break;
-        
-            default:
-                enemy = this.getEnemy(this.x, this.y, 125);
-                if (enemy) {
-                    angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
-                    this.addBullet(this.x, this.y, angle);
-                    this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
-                }
-                break;
-        }
-    }
-
-    addBullet(x, y, angle) {
-        var bullet = this.bullets.get();
-        if (bullet) {
-            bullet.damage = constants.BULLET_DAMAGE;
-            bullet.fire(x, y, angle);
-        }
-    }
-
-    addCannonBullet(x, y, angle) {
-        var bullet = this.bullets.get();
-        if (bullet) {
-            bullet.damage = constants.CANNON_DAMAGE;
-            bullet.fire(x, y, angle);
-        }
-    }
     
     getEnemy(x, y, distance) {
         var enemyUnits = this.enemies.getChildren();
@@ -215,34 +178,145 @@ export default class Tower extends Phaser.GameObjects.Image {
         }
         return false;
     }
-
-    updateFrame() {
-
+    
+    setStrategy(strategy: ShootingStrategy) {
+        this.shootingStrategy = strategy;
     }
 }
 
 export class Village extends Tower {
-    constructor(scene) {
+    constructor(scene, strategy: ShootingStrategy) {
         super(scene, 'village');
+        this.shootingStrategy = strategy;
     }
 
     update(time, delta) {
         if (this.parts.includes('CANNON') && time > this.nextTic) {
-            this.fire(1);
+            this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
             this.nextTic = time + 2000;
         }
     }
 }
 
 export class Shooter extends Tower {
-    constructor(scene) {
+    constructor(scene, strategy: ShootingStrategy) {
         super(scene, 'shooter');
+        this.shootingStrategy = strategy;
     }
 
     update(time, delta) {
         if (time > this.nextTic) {
-            this.fire();
+            this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
             this.nextTic = time + 1000;
+        }
+    }
+}
+
+export interface ShootingStrategy {
+    shoot(enemies, bullets, x, y);
+}
+
+export class DoNotShootShootingStrategy implements ShootingStrategy {
+    shoot(enemies, bullets, x, y) {}
+}
+
+export class NearShootingStrategy implements ShootingStrategy {
+    shoot(enemies, bullets, x, y) {
+        var enemy;
+        var angle;
+
+        enemy = this.getEnemy(enemies, x, y, 125);
+        if (enemy) {
+            angle = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y);
+            this.addBullet(bullets, x, y, angle);
+            return (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
+        }
+
+        return 0;
+    }
+    
+    getEnemy(enemies, x, y, distance) {
+        var enemyUnits = enemies.getChildren();
+        for (var i = 0; i < enemyUnits.length; i++) {
+            if (enemyUnits[i].active && Phaser.Math.Distance.Between(x, y, enemyUnits[i].x, enemyUnits[i].y) <= distance)
+                return enemyUnits[i];
+        }
+        return false;
+    }
+
+    addBullet(bullets, x, y, angle) {
+        var bullet = bullets.get();
+        if (bullet) {
+            bullet.damage = constants.BULLET_DAMAGE;
+            bullet.fire(x, y, angle);
+        }
+    }
+}
+
+export class FarShootingStrategy implements ShootingStrategy {
+    shoot(enemies, bullets, x, y) {
+        var enemy;
+        var angle;
+
+        enemy = this.getEnemy(enemies, x, y, 200);
+        if (enemy) {
+            angle = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y);
+            this.addBullet(bullets, x, y, angle);
+            return (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
+        }
+
+        return 0;
+    }
+    
+    getEnemy(enemies, x, y, distance) {
+        var enemyUnits = enemies.getChildren();
+        for (var i = 0; i < enemyUnits.length; i++) {
+            if (enemyUnits[i].active && Phaser.Math.Distance.Between(x, y, enemyUnits[i].x, enemyUnits[i].y) <= distance)
+                return enemyUnits[i];
+        }
+        return false;
+    }
+
+    addBullet(bullets, x, y, angle) {
+        var bullet = bullets.get();
+        if (bullet) {
+            bullet.damage = constants.BULLET_DAMAGE * 0.75;
+            bullet.lifespan = bullet.lifespan * 1.25;
+            bullet.fire(x, y, angle);
+        }
+    }
+}
+
+export class CannonShootingStrategy implements ShootingStrategy {
+    shoot(enemies, bullets, x, y) {
+        var enemy;
+        var angle;
+
+        enemy = this.getEnemy(enemies, x, y, 100);
+        if (enemy) {
+            angle = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y);
+            this.addBullet(bullets, x, y, angle);
+            return (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
+        }
+
+        return 0;
+    }
+    
+    getEnemy(enemies, x, y, distance) {
+        var enemyUnits = enemies.getChildren();
+        for (var i = 0; i < enemyUnits.length; i++) {
+            if (enemyUnits[i].active && Phaser.Math.Distance.Between(x, y, enemyUnits[i].x, enemyUnits[i].y) <= distance)
+                return enemyUnits[i];
+        }
+        return false;
+    }
+
+    addBullet(bullets, x, y, angle) {
+        var bullet = bullets.get();
+        if (bullet) {
+            bullet.damage = constants.CANNON_DAMAGE;
+            bullet.speed = bullet.speed * 0.75;
+            bullet.fire(x, y, angle);
         }
     }
 }
