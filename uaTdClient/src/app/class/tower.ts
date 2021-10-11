@@ -1,48 +1,207 @@
 import * as Phaser from 'phaser';
+import { constants } from './_constants';
+
+export interface Builder {
+    buildMainPart();
+    buildCannon();
+
+    buildRadar();
+    buildWalls();
+    buildSniper();
+}
+
+export class VillageBuilder implements Builder {
+    private village: Village;
+    scene;
+
+    constructor(scene) {
+        this.scene = scene;
+        this.reset();
+    }
+
+    reset() {
+        this.village = new Village(this.scene)
+    }
+
+    buildMainPart() {
+        this.village.parts.push('VILLAGE');
+    }
+
+    buildCannon() {
+        this.village.parts.push('CANNON');
+    }
+
+    buildRadar() {
+        this.village.parts.push('RADAR');
+    }
+
+    buildWalls() {
+        this.village.parts.push('WALLS');
+    }
+
+    buildSniper() {
+        console.log('Village can not have a sniper.');
+    }
+
+    public get(): Village {
+        const result = this.village;
+        this.reset();
+        return result;
+    }
+}
+
+export class ShooterBuilder implements Builder {
+    private shooter: Shooter;
+    scene;
+
+    constructor(scene) {
+        this.scene = scene;
+        this.reset();
+    }
+
+    reset() {
+        this.shooter = new Shooter(this.scene);
+    }
+
+    buildMainPart() {
+        this.shooter.parts.push('SHOOTER');
+    }
+
+    buildCannon() {
+        this.shooter.parts.push('CANNON');
+    }
+
+    buildSniper() {
+        this.shooter.parts.push('SNIPER');
+    }
+
+    buildRadar() {
+        console.log('Shooter can not have a radar.');
+    }
+
+    buildWalls() {
+        console.log('Shooter can not have walls.');
+    }
+
+    public get(): Shooter {
+        const result = this.shooter;
+        this.reset();
+        return result;
+    }
+}
+
+export class Director {
+    private builder: Builder;
+    
+    public setBuilder(builder: Builder): void {
+        this.builder = builder;
+    }
+    
+    public buildVillage(): void {
+        this.builder.buildMainPart();
+    }
+    
+    public buildVillageWithCannon(): void {
+        this.builder.buildMainPart();
+        this.builder.buildCannon();
+    }
+    
+    public buildVillageWithCannonAndRadar(): void {
+        this.builder.buildMainPart();
+        this.builder.buildCannon();
+        this.builder.buildRadar();
+    }
+    
+    public buildVillageWithEverything(): void {
+        this.builder.buildMainPart();
+        this.builder.buildCannon();
+        this.builder.buildRadar();
+        this.builder.buildWalls();
+    }
+
+    public buildShooter(): void {
+        this.builder.buildMainPart();
+    }
+
+    public buildShooterWithSniper(): void {
+        this.builder.buildMainPart();
+        this.builder.buildSniper();
+    }
+
+    public buildShooterWithEverything(): void {
+        this.builder.buildMainPart();
+        this.builder.buildSniper();
+        this.builder.buildCannon();
+    }
+}
 
 export default class Tower extends Phaser.GameObjects.Image {
     nextTic;
     enemies;
     bullets;
-    map;
+    i;
+    j;
 
-    constructor(scene) {
-        super(scene, 0, 0, 'sprites', 'tower');
+    mainPart;
+    cannon;
+    parts: string[];
+    //dtype: Phaser.GameObjects.Text;
+
+    constructor(scene, type) {
+        super(scene, 0, 0, 'sprites', type);
         this.nextTic = 0;
+        this.parts = [];
     }
 
-    setGameData(enemies, bullets, map) {
+    setGameData(enemies, bullets) {
         this.enemies = enemies;
         this.bullets = bullets;
-        this.map = map;
     }
 
-    // we will place the tower according to the grid
     place(i, j) {
+        this.i = i,
+        this.j = j;
+
         this.y = i * 64 + 64 / 2;
         this.x = j * 64 + 64 / 2;
-        this.map[i][j] = 1;
     }
 
-    fire() {
-        var enemy = this.getEnemy(this.x, this.y, 100);
-        if (enemy) {
-            var angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
-            this.addBullet(this.x, this.y, angle);
-            this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
-        }
-    }
+    fire(type?: string) {
+        var enemy;
+        var angle;
 
-    update(time, delta) {
-        if (time > this.nextTic) {
-            this.fire();
-            this.nextTic = time + 1000;
+        switch (type) {
+            case 'CANNON':
+                enemy = this.getEnemy(this.x, this.y, 50);
+                if (enemy) {
+                    angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
+                    this.addCannonBullet(this.x, this.y, angle);
+                    this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
+                }
+                break;
+        
+            default:
+                enemy = this.getEnemy(this.x, this.y, 100);
+                if (enemy) {
+                    angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
+                    this.addBullet(this.x, this.y, angle);
+                    this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
+                }
+                break;
         }
     }
 
     addBullet(x, y, angle) {
         var bullet = this.bullets.get();
         if (bullet) {
+            bullet.fire(x, y, angle);
+        }
+    }
+
+    addCannonBullet(x, y, angle) {
+        var bullet = this.bullets.get();
+        if (bullet) {
+            bullet.damage = constants.CANNON_DAMAGE;
             bullet.fire(x, y, angle);
         }
     }
@@ -55,4 +214,34 @@ export default class Tower extends Phaser.GameObjects.Image {
         }
         return false;
     }
-};
+
+    updateFrame() {
+
+    }
+}
+
+export class Village extends Tower {
+    constructor(scene) {
+        super(scene, 'village');
+    }
+
+    update(time, delta) {
+        if (this.parts.includes('CANNON') && time > this.nextTic) {
+            this.fire('CANNON');
+            this.nextTic = time + 2000;
+        }
+    }
+}
+
+export class Shooter extends Tower {
+    constructor(scene) {
+        super(scene, 'shooter');
+    }
+
+    update(time, delta) {
+        if (time > this.nextTic) {
+            this.fire();
+            this.nextTic = time + 1000;
+        }
+    }
+}

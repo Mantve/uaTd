@@ -5,6 +5,7 @@ export default class Bullet extends Phaser.GameObjects.Image {
     dy;
     lifespan;
     speed;
+    damage;
 
     constructor(scene) {
         super(scene, 0, 0, 'bullet');

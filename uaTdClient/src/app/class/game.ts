@@ -1,7 +1,7 @@
 import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
-import Tower from './tower';
+import Tower, { Builder, Director, Shooter, ShooterBuilder, Village, VillageBuilder } from './tower';
 import Bullet from './bullet';
 import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator } from './enemy';
@@ -46,13 +46,25 @@ export default class Game extends Phaser.Game {
         console.log(map)
     }
 
-    placeTowerFromServer(x, y) {
-        return placeTowerFromServer(x, y)
+    placeTowerFromServer(x, y, type) {
+        return placeTowerFromServer(x, y, type, this.scene.scenes[0])
     }
 
     populateMapWithTowers() {
         return populateMapWithTowers(this.scene.scenes[0]);
-    };
+    }
+
+    setForPurchase(i: number) {
+        setForPurchase(i);
+    }
+
+    cancelPurchase() {
+        cancelPurchase();
+    }
+
+    upgradeTower(x, y) {
+        return upgradeTower(x, y, this.scene.scenes[0]);
+    }
 }
 
 var graphics;
@@ -66,6 +78,20 @@ var indicator;
 var finTile;
 var runEnemies: boolean = false;
 var eType = 0;
+
+var purchasePreview: Phaser.GameObjects.Image;
+var selectedIndex: number = -1;
+
+function setForPurchase(i: number) {
+    purchasePreview.setFrame(i == 1 ? 'tower' : 'village')
+    purchasePreview.visible = true;
+    selectedIndex = i;
+}
+
+function cancelPurchase() {
+    purchasePreview.visible = false;
+    selectedIndex = -1;
+}
 
 function preload() {
     // load the game assets – enemy and tower atlas
@@ -112,6 +138,10 @@ function create() {
 
     indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
     this.children.add(indicator);
+
+    purchasePreview = new Phaser.GameObjects.Image(this, 0, 0, 'sprites', 'tower');
+    this.children.add(purchasePreview);
+    purchasePreview.visible = false;
     
     finTile = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
     let ft = new Phaser.GameObjects.Rectangle(this, 64 * 11 - 32, 64 * 11, 64, 64, 0xff0000, 0.25);
@@ -129,7 +159,7 @@ function damageEnemy(enemy, bullet) {
         bullet.setVisible(false);
 
         // decrease the enemy hp with BULLET_DAMAGE
-        enemy.receiveDamage(constants.BULLET_DAMAGE);
+        enemy.receiveDamage(bullet.damage != undefined ? bullet.damage : constants.BULLET_DAMAGE);
     }
 }
 
@@ -154,10 +184,10 @@ function updateHealth(enemy, finTile) {
 function populateMapWithTowers(scene) {
     map.forEach((row, j) => {
         row.forEach((col, i) => {
-            if (row[i] === 1) {
-                placeTowerFromServer(i, j);
+            if (row[i] > 0) {
+                placeTowerFromServer(i, j, row[i], scene);
             }
-            else if ([-2, -3, -4, -5, -6, -7].includes(row[i])) {
+            else if (row[i] < 0) {
                 placeObstacleFromServer(scene, i, j, row[i]);
             }
         });
@@ -165,16 +195,31 @@ function populateMapWithTowers(scene) {
 }
 
 function placeTower(pointer) {
-    var i = Math.floor(pointer.y / 64);
-    var j = Math.floor(pointer.x / 64);
+    var x = Math.floor(pointer.x / 64);
+    var y = Math.floor(pointer.y / 64);
 
-    if (canPlaceTower(i, j)) {
+    //console.log([x, y], selectedIndex, map[y][x]);
+
+    if (selectedIndex != -1 && canPlaceTower(y, x)) {
 
         let message = {
             type: 'TOWER_BUILD',
             data: {
-                x: j,
-                y: i
+                x: x,
+                y: y,
+                type: selectedIndex
+            }
+        };
+
+        connection.send('clientMessage', JSON.stringify(message));
+    }
+    else if (selectedIndex != -1 && selectedIndex == map[y][x]) {
+
+        let message = {
+            type: 'TOWER_UPGRADE',
+            data: {
+                x: x,
+                y: y
             }
         };
 
@@ -182,21 +227,98 @@ function placeTower(pointer) {
     }
 }
 
-function placeTowerFromServer(j, i) {
-    var tower = towers.get();
+function placeTowerFromServer(x, y, type, scene) {
+    let director = new Director();
+    let tower: Tower;
+
+    switch (type) {
+        case 1: 
+            let shooterBuilder = new ShooterBuilder(scene);
+            director.setBuilder(shooterBuilder);
+            director.buildShooter();
+
+            tower = shooterBuilder.get();  
+            break;
+        case 2:
+            let villageBuilder = new VillageBuilder(scene);
+            director.setBuilder(villageBuilder);
+
+            tower = villageBuilder.get();
+            break;
+    }
+
+    towers.add(tower);
+    //var tower = towers.get();
     if (tower) {
-        tower.setGameData(enemies, bullets, map);
+        map[y][x] = type;
+        tower.setGameData(enemies, bullets);
+        tower.updateFrame();
         tower.setActive(true);
         tower.setVisible(true);
-        tower.place(i, j);
+        tower.place(y, x);
     }
+
+    scene.children.add(tower)
 }
 
-function canPlaceTower(i, j) {
-    if (!map || map.length == 0 || map[i] === undefined || map[i][j] === undefined)
+function upgradeTower(x, y, scene) {
+    let tower = towers.getChildren().filter(c => c.j == x && c.i == y)[0];
+
+    var director = new Director();
+    var newTower;
+
+    if(tower instanceof Shooter) {
+        let shooterBuilder = new ShooterBuilder(scene);
+
+        director.setBuilder(shooterBuilder);
+        if(!tower.parts.includes('SNIPER')) {
+            director.buildShooterWithSniper();
+        }
+        else {
+            director.buildShooterWithEverything();
+        }
+
+        newTower = shooterBuilder.get();
+    }
+    else if(tower instanceof Village) {
+        let villageBuilder = new VillageBuilder(scene);
+
+        if(tower.parts.includes('WALLS'))
+            return;
+
+        director.setBuilder(villageBuilder);
+        if(!tower.parts.includes('CANNON')) {
+            director.buildVillageWithCannon();
+        }
+        else if(!tower.parts.includes('RADAR')) {
+            director.buildVillageWithCannonAndRadar();
+        }
+        else {
+            director.buildVillageWithEverything();
+        }
+
+        newTower = villageBuilder.get();
+    }
+
+    towers.remove(tower);
+    scene.children.remove(tower);
+
+    towers.add(newTower);
+    newTower.setGameData(enemies, bullets);
+    newTower.setActive(true);
+    newTower.setVisible(true);
+    newTower.setFrame(newTower.parts.join('').toLowerCase())
+    tower.updateFrame();
+    newTower.place(y, x);
+
+    scene.children.add(newTower);
+}
+
+function canPlaceTower(y, x) {
+    if (!map || map.length == 0 || map[y] === undefined || map[y][x] === undefined)
         return false;
 
-    return map[i][j] === 0;
+    return map[y][x] === 0;
 }
 
 function placeObstacleFromServer(scene, j, i, type) {
@@ -297,7 +419,6 @@ function update(time, delta) {
         else {
             enemy.createBacteria(this, new BacteriaPinkCreator());
             if (enemy) {
-                console.log(enemy);
                 bacteria = enemy.bacteria;
                 eType = 0; 
             }
@@ -323,6 +444,12 @@ function update(time, delta) {
 
     indicator.x = ix * 64 + 32;
     indicator.y = iy * 64 + 32;
+
+    if(purchasePreview != undefined) {
+        purchasePreview.x = ix * 64 + 32;
+        purchasePreview.y = iy * 64 + 32;
+    }
+
     if (!canPlaceTower(iy, ix)) {
         indicator.fillColor = 0xff0000;
     }
