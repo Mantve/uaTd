@@ -67,6 +67,7 @@ export class Village extends Tower implements Publisher {
     }
 
     place(i, j) {
+        console.log("Placing village")
         super.place(i, j);
     }
 
@@ -141,8 +142,9 @@ export class Shooter extends Tower implements Subscriber {
     }
 
     place(i, j) {
+        console.log("Placing shooter")
         super.place(i, j);
-        this.subToVillages();
+        //this.subToVillages();
     }
 
     update(time, delta) {
@@ -155,21 +157,28 @@ export class Shooter extends Tower implements Subscriber {
     getNotified(publisher: Publisher) {
         console.log("i've been notified")
     }
-    
+    /*
     subToVillages() {
-        var villageTowers = this.towers.getChildren();
+        var villageTowers = this.towers;
         var nearbyVillageTowers: Village[] = [];
-
+        console.log(villageTowers);
+        console.log(nearbyVillageTowers);
         for (var i = 0; i < villageTowers.length; i++) {
+            console.log(villageTowers[i])
             if (villageTowers[i] instanceof Village && villageTowers[i].active && Phaser.Math.Distance.Between(this.x, this.y, villageTowers[i].x, villageTowers[i].y) <= 256) {
                 nearbyVillageTowers.push(villageTowers[i]);
+                console.log(villageTowers[i])
             }
         }
-
+        
+        console.log(nearbyVillageTowers);
+        
         for (var i = 0; i < nearbyVillageTowers.length; i++) {
             nearbyVillageTowers[i].subscribe(this);
         }
     }
+    */
+    
 }
 
 // ################### BUILDER ####################

@@ -1,7 +1,7 @@
 import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
-import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Village, VillageBuilder } from './tower';
+import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Subscriber, Village, VillageBuilder } from './tower';
 import Bullet from './bullet';
 import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator } from './enemy';
@@ -64,6 +64,10 @@ export default class Game extends Phaser.Game {
 
     upgradeTower(x, y) {
         return upgradeTower(x, y, this.scene.scenes[0]);
+    }
+
+    subscribeShooters() {
+        return subscribeShooters();
     }
 }
 
@@ -227,6 +231,26 @@ function placeTower(pointer) {
     }
 }
 
+function subscribeShooters() {
+    var villageTowers = towers.getChildren();
+    console.log(villageTowers);
+    console.log(map);
+    villageTowers.forEach(tower => {
+        if(tower instanceof Village) {
+            villageTowers.forEach(shooter => {
+                console.log(Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y))
+                if(shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 64) {
+                    tower.subscribe(shooter);
+                }
+            });
+            console.log("YES")
+        }
+        console.log(tower);
+    });
+
+    console.log(towers);
+}
+
 function placeTowerFromServer(x, y, type, scene) {
     let director = new Director();
     let tower: Tower;
@@ -262,7 +286,7 @@ function placeTowerFromServer(x, y, type, scene) {
 
 function upgradeTower(x, y, scene) {
     let tower = towers.getChildren().filter(c => c.j == x && c.i == y)[0];
-
+    //console.log(tower);
     var director = new Director();
     var newTower;
 
@@ -276,7 +300,8 @@ function upgradeTower(x, y, scene) {
         else {
             director.buildShooterWithEverything();
         }
-
+        
+        //Sitoj vietoj reiketu surast kam subscribines, pasalint is priskirto village ir newTower pridet tam paciam village
         newTower = shooterBuilder.get();
     }
     else if(tower instanceof Village) {
@@ -295,7 +320,7 @@ function upgradeTower(x, y, scene) {
         else {
             director.buildVillageWithEverything();
         }
-
+        
         newTower = villageBuilder.get();
         newTower.cloneSubsribers(tower);
     }

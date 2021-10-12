@@ -124,6 +124,7 @@ export class AppComponent implements OnInit {
         this.game.updateMap(serverMessage.data.map);
         this.health = serverMessage.data.health;
         this.game.populateMapWithTowers();
+        this.game.subscribeShooters();
         tempMessage = {
           username: "Server",
           text: "Prisijungei prie žaidimo"
