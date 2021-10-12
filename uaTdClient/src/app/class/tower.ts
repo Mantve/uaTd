@@ -31,10 +31,19 @@ export default class Tower extends Phaser.GameObjects.Image {
     shootingStrategy: ShootingStrategy;
     //dtype: Phaser.GameObjects.Text;
 
+    label: Phaser.GameObjects.Text;
+
     constructor(scene, type) {
         super(scene, 0, 0, 'sprites', type);
         this.nextTic = 0;
         this.parts = [];
+
+        /*
+        this.label = new Phaser.GameObjects.Text(scene, this.x, this.y, "", {});
+        scene.children.add(this.label);
+        this.label.setVisible(true);
+        this.label.setStroke('0x000000', 3);
+        */
     }
 
     setGameData(enemies, bullets, towers) {
@@ -49,6 +58,12 @@ export default class Tower extends Phaser.GameObjects.Image {
 
         this.y = i * 64 + 64 / 2;
         this.x = j * 64 + 64 / 2;
+
+        /*
+        this.label.y = i * 64 + 64 / 2 + 16;
+        this.label.x = j * 64 + 64 / 2;
+        this.label.setText(`${this.i} ${this.j}`);
+        */
     }
     
     setStrategy(strategy: ShootingStrategy) {
@@ -67,7 +82,6 @@ export class Village extends Tower implements Publisher {
     }
 
     place(i, j) {
-        console.log("Placing village")
         super.place(i, j);
     }
 
@@ -76,7 +90,7 @@ export class Village extends Tower implements Publisher {
             this.setModifier = 1.15;
 
             if (time > this.nextTic) {
-                this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
+                this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, 1);
                 this.nextTic = time + 2000;
             }
         }
@@ -140,25 +154,28 @@ export class Village extends Tower implements Publisher {
 }
 
 export class Shooter extends Tower implements Subscriber {
+    private multiplier = 1;
+
     constructor(scene, strategy: ShootingStrategy) {
         super(scene, 'shooter');
         this.shootingStrategy = strategy;
     }
 
     place(i, j) {
-        console.log("Placing shooter")
         super.place(i, j);
         //this.subToVillages();
     }
 
     update(time, delta) {
         if (time > this.nextTic) {
-            this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y);
+            this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, this.multiplier);
             this.nextTic = time + 1000;
         }
     }
 
     getNotified(publisher: Publisher) {
+        let village = publisher as Village;
+        this.multiplier = village.setModifier;
         console.log("i've been notified")
     }
     /*
@@ -327,7 +344,7 @@ export class Director {
 // ################### STRATEGY ####################
 
 export interface ShootingStrategy {
-    shoot(enemies, bullets, x, y);
+    shoot(enemies, bullets, x, y, multiplier);
 }
 
 export class DoNotShootShootingStrategy implements ShootingStrategy {

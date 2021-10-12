@@ -233,23 +233,16 @@ function placeTower(pointer) {
 
 function subscribeShooters() {
     var villageTowers = towers.getChildren();
-    console.log(villageTowers);
-    console.log(map);
     villageTowers.forEach(tower => {
         if(tower instanceof Village) {
             tower.resetObservers();
             villageTowers.forEach(shooter => {
-                console.log(Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y))
                 if(shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 100) {
                     tower.subscribe(shooter);
                 }
             });
-            console.log("YES")
         }
-        console.log(tower);
     });
-
-    console.log(towers);
 }
 
 /*
