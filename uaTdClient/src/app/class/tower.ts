@@ -114,6 +114,10 @@ export class Village extends Tower implements Publisher {
         }
     }
     
+    resetObservers() {
+        this.observers = [];
+    }
+
     /*addShootersToSubs() {
         var shooterTowers = this.towers.getChildren();
         var nearbyShooters: Subscriber[] = [];

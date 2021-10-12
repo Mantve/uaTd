@@ -148,9 +148,11 @@ export class AppComponent implements OnInit {
         break;
       case 'TOWER_BUILD':
         this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y, serverMessage.data.type)
+        this.game.subscribeShooters(); //Should be called on tower changes
         break;
       case 'TOWER_UPGRADE':
         this.game.upgradeTower(serverMessage.data.x, serverMessage.data.y)
+        this.game.subscribeShooters(); //Should be called on tower changes
         break;
       default:
     }

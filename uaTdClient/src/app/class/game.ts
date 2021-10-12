@@ -237,9 +237,10 @@ function subscribeShooters() {
     console.log(map);
     villageTowers.forEach(tower => {
         if(tower instanceof Village) {
+            tower.resetObservers();
             villageTowers.forEach(shooter => {
                 console.log(Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y))
-                if(shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 64) {
+                if(shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 100) {
                     tower.subscribe(shooter);
                 }
             });
@@ -250,6 +251,26 @@ function subscribeShooters() {
 
     console.log(towers);
 }
+
+/*
+function subscribeShooter(shooter: Shooter) {
+    var villageTowers = towers.getChildren();
+    console.log(villageTowers);
+    console.log(map);
+    villageTowers.forEach(tower => {
+        if(tower instanceof Village) {
+                console.log(Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y))
+                if(shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 64) {
+                    tower.subscribe(shooter);
+                }
+            console.log("YES")
+        }
+        console.log(tower);
+    });
+
+    console.log(towers);
+}
+*/
 
 function placeTowerFromServer(x, y, type, scene) {
     let director = new Director();
@@ -272,6 +293,7 @@ function placeTowerFromServer(x, y, type, scene) {
     }
 
     towers.add(tower);
+    
     //var tower = towers.get();
     if (tower) {
         map[y][x] = type;
@@ -300,8 +322,6 @@ function upgradeTower(x, y, scene) {
         else {
             director.buildShooterWithEverything();
         }
-        
-        //Sitoj vietoj reiketu surast kam subscribines, pasalint is priskirto village ir newTower pridet tam paciam village
         newTower = shooterBuilder.get();
     }
     else if(tower instanceof Village) {
