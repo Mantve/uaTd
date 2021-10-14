@@ -33,9 +33,14 @@ namespace uaTdServer.Class
             //map = new int[size, size];
         }
 
-        public void SetTower(int x, int y)
+        public void SetTower(int x, int y, int type)
         {
-            map[y, x] = 1;
+            map[y, x] = type;
+        }
+
+        public void UpgradeTower(int x, int y)
+        {
+            //map[y, x] = type;
         }
     }
 }

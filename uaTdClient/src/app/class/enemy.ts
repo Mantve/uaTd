@@ -31,7 +31,7 @@ class BacteriaBlue extends Bacteria {
 
     update(time, delta) {
         // move the t point along the path, 0 is the start and 0 is the end
-        this.follower.t += constants.ENEMY_SPEED * delta;
+        this.follower.t += constants.ENEMY_SPEED * delta * 0.5;
 
         // get the new x and y coordinates in vec
         this.path.getPoint(this.follower.t, this.follower.vec);
@@ -85,7 +85,7 @@ class BacteriaPink extends Bacteria {
 
     update(time, delta) {
         // move the t point along the path, 0 is the start and 0 is the end
-        this.follower.t += constants.ENEMY_SPEED * delta * 2;
+        this.follower.t += constants.ENEMY_SPEED * delta;
 
         // get the new x and y coordinates in vec
         this.path.getPoint(this.follower.t, this.follower.vec);

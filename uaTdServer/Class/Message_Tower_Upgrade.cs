@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 
 namespace uaTdServer.Class
 {
-    public struct Message_Tower_Build
+    public class Message_Tower_Upgrade
     {
         public int x { get; set; }
         public int y { get; set; }
-        public int type { get; set; }
     }
 }

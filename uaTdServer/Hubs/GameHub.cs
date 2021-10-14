@@ -41,9 +41,14 @@ namespace uaTdServer.Hubs
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 case "TOWER_BUILD":
-                    gameState.AddTower((int)data.data.x, (int)data.data.y);
+                    gameState.AddTower((int)data.data.x, (int)data.data.y, (int)data.data.type);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y)));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y, (int)data.data.type)));
+                    break;
+                case "TOWER_UPGRADE":
+                    gameState.UpgradeTower((int)data.data.x, (int)data.data.y);
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerUpgradeMessage((int)data.data.x, (int)data.data.y)));
                     break;
                 case "HEALTH_UPDATE":
                     gameState.UpdateHealth((int)data.data.change);
@@ -65,9 +70,14 @@ namespace uaTdServer.Hubs
             return new Message<Message_GameState>(messageType, messageGameState);
         }
 
-        private Message<Message_Tower_Build> TowerBuildMessage(int x, int y)
+        private Message<Message_Tower_Build> TowerBuildMessage(int x, int y, int type)
         {
-            return new Message<Message_Tower_Build>("TOWER_BUILD", new Message_Tower_Build() { x = x, y = y });
+            return new Message<Message_Tower_Build>("TOWER_BUILD", new Message_Tower_Build() { x = x, y = y, type = type });
+        }
+
+        private Message<Message_Tower_Upgrade> TowerUpgradeMessage(int x, int y)
+        {
+            return new Message<Message_Tower_Upgrade>("TOWER_UPGRADE", new Message_Tower_Upgrade() { x = x, y = y });
         }
     }
 }

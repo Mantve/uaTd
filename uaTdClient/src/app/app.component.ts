@@ -24,16 +24,19 @@ export class AppComponent implements OnInit {
   game: any;
   initFlag: boolean = false;
   health: integer = 0;
+  selectedIndex: number = -1;
 
   storeTowers = [
     {
-      name: 'Spicy Milk',
-      price: 100
+      name: 'Shooter',
+      price: 100,
+      image: 'milk.png'
     },
     {
-      name: 'Banana Milk',
-      price: 85
-    },
+      name: 'Village',
+      price: 200,
+      image: 'milk.png'
+    }/*,
     {
       name: 'Choco Milk',
       price: 150
@@ -45,7 +48,7 @@ export class AppComponent implements OnInit {
     {
       name: 'Almond Milk',
       price: 50
-    }
+    }*/
   ]
 
   constructor() {
@@ -121,6 +124,7 @@ export class AppComponent implements OnInit {
         this.game.updateMap(serverMessage.data.map);
         this.health = serverMessage.data.health;
         this.game.populateMapWithTowers();
+        this.game.subscribeShooters();
         tempMessage = {
           username: "Server",
           text: "Prisijungei prie žaidimo"
@@ -143,20 +147,35 @@ export class AppComponent implements OnInit {
         this.money -= serverMessage.data.change;
         break;
       case 'TOWER_BUILD':
-        this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y)
+        this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y, serverMessage.data.type)
+        this.game.subscribeShooters(); //Should be called on tower changes
+        break;
+      case 'TOWER_UPGRADE':
+        this.game.upgradeTower(serverMessage.data.x, serverMessage.data.y)
+        this.game.subscribeShooters(); //Should be called on tower changes
         break;
       default:
     }
   }
 
   purchase(i: integer) {
-    let message = {
+    if(this.selectedIndex != -1 && this.selectedIndex == i) {
+      this.selectedIndex = -1;
+      this.game.cancelPurchase();
+    }
+    else {
+      this.selectedIndex = i;
+      this.game.setForPurchase(i);
+    }
+
+
+    /*let message = {
       type: 'TOWER_PURCHASE',
       data: {
         change: this.storeTowers[i].price
       }
     };
 
-    this.connection.send('clientMessage', JSON.stringify(message));
+    this.connection.send('clientMessage', JSON.stringify(message));*/
   }
 }

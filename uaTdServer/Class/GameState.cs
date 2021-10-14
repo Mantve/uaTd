@@ -105,13 +105,22 @@ namespace uaTdServer.Class
             return Map;
         }
 
-        public void AddTower(int x, int y)
+        public void AddTower(int x, int y, int type)
         {
             var existingTower = Towers.Any(t => t == (x, y));
             if(!existingTower)
             {
                 Towers.Add((x, y));
-                GetMap().SetTower(x, y);
+                GetMap().SetTower(x, y, type);
+            }
+        }
+
+        public void UpgradeTower(int x, int y)
+        {
+            var existingTower = Towers.Any(t => t == (x, y));
+            if(existingTower)
+            {
+                GetMap().UpgradeTower(x, y);
             }
         }
 
