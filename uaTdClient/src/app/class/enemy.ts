@@ -9,9 +9,31 @@ export class Enemy {
     }
 }
 
-abstract class Bacteria extends Phaser.GameObjects.Image {
-    constructor(scene, x, y, spriteFile, sprite){
+abstract class Bacteria extends Phaser.GameObjects.Image implements Decorator {
+    constructor(scene, x, y, spriteFile, sprite) {
         super(scene, x, y, spriteFile, sprite);
+    }
+    public setSprite(decorator: Decorator) {
+        decorator.setSprite(this);
+    }
+
+}
+
+interface Decorator {
+    setSprite(bacteria: Bacteria);
+}
+
+class CriticalDamagedDecorator implements Decorator {
+
+    public setSprite(bacteria: Bacteria) {
+        bacteria.setFrame('village');
+    }
+}
+
+class SemiDamagedDecorator implements Decorator {
+
+    public setSprite(bacteria: Bacteria) {
+        bacteria.setFrame('shooter');
     }
 }
 
@@ -54,7 +76,7 @@ class BacteriaBlue extends Bacteria {
 
         // set the x and y of our enemy to the received from the previous step
         this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        this.hp = 10;
+        this.hp = constants.ENEMY_HP;
 
     }
 
@@ -66,6 +88,15 @@ class BacteriaBlue extends Bacteria {
             this.setActive(false);
             this.setVisible(false);
         }
+        else if(this.hp <= constants.ENEMY_HP*0.3)
+        {
+            (this as Bacteria).setSprite(new CriticalDamagedDecorator())
+        }
+        else if(this.hp <= constants.ENEMY_HP*0.5)
+        {
+            (this as Bacteria).setSprite(new SemiDamagedDecorator())
+        }
+
     }
 };
 
@@ -108,7 +139,7 @@ class BacteriaPink extends Bacteria {
 
         // set the x and y of our enemy to the received from the previous step
         this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        this.hp = 10 * .5;
+        this.hp = constants.ENEMY_HP * .5;
 
     }
 
@@ -119,6 +150,14 @@ class BacteriaPink extends Bacteria {
         if (this.hp <= 0) {
             this.setActive(false);
             this.setVisible(false);
+        }
+        else if(this.hp <= constants.ENEMY_HP*0.3*0.5)
+        {
+            (this as Bacteria).setSprite(new CriticalDamagedDecorator())
+        }
+        else if(this.hp <= constants.ENEMY_HP*0.5*0.5)
+        {
+            (this as Bacteria).setSprite(new SemiDamagedDecorator())
         }
     }
 };

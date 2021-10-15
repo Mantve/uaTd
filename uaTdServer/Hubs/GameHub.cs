@@ -37,7 +37,6 @@ namespace uaTdServer.Hubs
                     break;
                 case "TOWER_PURCHASE": //nebekvieciamas?
                     gameState.UpdateMoney((double)data.data.change);
-
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 case "TOWER_BUILD":
@@ -81,7 +80,6 @@ namespace uaTdServer.Hubs
         private Message<Message_Tower_Upgrade> TowerUpgradeMessage(int x, int y)
         {
             return new Message<Message_Tower_Upgrade>("TOWER_UPGRADE", new Message_Tower_Upgrade() { x = x, y = y });
-
         }
     }
 }
