@@ -8,7 +8,11 @@ namespace uaTdServer.Class
     public class GameState
     {
         private static GameState singleton;
-
+        /*readonly Dictionary<int, double> TowerCosts = new()
+        {
+            { 1, 100}, //shooter
+            { 2, 200}  //village
+        };*/
         Dictionary<string, Player> playersByUsername;
         Dictionary<string, Player> playersByConnectionID;
         Map Map;
@@ -72,7 +76,7 @@ namespace uaTdServer.Class
 
         public void UpdateMoney(double change)
         {
-            Money -= change;
+            Money += change;
         }
 
         public double GetScore()
@@ -93,6 +97,8 @@ namespace uaTdServer.Class
         public void UpdateHealth(int change)
         {
             Health -= change;
+            if (Health < 0)
+                Health = 0;
         }
 
         public List<String> GetPlayers()
@@ -105,21 +111,23 @@ namespace uaTdServer.Class
             return Map;
         }
 
-        public void AddTower(int x, int y, int type)
+        public void AddTower(int x, int y, int type, double price)
         {
             var existingTower = Towers.Any(t => t == (x, y));
             if(!existingTower)
             {
+                UpdateMoney(-price);
                 Towers.Add((x, y));
                 GetMap().SetTower(x, y, type);
             }
         }
 
-        public void UpgradeTower(int x, int y)
+        public void UpgradeTower(int x, int y, double price)
         {
             var existingTower = Towers.Any(t => t == (x, y));
             if(existingTower)
             {
+                UpdateMoney(-price);
                 GetMap().UpgradeTower(x, y);
             }
         }

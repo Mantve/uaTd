@@ -154,18 +154,22 @@ export class AppComponent implements OnInit {
         this.game.upgradeTower(serverMessage.data.x, serverMessage.data.y)
         this.game.subscribeShooters(); //Should be called on tower changes
         break;
+      case 'GAME_OVER':
+          this.game.gameOver();
+        break;
       default:
     }
   }
 
   purchase(i: integer) {
-    if(this.selectedIndex != -1 && this.selectedIndex == i) {
+    if (this.selectedIndex != -1 && this.selectedIndex == i) {
       this.selectedIndex = -1;
       this.game.cancelPurchase();
     }
     else {
       this.selectedIndex = i;
-      this.game.setForPurchase(i);
+      var price = this.storeTowers[i - 1].price;
+      this.game.setForPurchase(i, price);
     }
 
 
