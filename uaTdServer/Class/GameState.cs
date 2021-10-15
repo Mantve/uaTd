@@ -99,9 +99,15 @@ namespace uaTdServer.Class
 
         public void UpdateHealth(int change)
         {
-            Health -= change;
-            if (Health < 0)
+            if (Health > 0)
+            {
+                Health -= change;
+            }
+            else
+            {
                 Health = 0;
+                ResetBacterias();
+            }
         }
 
         public List<String> GetPlayers()
@@ -166,6 +172,10 @@ namespace uaTdServer.Class
         public void SwitchGameActiveState()
         {
             gameIsActive = !gameIsActive;
+        }
+        public void ResetBacterias()
+        {
+            Bacterias = new List<Bacteria>();
         }
     }
 }
