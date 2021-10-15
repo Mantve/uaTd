@@ -54,7 +54,7 @@ class BacteriaBlue extends Bacteria {
 
         // set the x and y of our enemy to the received from the previous step
         this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        this.hp = 100;
+        this.hp = 10;
 
     }
 
@@ -108,7 +108,7 @@ class BacteriaPink extends Bacteria {
 
         // set the x and y of our enemy to the received from the previous step
         this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        this.hp = 100 * .5;
+        this.hp = 10 * .5;
 
     }
 

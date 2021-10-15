@@ -35,24 +35,26 @@ namespace uaTdServer.Hubs
                     // Notify others of a new player
                     await Clients.Others.SendAsync("serverDataMessage", jsonData);
                     break;
-                case "TOWER_PURCHASE":
+                case "TOWER_PURCHASE": //nebekvieciamas?
                     gameState.UpdateMoney((double)data.data.change);
 
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 case "TOWER_BUILD":
-                    gameState.AddTower((int)data.data.x, (int)data.data.y, (int)data.data.type);
+                    gameState.AddTower((int)data.data.x, (int)data.data.y, (int)data.data.type, (double)data.data.price);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y, (int)data.data.type)));
                     break;
                 case "TOWER_UPGRADE":
-                    gameState.UpgradeTower((int)data.data.x, (int)data.data.y);
+                    gameState.UpgradeTower((int)data.data.x, (int)data.data.y, (double)data.data.price);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerUpgradeMessage((int)data.data.x, (int)data.data.y)));
                     break;
                 case "HEALTH_UPDATE":
                     gameState.UpdateHealth((int)data.data.change);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    if (gameState.GetHealth() == 0)
+                        await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(new Message<string>("GAME_OVER", "GAME_OVER")));
                     break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
@@ -60,7 +62,8 @@ namespace uaTdServer.Hubs
             }
         }
 
-        private Message<Message_GameState> GetGameState(string messageType = "GAMESTATE_INIT") { 
+        private Message<Message_GameState> GetGameState(string messageType = "GAMESTATE_INIT")
+        {
             Message_GameState messageGameState = new();
             messageGameState.map = gameState.GetMap().map;
             messageGameState.money = gameState.GetMoney();
@@ -72,12 +75,13 @@ namespace uaTdServer.Hubs
 
         private Message<Message_Tower_Build> TowerBuildMessage(int x, int y, int type)
         {
-            return new Message<Message_Tower_Build>("TOWER_BUILD", new Message_Tower_Build() { x = x, y = y, type = type });
+            return new Message<Message_Tower_Build>("TOWER_BUILD", new Message_Tower_Build() { x = x, y = y, type = type * 10 });
         }
 
         private Message<Message_Tower_Upgrade> TowerUpgradeMessage(int x, int y)
         {
             return new Message<Message_Tower_Upgrade>("TOWER_UPGRADE", new Message_Tower_Upgrade() { x = x, y = y });
+
         }
     }
 }

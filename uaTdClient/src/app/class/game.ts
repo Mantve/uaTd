@@ -54,8 +54,8 @@ export default class Game extends Phaser.Game {
         return populateMapWithTowers(this.scene.scenes[0]);
     }
 
-    setForPurchase(i: number) {
-        setForPurchase(i);
+    setForPurchase(i: number, price: number) {
+        setForPurchase(i, price);
     }
 
     cancelPurchase() {
@@ -68,6 +68,12 @@ export default class Game extends Phaser.Game {
 
     subscribeShooters() {
         return subscribeShooters();
+    }
+
+    gameOver()
+    {
+        return gameOver(this.scene);
+        //return gameOver();
     }
 }
 
@@ -85,16 +91,19 @@ var eType = 0;
 
 var purchasePreview: Phaser.GameObjects.Image;
 var selectedIndex: number = -1;
+var selectedPrice: number = 0;
 
-function setForPurchase(i: number) {
+function setForPurchase(i: number, price: number) {
     purchasePreview.setFrame(i == 1 ? 'tower' : 'village')
     purchasePreview.visible = true;
     selectedIndex = i;
+    selectedPrice = price;
 }
 
 function cancelPurchase() {
     purchasePreview.visible = false;
     selectedIndex = -1;
+    selectedPrice = 0;
 }
 
 function preload() {
@@ -146,7 +155,7 @@ function create() {
     purchasePreview = new Phaser.GameObjects.Image(this, 0, 0, 'sprites', 'tower');
     this.children.add(purchasePreview);
     purchasePreview.visible = false;
-    
+
     finTile = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
     let ft = new Phaser.GameObjects.Rectangle(this, 64 * 11 - 32, 64 * 11, 64, 64, 0xff0000, 0.25);
     ft.setActive(true);
@@ -211,33 +220,36 @@ function placeTower(pointer) {
             data: {
                 x: x,
                 y: y,
-                type: selectedIndex
+                type: selectedIndex,
+                price: selectedPrice
             }
         };
 
         connection.send('clientMessage', JSON.stringify(message));
     }
-    else if (selectedIndex != -1 && selectedIndex == map[y][x]) {
+    else if (selectedIndex != -1 && selectedIndex == Math.floor(map[y][x] / 10)) {
+        if ((selectedIndex == 1 && map[y][x] % 10 < 2) || (selectedIndex == 2 && map[y][x] % 10 < 3)) {
+            let message = {
+                type: 'TOWER_UPGRADE',
+                data: {
+                    x: x,
+                    y: y,
+                    price: selectedPrice
+                }
+            };
 
-        let message = {
-            type: 'TOWER_UPGRADE',
-            data: {
-                x: x,
-                y: y
-            }
-        };
-
-        connection.send('clientMessage', JSON.stringify(message));
+            connection.send('clientMessage', JSON.stringify(message));
+        }
     }
 }
 
 function subscribeShooters() {
     var villageTowers = towers.getChildren();
     villageTowers.forEach(tower => {
-        if(tower instanceof Village) {
+        if (tower instanceof Village) {
             tower.resetObservers();
             villageTowers.forEach(shooter => {
-                if(shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 100) {
+                if (shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 100) {
                     tower.subscribe(shooter);
                 }
             });
@@ -266,16 +278,17 @@ function subscribeShooter(shooter: Shooter) {
 */
 
 function placeTowerFromServer(x, y, type, scene) {
+
     let director = new Director();
     let tower: Tower;
-
-    switch (type) {
-        case 1: 
+    let towerType = Math.floor(type / 10);
+    switch (towerType) {
+        case 1:
             let shooterBuilder = new ShooterBuilder(scene);
             director.setBuilder(shooterBuilder);
             director.buildShooter();
 
-            tower = shooterBuilder.get();  
+            tower = shooterBuilder.get();
             break;
         case 2:
             let villageBuilder = new VillageBuilder(scene);
@@ -286,7 +299,7 @@ function placeTowerFromServer(x, y, type, scene) {
     }
 
     towers.add(tower);
-    
+
     //var tower = towers.get();
     if (tower) {
         map[y][x] = type;
@@ -297,19 +310,26 @@ function placeTowerFromServer(x, y, type, scene) {
     }
 
     scene.children.add(tower)
+    let upgrades = type % 10
+    console.log(upgrades);
+
+    for (let i = 0; i < upgrades; i++) {
+        upgradeTower(x, y, scene);
+    }
 }
 
 function upgradeTower(x, y, scene) {
+
     let tower = towers.getChildren().filter(c => c.j == x && c.i == y)[0];
     //console.log(tower);
     var director = new Director();
     var newTower;
 
-    if(tower instanceof Shooter) {
+    if (tower instanceof Shooter) {
         let shooterBuilder = new ShooterBuilder(scene);
 
         director.setBuilder(shooterBuilder);
-        if(!tower.parts.includes('SNIPER')) {
+        if (!tower.parts.includes('SNIPER')) {
             director.buildShooterWithSniper();
         }
         else {
@@ -317,23 +337,23 @@ function upgradeTower(x, y, scene) {
         }
         newTower = shooterBuilder.get();
     }
-    else if(tower instanceof Village) {
+    else if (tower instanceof Village) {
         let villageBuilder = new VillageBuilder(scene);
 
-        if(tower.parts.includes('WALLS'))
+        if (tower.parts.includes('WALLS'))
             return;
 
         director.setBuilder(villageBuilder);
-        if(!tower.parts.includes('CANNON')) {
+        if (!tower.parts.includes('CANNON')) {
             director.buildVillageWithCannon();
         }
-        else if(!tower.parts.includes('RADAR')) {
+        else if (!tower.parts.includes('RADAR')) {
             director.buildVillageWithCannonAndRadar();
         }
         else {
             director.buildVillageWithEverything();
         }
-        
+
         newTower = villageBuilder.get();
         newTower.cloneSubsribers(tower);
     }
@@ -361,7 +381,7 @@ function canPlaceTower(y, x) {
 function placeObstacleFromServer(scene, j, i, type) {
     var obstacle = new Obstacle();
 
-    switch(type) {
+    switch (type) {
         case -2: {
             obstacle.createPlantObstacle(scene, new SmallObstacleFactory());
             let spo = obstacle.plantObstacle;
@@ -446,18 +466,18 @@ function update(time, delta) {
 
         var enemy = new Enemy();
         let bacteria;
-        if(eType === 0) {
+        if (eType === 0) {
             enemy.createBacteria(this, new BacteriaBlueCreator());
             if (enemy) {
                 bacteria = enemy.bacteria;
-                eType = 1; 
+                eType = 1;
             }
         }
         else {
             enemy.createBacteria(this, new BacteriaPinkCreator());
             if (enemy) {
                 bacteria = enemy.bacteria;
-                eType = 0; 
+                eType = 0;
             }
         }
         //var enemy = enemies.get();
@@ -465,10 +485,10 @@ function update(time, delta) {
             bacteria.setPath(path);
             bacteria.setActive(true);
             bacteria.setVisible(true);
-            
+
             // place the enemy at the start of the path
             bacteria.startOnPath();
-            
+
             this.nextBacteria = time + 2000;
 
             enemies.add(bacteria);
@@ -482,7 +502,7 @@ function update(time, delta) {
     indicator.x = ix * 64 + 32;
     indicator.y = iy * 64 + 32;
 
-    if(purchasePreview != undefined) {
+    if (purchasePreview != undefined) {
         purchasePreview.x = ix * 64 + 32;
         purchasePreview.y = iy * 64 + 32;
     }
@@ -493,6 +513,12 @@ function update(time, delta) {
     else {
         indicator.fillColor = 0x00ff00;
     }
+}
+
+function gameOver(scene)
+{
+    console.log('stop');
+    scene.scene.stop();
 }
 
 function drawGrid(graphics) {

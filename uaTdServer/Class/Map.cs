@@ -35,12 +35,12 @@ namespace uaTdServer.Class
 
         public void SetTower(int x, int y, int type)
         {
-            map[y, x] = type;
+            map[y, x] = type * 10;
         }
 
         public void UpgradeTower(int x, int y)
         {
-            //map[y, x] = type;
+            map[y, x]++;
         }
     }
 }
