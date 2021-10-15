@@ -9,12 +9,44 @@ export class Enemy {
     }
 }
 
-abstract class Bacteria extends Phaser.GameObjects.Image implements Decorator {
+export abstract class Bacteria extends Phaser.GameObjects.Image implements Decorator {
+    id: number;
+    follower: {
+        t: number,
+        vec: Phaser.Math.Vector2
+    };
+    t;
+    hp;
+    hitCount;
+    path;
+    type;
+    isRunning;
+
     constructor(scene, x, y, spriteFile, sprite) {
         super(scene, x, y, spriteFile, sprite);
     }
     public setSprite(decorator: Decorator) {
         decorator.setSprite(this);
+    }
+
+    setBacteriaData(t, vec, id, type) {
+        this.follower = { t: t, vec: vec ? new Phaser.Math.Vector2(vec[0], vec[1]) : new Phaser.Math.Vector2() };
+        this.id = id;
+        //this.follower = { t: t, vec: new Phaser.Math.Vector2() };
+        this.type = type;
+        this.isRunning = false;
+    }
+
+    getBacteriaId() {
+        return this.id;
+    }
+
+    stop() {
+        this.isRunning = false;
+    }
+
+    run() {
+        this.isRunning = true;
     }
 
 }
@@ -38,9 +70,6 @@ class SemiDamagedDecorator implements Decorator {
 }
 
 class BacteriaBlue extends Bacteria {
-    follower;
-    hp;
-    path;
 
     constructor(scene) {
         super(scene, 0, 0, 'sprites', 'enemy');
@@ -53,17 +82,20 @@ class BacteriaBlue extends Bacteria {
 
     update(time, delta) {
         // move the t point along the path, 0 is the start and 0 is the end
-        this.follower.t += constants.ENEMY_SPEED * delta * 0.5;
-
-        // get the new x and y coordinates in vec
-        this.path.getPoint(this.follower.t, this.follower.vec);
-
-        // update enemy x and y to the newly obtained x and y
-        this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        // if we have reached the end of the path, remove the enemy
-        if (this.follower.t >= 1) {
-            this.setActive(false);
-            this.setVisible(false);
+        if(this.isRunning) {
+            this.follower.t += constants.ENEMY_SPEED * delta;
+    
+            // get the new x and y coordinates in vec
+            this.path.getPoint(this.follower.t, this.follower.vec);
+    
+            // update enemy x and y to the newly obtained x and y
+            this.setPosition(this.follower.vec.x, this.follower.vec.y);
+            //this.label.setPosition(this.follower.vec.x - 32, this.follower.vec.y + 25);
+            // if we have reached the end of the path, remove the enemy
+            if (this.follower.t >= 1) {
+                this.setActive(false);
+                this.setVisible(false);
+            }
         }
     }
 
@@ -101,9 +133,6 @@ class BacteriaBlue extends Bacteria {
 };
 
 class BacteriaPink extends Bacteria {
-    follower;
-    hp;
-    path;
 
     constructor(scene) {
         super(scene, 0, 0, 'sprites', 'enemy_pink');
@@ -115,18 +144,20 @@ class BacteriaPink extends Bacteria {
     }
 
     update(time, delta) {
-        // move the t point along the path, 0 is the start and 0 is the end
-        this.follower.t += constants.ENEMY_SPEED * delta;
-
-        // get the new x and y coordinates in vec
-        this.path.getPoint(this.follower.t, this.follower.vec);
-
-        // update enemy x and y to the newly obtained x and y
-        this.setPosition(this.follower.vec.x, this.follower.vec.y);
-        // if we have reached the end of the path, remove the enemy
-        if (this.follower.t >= 1) {
-            this.setActive(false);
-            this.setVisible(false);
+        if(this.isRunning) {
+            this.follower.t += constants.ENEMY_SPEED * delta * 0.5;
+    
+            // get the new x and y coordinates in vec
+            this.path.getPoint(this.follower.t, this.follower.vec);
+    
+            // update enemy x and y to the newly obtained x and y
+            this.setPosition(this.follower.vec.x, this.follower.vec.y);
+            //this.label.setPosition(this.follower.vec.x - 32, this.follower.vec.y + 25);
+            // if we have reached the end of the path, remove the enemy
+            if (this.follower.t >= 1) {
+                this.setActive(false);
+                this.setVisible(false);
+            }
         }
     }
 

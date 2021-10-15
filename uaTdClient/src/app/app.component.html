@@ -14,19 +14,19 @@
                 <div id="content"></div>
                 <div class="header">
                     <div id="player-name">{{username}}</div>
-                    <div id="cash-balance">{{money}} Pinigų</div>
+                    <div id="cash-balance">{{gameState.money}} Pinigų</div>
                 </div>
                 <div class="footer">
                     <div class="left"></div>
                     <div class="start">
-                        <button>Pradėti Žaidimą</button>
+                        <button type="button" (click)="startGame()">{{gameState.gameActiveState ? "Stabdyti žaidimą" : "Pradėti Žaidimą"}}</button>
                     </div>
                     <div class="right"></div>
                 </div>
             </div>
             <div class="game-info">
                 <div class="left"><b>Roundas</b> 1 / 10</div>
-                <div class="right">{{health}} <b>Gyvybių</b></div>
+                <div class="right">{{gameState.health}} <b>Gyvybių</b></div>
             </div>
         </div>
         <div class="game-sidebar">

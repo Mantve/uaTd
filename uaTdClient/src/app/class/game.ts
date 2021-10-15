@@ -4,7 +4,7 @@ import { constants } from './_constants';
 import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Subscriber, Village, VillageBuilder } from './tower';
 import Bullet from './bullet';
 import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
-import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator } from './enemy';
+import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 
 var config = {
     type: Phaser.AUTO,
@@ -39,7 +39,17 @@ export default class Game extends Phaser.Game {
     }
 
     runEnemies() {
-        runEnemies = true;
+        isRunning = true;
+        bacterias.forEach(enemy => {
+            enemy.run();
+        });
+    }
+
+    stopEnemies() {
+        isRunning = false;
+        bacterias.forEach(enemy => {
+            enemy.stop();
+        });
     }
 
     printMap() {
@@ -75,6 +85,18 @@ export default class Game extends Phaser.Game {
         return gameOver(this.scene);
         //return gameOver();
     }
+
+    spawnNewBacteria(bacteria: Bacteria) {
+        return spawnBacteria(this.scene.scenes[0], this.scene.scenes[0].time, bacteria.type, bacteria.follower.t, [bacteria.follower.vec.x, bacteria.follower.vec.y], bacteria.id);
+    }
+
+    spawnNewBacterias(bacterias: Bacteria[]) {
+        return spawnNewBacterias(this.scene.scenes[0], this.scene.scenes[0].time, bacterias);
+    }
+
+    removeOldBacterias(newBacterias: Bacteria[]) {
+        return removeOldBacterias(this.scene.scenes[0], newBacterias);
+    }
 }
 
 var graphics;
@@ -88,6 +110,8 @@ var indicator;
 var finTile;
 var runEnemies: boolean = false;
 var eType = 0;
+var isRunning = false;
+var bacterias: Bacteria[] = [];
 
 var purchasePreview: Phaser.GameObjects.Image;
 var selectedIndex: number = -1;
@@ -255,6 +279,65 @@ function subscribeShooters() {
             });
         }
     });
+}
+
+function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
+    if(bacterias) {
+        bacterias.forEach(b => {
+            console.log(b)
+            spawnBacteria(scene, time, b.type, b.t, [b.follower.vec.x, b.follower.vec.y], b.id);
+        })
+    }
+}
+
+function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
+    //console.log("SPAWNING", bacteriaType, t, vec, id)
+
+    var enemy = new Enemy();
+    let bacteria;
+
+    if(bacteriaType == 0) {
+        enemy.createBacteria(scene, new BacteriaBlueCreator());
+        enemy.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+        if (enemy) {
+            bacteria = enemy.bacteria;
+        }
+    }
+    else {
+        enemy.createBacteria(scene, new BacteriaPinkCreator());
+        enemy.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+        if (enemy) {
+            bacteria = enemy.bacteria;
+        }
+    }
+    console.log(bacteria);
+    if (bacteria) {
+        bacteria.setPath(path);
+        bacteria.setActive(true);
+        bacteria.setVisible(true);
+        
+        bacteria.startOnPath();
+        
+        enemies.add(bacteria);
+        scene.children.add(bacteria);
+        bacterias.push(bacteria);
+        
+        !isRunning ? bacteria.stop() : bacteria.run();
+    }
+}
+
+function removeOldBacterias(scene, oldBacterias: Bacteria[]) {
+    oldBacterias.forEach(ob => {
+        removeBacteria(scene, ob);
+    })
+}
+
+function removeBacteria(scene, oldBacteria: Bacteria) {
+    oldBacteria.setActive(false);
+    oldBacteria.setVisible(false);
+    enemies.splice(enemies.indexOf(oldBacteria), 1);
+    bacterias.splice(bacterias.indexOf(oldBacteria), 1);
+    scene.children.splice(scene.children.indexOf(oldBacteria), 1);
 }
 
 /*
@@ -460,42 +543,7 @@ function placeObstacleFromServer(scene, j, i, type) {
     }
 }
 
-function update(time, delta) {
-    // if its time for the next enemy
-    if (runEnemies && time > this.nextBacteria) {
-
-        var enemy = new Enemy();
-        let bacteria;
-        if (eType === 0) {
-            enemy.createBacteria(this, new BacteriaBlueCreator());
-            if (enemy) {
-                bacteria = enemy.bacteria;
-                eType = 1;
-            }
-        }
-        else {
-            enemy.createBacteria(this, new BacteriaPinkCreator());
-            if (enemy) {
-                bacteria = enemy.bacteria;
-                eType = 0;
-            }
-        }
-        //var enemy = enemies.get();
-        if (bacteria) {
-            bacteria.setPath(path);
-            bacteria.setActive(true);
-            bacteria.setVisible(true);
-
-            // place the enemy at the start of the path
-            bacteria.startOnPath();
-
-            this.nextBacteria = time + 2000;
-
-            enemies.add(bacteria);
-            this.children.add(bacteria);
-        }
-    }
-
+function update(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
     let ix = Math.floor(this.input.activePointer.x / 64);
     let iy = Math.floor(this.input.activePointer.y / 64);
 
