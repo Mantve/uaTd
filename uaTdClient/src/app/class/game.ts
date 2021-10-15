@@ -5,6 +5,7 @@ import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Subscribe
 import Bullet from './bullet';
 import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
+import { GameState } from '.';
 
 var config = {
     type: Phaser.AUTO,
@@ -97,6 +98,10 @@ export default class Game extends Phaser.Game {
     removeOldBacterias(newBacterias: Bacteria[]) {
         return removeOldBacterias(this.scene.scenes[0], newBacterias);
     }
+
+    initializeNewGame() {
+        return initializeGame(this.scene.scenes[0]);
+    }
 }
 
 var graphics;
@@ -165,7 +170,7 @@ function create() {
     // visualize the path
     path.draw(graphics);
 
-    enemies = this.physics.add.group({ classType: Enemy, runChildUpdate: true });
+    enemies = this.physics.add.group({ classType: Bacteria, runChildUpdate: true });
     this.nextBacteria = 0;
     towers = this.add.group({ classType: Tower, runChildUpdate: true });
     this.input.on('pointerdown', placeTower);
@@ -186,6 +191,17 @@ function create() {
     ft.setVisible(true);
     finTile.add(ft);
     this.physics.add.overlap(enemies, finTile, updateHealth);
+}
+
+function initializeGame(scene) {
+    enemies.clear();
+    //scene.children.destroy();
+    console.log("**********")
+    console.log(bacterias);
+    removeAllBacterias(scene, bacterias);
+    scene.nextBacteria = 0;
+    towers.clear();
+    bullets.clear();
 }
 
 function damageEnemy(enemy, bullet) {
@@ -328,16 +344,26 @@ function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number
 
 function removeOldBacterias(scene, oldBacterias: Bacteria[]) {
     oldBacterias.forEach(ob => {
+        console.log(oldBacterias)
+        console.log(ob);
         removeBacteria(scene, ob);
     })
 }
 
-function removeBacteria(scene, oldBacteria: Bacteria) {
+function removeBacteria(scene, oldBacteria) {
+    console.log(oldBacteria)
     oldBacteria.setActive(false);
     oldBacteria.setVisible(false);
-    enemies.splice(enemies.indexOf(oldBacteria), 1);
+    enemies.remove(oldBacteria);
     bacterias.splice(bacterias.indexOf(oldBacteria), 1);
-    scene.children.splice(scene.children.indexOf(oldBacteria), 1);
+    scene.children.remove(oldBacteria);
+}
+
+function removeAllBacterias(scene, bacterias: Bacteria[]) {
+    bacterias.forEach(bacteria => {
+        scene.children.remove(bacteria);
+    });
+    bacterias = [];
 }
 
 /*

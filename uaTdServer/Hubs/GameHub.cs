@@ -67,6 +67,15 @@ namespace uaTdServer.Hubs
                     if (gameState.GetHealth() == 0)
                         await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(new Message<string>("GAME_OVER", "GAME_OVER")));
                     break;
+                case "RESET_GAME":
+                    gameState.Reset();
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
+                case "GAME_OVER":
+                    gameState.SetGameIsOver();
+                    //gameState.SwitchGameActiveState();
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
@@ -82,6 +91,7 @@ namespace uaTdServer.Hubs
             messageGameState.health = gameState.GetHealth();
             messageGameState.bacterias = gameState.GetBacterias();
             messageGameState.gameActiveState = gameState.GetGameActiveState();
+            messageGameState.gameIsOver = gameState.GetGameIsOver();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }

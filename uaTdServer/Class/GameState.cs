@@ -21,18 +21,14 @@ namespace uaTdServer.Class
         int Health;
         List<(int, int)> Towers;
         List<Bacteria> Bacterias;
-        bool gameIsActive = false;
+        bool gameActiveState = false;
+        bool gameIsOver = false;
 
         private GameState()
         {
             playersByUsername = new Dictionary<string, Player>();
             playersByConnectionID = new Dictionary<string, Player>();
-            Money = 1000;
-            Score = 0;
-            Health = 100;
-            Map = new Map("Map", 64, 1000);
-            Towers = new();
-            Bacterias = new();
+            this.Reset();
         }
 
         public static GameState Get()
@@ -41,6 +37,17 @@ namespace uaTdServer.Class
                 singleton = new GameState();
 
             return singleton;
+        }
+        public void Reset() 
+        {
+            Money = 1000;
+            Score = 0;
+            Health = 100;
+            Map = new Map("Map", 64, 1000);
+            Towers = new();
+            Bacterias = new();
+            gameActiveState = false;
+            gameIsOver = false;
         }
 
         public Player GetPlayerByUsername(string username)
@@ -166,16 +173,26 @@ namespace uaTdServer.Class
 
         public bool GetGameActiveState()
         {
-            return gameIsActive;
+            return gameActiveState;
         }
 
         public void SwitchGameActiveState()
         {
-            gameIsActive = !gameIsActive;
+            gameActiveState = !gameActiveState;
         }
         public void ResetBacterias()
         {
             Bacterias = new List<Bacteria>();
+        }
+
+        public bool GetGameIsOver()
+        {
+            return gameIsOver;
+        }
+
+        public void SetGameIsOver()
+        {
+            gameIsOver = true;
         }
     }
 }

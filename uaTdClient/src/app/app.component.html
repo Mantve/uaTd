@@ -11,6 +11,15 @@
     <div class="screen game-screen" [ngClass]="shownScreen == 'game' ? 'shown' : ''">
         <div class="game-stack">
             <div class="game-window">
+                <div class="overlay" *ngIf="gameState.gameIsOver">
+                    <div class="overlay-inner">
+                        <div class="overlay-text">
+                            Game over
+                        </div>
+                        <button type="button" (click)="resetGame()"> Naujas žaidimas </button>
+                        <button type="button"> Kartoti raundą </button>
+                    </div>
+                </div>
                 <div id="content"></div>
                 <div class="header">
                     <div id="player-name">{{username}}</div>
@@ -25,7 +34,7 @@
                 </div>
             </div>
             <div class="game-info">
-                <div class="left"><b>Roundas</b> 1 / 10</div>
+                <div class="left"><b>Raundas</b> 1 / 10</div>
                 <div class="right">{{gameState.health}} <b>Gyvybių</b></div>
             </div>
         </div>

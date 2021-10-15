@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
 import Game from "./class/game";
 import { Bacteria, GameState } from './class';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 interface ChatMessage {
   username: string,
@@ -100,6 +101,16 @@ export class AppComponent implements OnInit {
     this.connection.send('clientMessage', JSON.stringify(message));
   }
 
+  resetGame() {
+    let message = {
+      type: 'RESET_GAME',
+      data: {}
+    };
+
+    this.connection.send('clientMessage', JSON.stringify(message)).then(x => { this.game.initializeNewGame() })
+    this.gameState.gameActiveState = false;
+  }
+
   sendChat() {
     if (this.message.length == 0)
       return;
@@ -181,7 +192,9 @@ export class AppComponent implements OnInit {
         this.game.subscribeShooters(); //Should be called on tower changes
         break;
       case 'GAME_OVER':
-          this.game.gameOver();
+        this.gameState.gameIsOver = true;
+        //this.gameState.gameActiveState = false; 
+        this.game.gameOver();
         break;
       case 'SPAWN_ENEMY':
         let serverEnemy = serverMessage.data as Bacteria;

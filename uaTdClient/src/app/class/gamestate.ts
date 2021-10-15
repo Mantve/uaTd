@@ -7,4 +7,5 @@ export class GameState {
     health: number;
     bacterias: Bacteria[];
     gameActiveState: boolean;
+    gameIsOver: boolean;
 }
