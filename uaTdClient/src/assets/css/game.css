@@ -348,3 +348,28 @@ body {
 .footer .start button:hover {
     background: linear-gradient(hsl(100, 73%, 45%), hsl(100, 73%, 25%));
 }
+
+.overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 0, 0, .25);
+}
+
+.overlay .overlay-inner .overlay-text {
+    font-size: 20pt;
+    color: white;
+    font-weight: bold;
+}
+
+.overlay .overlay-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10pt;
+}

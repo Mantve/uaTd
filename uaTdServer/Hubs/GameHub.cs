@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using uaTdServer.Class;
 
@@ -35,6 +36,17 @@ namespace uaTdServer.Hubs
                     // Notify others of a new player
                     await Clients.Others.SendAsync("serverDataMessage", jsonData);
                     break;
+                case "GAME_RUN_STOP":
+                    gameState.SwitchGameActiveState();
+                    if (gameState.GetGameActiveState())
+                    {
+                        Spawner.Get().SetClients(Clients);
+
+                        Thread workerThread = new Thread(() => Spawner.SpawnEnemies(gameState));
+                        workerThread.Start();
+                    }
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
                 case "TOWER_PURCHASE": //nebekvieciamas?
                     gameState.UpdateMoney((double)data.data.change);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
@@ -55,6 +67,15 @@ namespace uaTdServer.Hubs
                     if (gameState.GetHealth() == 0)
                         await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(new Message<string>("GAME_OVER", "GAME_OVER")));
                     break;
+                case "RESET_GAME":
+                    gameState.Reset();
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
+                case "GAME_OVER":
+                    gameState.SetGameIsOver();
+                    //gameState.SwitchGameActiveState();
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
@@ -68,6 +89,9 @@ namespace uaTdServer.Hubs
             messageGameState.money = gameState.GetMoney();
             messageGameState.score = gameState.GetScore();
             messageGameState.health = gameState.GetHealth();
+            messageGameState.bacterias = gameState.GetBacterias();
+            messageGameState.gameActiveState = gameState.GetGameActiveState();
+            messageGameState.gameIsOver = gameState.GetGameIsOver();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }

@@ -20,16 +20,15 @@ namespace uaTdServer.Class
         double Score;
         int Health;
         List<(int, int)> Towers;
+        List<Bacteria> Bacterias;
+        bool gameActiveState = false;
+        bool gameIsOver = false;
 
         private GameState()
         {
             playersByUsername = new Dictionary<string, Player>();
             playersByConnectionID = new Dictionary<string, Player>();
-            Money = 1000;
-            Score = 0;
-            Health = 100;
-            Map = new Map("Map", 64, 1000);
-            Towers = new();
+            this.Reset();
         }
 
         public static GameState Get()
@@ -38,6 +37,17 @@ namespace uaTdServer.Class
                 singleton = new GameState();
 
             return singleton;
+        }
+        public void Reset() 
+        {
+            Money = 1000;
+            Score = 0;
+            Health = 100;
+            Map = new Map("Map", 64, 1000);
+            Towers = new();
+            Bacterias = new();
+            gameActiveState = false;
+            gameIsOver = false;
         }
 
         public Player GetPlayerByUsername(string username)
@@ -96,9 +106,15 @@ namespace uaTdServer.Class
 
         public void UpdateHealth(int change)
         {
-            Health -= change;
-            if (Health < 0)
+            if (Health > 0)
+            {
+                Health -= change;
+            }
+            else
+            {
                 Health = 0;
+                ResetBacterias();
+            }
         }
 
         public List<String> GetPlayers()
@@ -135,6 +151,48 @@ namespace uaTdServer.Class
         public List<(int, int)> GetTowers()
         {
             return Towers;
+        }
+
+        public Bacteria AddBacteria(double health, int t = 0, double[] vec = null, int type = 0)
+        {
+            Bacteria newBacteria = new(health, t, vec, type);
+            Bacterias.Add(newBacteria);
+
+            return newBacteria;
+        }
+
+        public void RemoveBacteria(long id)
+        {
+            Bacterias.RemoveAll(x => x.id == id);
+        }
+
+        public List<Bacteria> GetBacterias()
+        {
+            return Bacterias;
+        }
+
+        public bool GetGameActiveState()
+        {
+            return gameActiveState;
+        }
+
+        public void SwitchGameActiveState()
+        {
+            gameActiveState = !gameActiveState;
+        }
+        public void ResetBacterias()
+        {
+            Bacterias = new List<Bacteria>();
+        }
+
+        public bool GetGameIsOver()
+        {
+            return gameIsOver;
+        }
+
+        public void SetGameIsOver()
+        {
+            gameIsOver = true;
         }
     }
 }

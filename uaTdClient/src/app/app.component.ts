@@ -2,6 +2,8 @@ import { ThrowStmt } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
 import Game from "./class/game";
+import { Bacteria, GameState } from './class';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 interface ChatMessage {
   username: string,
@@ -20,11 +22,12 @@ export class AppComponent implements OnInit {
   username: string = new Date().getTime().toString();
   message: string = '';
   chatMessages: ChatMessage[] = [];
-  money: number = 1000;
+  selectedIndex = -1;
+
+  gameState: GameState;
+
   game: any;
   initFlag: boolean = false;
-  health: integer = 0;
-  selectedIndex: number = -1;
 
   storeTowers = [
     {
@@ -63,6 +66,8 @@ export class AppComponent implements OnInit {
     this.connection.on("serverDataMessage", (data: string) => {
       this.processServerMessage(data);
     });
+
+    this.gameState = new GameState();
   }
 
   ngOnInit(): void {
@@ -85,6 +90,25 @@ export class AppComponent implements OnInit {
   loadGame(map) {
     this.game = new Game(this.connection, map);
     //this.initFlag = true;
+  }
+
+  startGame() {
+    let message = {
+      type: 'GAME_RUN_STOP',
+      data: {}
+    };
+
+    this.connection.send('clientMessage', JSON.stringify(message));
+  }
+
+  resetGame() {
+    let message = {
+      type: 'RESET_GAME',
+      data: {}
+    };
+
+    this.connection.send('clientMessage', JSON.stringify(message)).then(x => { this.game.initializeNewGame() })
+    this.gameState.gameActiveState = false;
   }
 
   sendChat() {
@@ -118,33 +142,46 @@ export class AppComponent implements OnInit {
         this.chatMessages.push(tempMessage);
         break;
       case 'GAMESTATE_INIT':
-        //this.loadGame(serverMessage.data.map);
-        //this.initFlag = true;
-        this.money = serverMessage.data.money;
+        this.gameState = serverMessage.data;
+        this.gameState.gameActiveState ? this.game.runEnemies() : this.game.stopEnemies();
+        
         this.game.updateMap(serverMessage.data.map);
-        this.health = serverMessage.data.health;
         this.game.populateMapWithTowers();
-        this.game.subscribeShooters();
+
         tempMessage = {
           username: "Server",
           text: "Prisijungei prie žaidimo"
         };
         this.chatMessages.push(tempMessage);
-
         this.game.runEnemies();
+        let initialBacterias = serverMessage.data.bacterias as Bacteria[];
+        console.log(serverMessage);
+        console.log(initialBacterias);
+        this.game.spawnNewBacterias(initialBacterias);
+        console.log("***")
         this.shownScreen = 'game';
         break;
       case 'GAMESTATE_UPDATE':
-        this.money = serverMessage.data.money;
+        this.gameState = serverMessage.data;
+        this.gameState.gameActiveState ? this.game.runEnemies() : this.game.stopEnemies();
+        if(this.gameState.gameActiveState) {
+          let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
+  
+          let newBacterias = bacteriasFromServer.filter(nb => !this.game.bacteria.some(b => b.id == nb.id));
+          let oldBacterias = this.game.bacteria.filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
+          
+          this.game.spawnNewBacterias(newBacterias);
+          this.game.removeOldBacterias(oldBacterias);
+        }
+
         this.game.updateMap(serverMessage.data.map);
-        this.health = serverMessage.data.health;
         break;
       case 'CHAT_SEND':
         tempMessage = serverMessage.data;
         this.chatMessages.push(tempMessage);
         break;
       case 'TOWER_PURCHASE':
-        this.money -= serverMessage.data.change;
+        this.gameState.money -= serverMessage.data.change;
         break;
       case 'TOWER_BUILD':
         this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y, serverMessage.data.type)
@@ -155,7 +192,13 @@ export class AppComponent implements OnInit {
         this.game.subscribeShooters(); //Should be called on tower changes
         break;
       case 'GAME_OVER':
-          this.game.gameOver();
+        this.gameState.gameIsOver = true;
+        //this.gameState.gameActiveState = false; 
+        this.game.gameOver();
+        break;
+      case 'SPAWN_ENEMY':
+        let serverEnemy = serverMessage.data as Bacteria;
+        this.game.spawnNewBacteria(serverEnemy)
         break;
       default:
     }
