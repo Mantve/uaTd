@@ -309,21 +309,21 @@ function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
 function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
     //console.log("SPAWNING", bacteriaType, t, vec, id)
 
-    var enemy = new EnemyClient();
+    var enemyClient = new EnemyClient();
     let bacteria;
 
     if(bacteriaType == 0) {
-        enemy.createBacteria(scene, new BacteriaBlueCreator());
-        enemy.bacteria.setBacteriaData(t, vec, id, bacteriaType);
-        if (enemy) {
-            bacteria = enemy.bacteria;
+        enemyClient.createBacteria(scene, new BacteriaBlueCreator());
+        enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+        if (enemyClient) {
+            bacteria = enemyClient.bacteria;
         }
     }
     else {
-        enemy.createBacteria(scene, new BacteriaPinkCreator());
-        enemy.bacteria.setBacteriaData(t, vec, id, bacteriaType);
-        if (enemy) {
-            bacteria = enemy.bacteria;
+        enemyClient.createBacteria(scene, new BacteriaPinkCreator());
+        enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+        if (enemyClient) {
+            bacteria = enemyClient.bacteria;
         }
     }
     console.log(bacteria);
