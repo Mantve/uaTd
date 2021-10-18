@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
 
-export class Enemy {
+export class EnemyClient {
     bacteria: Bacteria;
 
     createBacteria(scene, creator: BacteriaCreator) {

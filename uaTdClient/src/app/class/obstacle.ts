@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 
-export class Obstacle {
+export class ObstacleClient {
     plantObstacle: PlantObstacle;
     rockObstacle: RockObstacle;
 
@@ -13,7 +13,7 @@ export class Obstacle {
     }
 };
 
-abstract class PlantObstacle extends Phaser.GameObjects.Image {
+export abstract class Obstacle extends Phaser.GameObjects.Image {
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
     }
@@ -26,17 +26,16 @@ abstract class PlantObstacle extends Phaser.GameObjects.Image {
     update(time, delta) { }
 }
 
-abstract class RockObstacle extends Phaser.GameObjects.Image {
+abstract class PlantObstacle extends Obstacle {
     constructor(scene, x, y, spriteFile, sprite){
         super(scene, x, y, spriteFile, sprite);
     }
+}
 
-    place(i, j) {
-        this.y = i * 64 + 64 / 2;
-        this.x = j * 64 + 64 / 2;
+abstract class RockObstacle extends Obstacle {
+    constructor(scene, x, y, spriteFile, sprite){
+        super(scene, x, y, spriteFile, sprite);
     }
-
-    update(time, delta) { }
 }
 
 class SmallPlant extends PlantObstacle {

@@ -3,8 +3,8 @@ import * as Phaser from 'phaser';
 import { constants } from './_constants';
 import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Subscriber, Village, VillageBuilder } from './tower';
 import Bullet from './bullet';
-import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
-import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
+import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
+import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 import { GameState } from '.';
 
 var config = {
@@ -309,7 +309,7 @@ function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
 function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
     //console.log("SPAWNING", bacteriaType, t, vec, id)
 
-    var enemy = new Enemy();
+    var enemy = new EnemyClient();
     let bacteria;
 
     if(bacteriaType == 0) {
@@ -488,7 +488,7 @@ function canPlaceTower(y, x) {
 }
 
 function placeObstacleFromServer(scene, j, i, type) {
-    var obstacle = new Obstacle();
+    var obstacle = new ObstacleClient();
 
     switch (type) {
         case -2: {
