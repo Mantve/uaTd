@@ -9,7 +9,7 @@ export class EnemyClient {
     }
 }
 
-export abstract class Bacteria extends Phaser.GameObjects.Image implements Decorator {
+export abstract class Bacteria extends Phaser.GameObjects.Image implements BacteriaDamageDecorator {
     id: number;
     follower: {
         t: number,
@@ -25,7 +25,7 @@ export abstract class Bacteria extends Phaser.GameObjects.Image implements Decor
     constructor(scene, x, y, spriteFile, sprite) {
         super(scene, x, y, spriteFile, sprite);
     }
-    public setSprite(decorator: Decorator) {
+    public setSprite(decorator: BacteriaDamageDecorator) {
         decorator.setSprite(this);
     }
 
@@ -51,26 +51,25 @@ export abstract class Bacteria extends Phaser.GameObjects.Image implements Decor
 
 }
 
-interface Decorator {
+interface BacteriaDamageDecorator {
     setSprite(bacteria: Bacteria);
 }
 
-class CriticalDamagedDecorator implements Decorator {
-
+class CriticalDamagedDecorator implements BacteriaDamageDecorator {
     public setSprite(bacteria: Bacteria) {
-        bacteria.setFrame('village');
+        let bacteriaType = bacteria.type ? 'bacteriapink' : 'bacteriablue';
+        bacteria.setFrame(bacteriaType + 'criticaldamaged');
     }
 }
 
-class SemiDamagedDecorator implements Decorator {
-
+class SemiDamagedDecorator implements BacteriaDamageDecorator {
     public setSprite(bacteria: Bacteria) {
-        bacteria.setFrame('shooter');
+        let bacteriaType = bacteria.type ? 'bacteriapink' : 'bacteriablue';
+        bacteria.setFrame(bacteriaType + 'semidamaged');
     }
 }
 
 class BacteriaBlue extends Bacteria {
-
     constructor(scene) {
         super(scene, 0, 0, 'sprites', 'enemy');
         this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
@@ -133,7 +132,6 @@ class BacteriaBlue extends Bacteria {
 };
 
 class BacteriaPink extends Bacteria {
-
     constructor(scene) {
         super(scene, 0, 0, 'sprites', 'enemy_pink');
         this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
