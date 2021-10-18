@@ -3,8 +3,8 @@ import * as Phaser from 'phaser';
 import { constants } from './_constants';
 import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Subscriber, Village, VillageBuilder } from './tower';
 import Bullet from './bullet';
-import { Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
-import { Enemy, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
+import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
+import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 import { GameState } from '.';
 
 var config = {
@@ -194,12 +194,11 @@ function create() {
 }
 
 function initializeGame(scene) {
-    enemies.clear();
     //scene.children.destroy();
-    console.log("**********")
-    console.log(bacterias);
     removeAllBacterias(scene, bacterias);
     scene.nextBacteria = 0;
+    removeAllTowers(scene, towers);
+    enemies.clear();
     towers.clear();
     bullets.clear();
 }
@@ -300,7 +299,6 @@ function subscribeShooters() {
 function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
     if(bacterias) {
         bacterias.forEach(b => {
-            console.log(b)
             spawnBacteria(scene, time, b.type, b.t, [b.follower.vec.x, b.follower.vec.y], b.id);
         })
     }
@@ -309,24 +307,23 @@ function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
 function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
     //console.log("SPAWNING", bacteriaType, t, vec, id)
 
-    var enemy = new Enemy();
+    var enemyClient = new EnemyClient();
     let bacteria;
 
     if(bacteriaType == 0) {
-        enemy.createBacteria(scene, new BacteriaBlueCreator());
-        enemy.bacteria.setBacteriaData(t, vec, id, bacteriaType);
-        if (enemy) {
-            bacteria = enemy.bacteria;
+        enemyClient.createBacteria(scene, new BacteriaBlueCreator());
+        enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+        if (enemyClient) {
+            bacteria = enemyClient.bacteria;
         }
     }
     else {
-        enemy.createBacteria(scene, new BacteriaPinkCreator());
-        enemy.bacteria.setBacteriaData(t, vec, id, bacteriaType);
-        if (enemy) {
-            bacteria = enemy.bacteria;
+        enemyClient.createBacteria(scene, new BacteriaPinkCreator());
+        enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+        if (enemyClient) {
+            bacteria = enemyClient.bacteria;
         }
     }
-    console.log(bacteria);
     if (bacteria) {
         bacteria.setPath(path);
         bacteria.setActive(true);
@@ -344,14 +341,11 @@ function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number
 
 function removeOldBacterias(scene, oldBacterias: Bacteria[]) {
     oldBacterias.forEach(ob => {
-        console.log(oldBacterias)
-        console.log(ob);
         removeBacteria(scene, ob);
     })
 }
 
 function removeBacteria(scene, oldBacteria) {
-    console.log(oldBacteria)
     oldBacteria.setActive(false);
     oldBacteria.setVisible(false);
     enemies.remove(oldBacteria);
@@ -364,6 +358,12 @@ function removeAllBacterias(scene, bacterias: Bacteria[]) {
         scene.children.remove(bacteria);
     });
     bacterias = [];
+}
+
+function removeAllTowers(scene, towers) {
+    towers.children.entries.forEach(tower => {
+        scene.children.remove(tower);
+    });
 }
 
 /*
@@ -488,7 +488,7 @@ function canPlaceTower(y, x) {
 }
 
 function placeObstacleFromServer(scene, j, i, type) {
-    var obstacle = new Obstacle();
+    var obstacle = new ObstacleClient();
 
     switch (type) {
         case -2: {
