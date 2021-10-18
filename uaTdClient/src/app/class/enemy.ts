@@ -9,7 +9,7 @@ export class EnemyClient {
     }
 }
 
-export abstract class Bacteria extends Phaser.GameObjects.Image implements BacteriaDamageDecorator {
+export abstract class Bacteria extends Phaser.GameObjects.Image {
     id: number;
     follower: {
         t: number,
@@ -21,12 +21,11 @@ export abstract class Bacteria extends Phaser.GameObjects.Image implements Bacte
     path;
     type;
     isRunning;
+    damage: string[];
 
     constructor(scene, x, y, spriteFile, sprite) {
         super(scene, x, y, spriteFile, sprite);
-    }
-    public setSprite(decorator: BacteriaDamageDecorator) {
-        decorator.setSprite(this);
+        this.damage = [];
     }
 
     setBacteriaData(t, vec, id, type) {
@@ -49,23 +48,13 @@ export abstract class Bacteria extends Phaser.GameObjects.Image implements Bacte
         this.isRunning = true;
     }
 
-}
-
-interface BacteriaDamageDecorator {
-    setSprite(bacteria: Bacteria);
-}
-
-class CriticalDamagedDecorator implements BacteriaDamageDecorator {
-    public setSprite(bacteria: Bacteria) {
-        let bacteriaType = bacteria.type ? 'bacteriapink' : 'bacteriablue';
-        bacteria.setFrame(bacteriaType + 'criticaldamaged');
+    addDamageDecoration(decorator: BacteriaDamageDecorator) {
+        decorator.addDamageDecoration(this);
     }
-}
 
-class SemiDamagedDecorator implements BacteriaDamageDecorator {
-    public setSprite(bacteria: Bacteria) {
-        let bacteriaType = bacteria.type ? 'bacteriapink' : 'bacteriablue';
-        bacteria.setFrame(bacteriaType + 'semidamaged');
+    setSprite() {
+        let bacteriaType = this.type ? 'bacteriapink' : 'bacteriablue';
+        this.setFrame(bacteriaType + this.damage.join('') + 'damaged');
     }
 }
 
@@ -119,15 +108,18 @@ class BacteriaBlue extends Bacteria {
             this.setActive(false);
             this.setVisible(false);
         }
+        else if(this.hp <= constants.ENEMY_HP*0.5 && this.hp > constants.ENEMY_HP*0.3)
+        {
+            this.addDamageDecoration(new SemiDamagedDecorator(this.scene));
+        }
         else if(this.hp <= constants.ENEMY_HP*0.3)
         {
-            (this as Bacteria).setSprite(new CriticalDamagedDecorator())
+            this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
         }
-        else if(this.hp <= constants.ENEMY_HP*0.5)
-        {
-            (this as Bacteria).setSprite(new SemiDamagedDecorator())
-        }
+    }
 
+    addDamageDecoration(decorator: BacteriaDamageDecorator) {
+        super.addDamageDecoration(decorator);
     }
 };
 
@@ -180,14 +172,18 @@ class BacteriaPink extends Bacteria {
             this.setActive(false);
             this.setVisible(false);
         }
+        else if(this.hp <= constants.ENEMY_HP*0.5*0.5 && this.hp > constants.ENEMY_HP*0.3*0.5)
+        {
+            this.addDamageDecoration(new SemiDamagedDecorator(this.scene));
+        }
         else if(this.hp <= constants.ENEMY_HP*0.3*0.5)
         {
-            (this as Bacteria).setSprite(new CriticalDamagedDecorator())
+            this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
         }
-        else if(this.hp <= constants.ENEMY_HP*0.5*0.5)
-        {
-            (this as Bacteria).setSprite(new SemiDamagedDecorator())
-        }
+    }
+
+    addDamageDecoration(decorator: BacteriaDamageDecorator) {
+        super.addDamageDecoration(decorator);
     }
 };
 
@@ -204,5 +200,32 @@ export class BacteriaBlueCreator implements BacteriaCreator {
 export class BacteriaPinkCreator implements BacteriaCreator {
     createBacteria(scene): Bacteria {
         return new BacteriaPink(scene);
+    }
+}
+
+abstract class BacteriaDamageDecorator extends Bacteria {
+    constructor(scene) {
+        super(scene, 0, 0, 'sprites', 'enemy');
+        this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
+    }
+
+    abstract addDamageDecoration(bacteria: Bacteria);
+}
+
+class SemiDamagedDecorator extends BacteriaDamageDecorator {
+    public addDamageDecoration(bacteria: Bacteria) {
+        if(!bacteria.damage.includes('semi')) {
+            bacteria.damage.push('semi');
+        }
+        bacteria.setSprite();
+    }
+}
+
+class CriticalDamagedDecorator extends BacteriaDamageDecorator {
+    public addDamageDecoration(bacteria: Bacteria) {
+        if(!bacteria.damage.includes('critical')) {
+            bacteria.damage.push('critical');
+        }
+        bacteria.setSprite();
     }
 }
