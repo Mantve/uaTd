@@ -194,12 +194,11 @@ function create() {
 }
 
 function initializeGame(scene) {
-    enemies.clear();
     //scene.children.destroy();
-    console.log("**********")
-    console.log(bacterias);
     removeAllBacterias(scene, bacterias);
     scene.nextBacteria = 0;
+    removeAllTowers(scene, towers);
+    enemies.clear();
     towers.clear();
     bullets.clear();
 }
@@ -300,7 +299,6 @@ function subscribeShooters() {
 function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
     if(bacterias) {
         bacterias.forEach(b => {
-            console.log(b)
             spawnBacteria(scene, time, b.type, b.t, [b.follower.vec.x, b.follower.vec.y], b.id);
         })
     }
@@ -326,7 +324,6 @@ function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number
             bacteria = enemyClient.bacteria;
         }
     }
-    console.log(bacteria);
     if (bacteria) {
         bacteria.setPath(path);
         bacteria.setActive(true);
@@ -344,14 +341,11 @@ function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number
 
 function removeOldBacterias(scene, oldBacterias: Bacteria[]) {
     oldBacterias.forEach(ob => {
-        console.log(oldBacterias)
-        console.log(ob);
         removeBacteria(scene, ob);
     })
 }
 
 function removeBacteria(scene, oldBacteria) {
-    console.log(oldBacteria)
     oldBacteria.setActive(false);
     oldBacteria.setVisible(false);
     enemies.remove(oldBacteria);
@@ -364,6 +358,12 @@ function removeAllBacterias(scene, bacterias: Bacteria[]) {
         scene.children.remove(bacteria);
     });
     bacterias = [];
+}
+
+function removeAllTowers(scene, towers) {
+    towers.children.entries.forEach(tower => {
+        scene.children.remove(tower);
+    });
 }
 
 /*
