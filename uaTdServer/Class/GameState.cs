@@ -19,9 +19,11 @@ namespace uaTdServer.Class
         double Money;
         double Score;
         int Health;
+        int Wave;
         List<(int, int)> Towers;
         List<Bacteria> Bacterias;
         bool gameActiveState = false;
+        bool roundIsActive = false;
         bool gameIsOver = false;
 
         private GameState()
@@ -43,11 +45,13 @@ namespace uaTdServer.Class
             Money = 1000;
             Score = 0;
             Health = 100;
+            Wave = 0;
             Map = new Map("Map", 64, 1000);
             Towers = new();
             Bacterias = new();
             gameActiveState = false;
             gameIsOver = false;
+            roundIsActive = false;
         }
 
         public Player GetPlayerByUsername(string username)
@@ -193,6 +197,26 @@ namespace uaTdServer.Class
         public void SetGameIsOver()
         {
             gameIsOver = true;
+        }
+
+        public int GetWave()
+        {
+            return Wave;
+        }
+
+        public void SetNextWave()
+        {
+            Wave++;
+        }
+
+        public bool GetRoundIsActive()
+        {
+            return roundIsActive;
+        }
+
+        public void SetRoundIsActive()
+        {
+            roundIsActive = !roundIsActive;
         }
     }
 }

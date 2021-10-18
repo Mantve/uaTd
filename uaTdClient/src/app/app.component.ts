@@ -200,6 +200,9 @@ export class AppComponent implements OnInit {
         let serverEnemy = serverMessage.data as Bacteria;
         this.game.spawnNewBacteria(serverEnemy)
         break;
+      case 'ROUND_OVER':
+        this.gameState = serverMessage.data;
+        break;
       default:
     }
   }

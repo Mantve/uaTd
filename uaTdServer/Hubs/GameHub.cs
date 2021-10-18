@@ -38,7 +38,7 @@ namespace uaTdServer.Hubs
                     break;
                 case "GAME_RUN_STOP":
                     gameState.SwitchGameActiveState();
-                    if (gameState.GetGameActiveState())
+                    if (gameState.GetGameActiveState() && !gameState.GetRoundIsActive())
                     {
                         Spawner.Get().SetClients(Clients);
 
@@ -90,8 +90,10 @@ namespace uaTdServer.Hubs
             messageGameState.score = gameState.GetScore();
             messageGameState.health = gameState.GetHealth();
             messageGameState.bacterias = gameState.GetBacterias();
+            messageGameState.wave = gameState.GetWave();
             messageGameState.gameActiveState = gameState.GetGameActiveState();
             messageGameState.gameIsOver = gameState.GetGameIsOver();
+            messageGameState.roundIsActive = gameState.GetRoundIsActive();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }
