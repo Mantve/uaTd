@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace uaTdServer.Class
 {
-    public class GameState
+    public class GameState : Prototype
     {
         private static GameState singleton;
         /*readonly Dictionary<int, double> TowerCosts = new()
@@ -52,6 +52,27 @@ namespace uaTdServer.Class
             gameActiveState = false;
             gameIsOver = false;
             roundIsActive = false;
+        }
+
+        public GameState ShallowCopy()
+        {
+            return (GameState)this.MemberwiseClone();
+        }
+
+        public GameState DeepCopy()
+        {
+            GameState clone = (GameState)this.MemberwiseClone();
+            clone.Money = Money;
+            clone.Score = Score;
+            clone.Health = Health;
+            clone.Wave = Wave;
+            clone.Map = Map.Clone();
+            clone.Towers = Towers.Select(tower => (tower.Item1, tower.Item2)).ToList();
+            clone.Bacterias = Bacterias.Select(bacteria => new Bacteria(bacteria.health, bacteria.follower.t, new double[] { bacteria.follower.vec.x, bacteria.follower.vec.y }, bacteria.type)).ToList();
+            clone.gameActiveState = gameActiveState;
+            clone.gameIsOver = gameIsOver;
+            clone.roundIsActive = roundIsActive;
+            return clone;
         }
 
         public Player GetPlayerByUsername(string username)
@@ -165,7 +186,7 @@ namespace uaTdServer.Class
             return newBacteria;
         }
 
-        public void RemoveBacteria(long id)
+        public void RemoveBacteria(int id)
         {
             Bacterias.RemoveAll(x => x.id == id);
         }

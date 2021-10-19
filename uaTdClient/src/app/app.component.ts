@@ -93,12 +93,14 @@ export class AppComponent implements OnInit {
   }
 
   startGame() {
-    let message = {
-      type: 'GAME_RUN_STOP',
-      data: {}
-    };
+    if(!this.gameState.gameIsOver) {
+      let message = {
+        type: 'GAME_RUN_STOP',
+        data: {}
+      };
 
-    this.connection.send('clientMessage', JSON.stringify(message));
+      this.connection.send('clientMessage', JSON.stringify(message));
+    }
   }
 
   resetGame() {
@@ -107,8 +109,17 @@ export class AppComponent implements OnInit {
       data: {}
     };
 
-    this.connection.send('clientMessage', JSON.stringify(message)).then(x => { this.game.initializeNewGame() })
-    this.gameState.gameActiveState = false;
+    this.connection.send('clientMessage', JSON.stringify(message))
+    //this.gameState.gameActiveState = false;
+  }
+
+  resetRound() {
+    let message = {
+      type: 'RESET_ROUND',
+      data: {}
+    };
+
+    this.connection.send('clientMessage', JSON.stringify(message));
   }
 
   sendChat() {
@@ -143,7 +154,8 @@ export class AppComponent implements OnInit {
         break;
       case 'GAMESTATE_INIT':
         this.gameState = serverMessage.data;
-        this.gameState.gameActiveState ? this.game.runEnemies() : this.game.stopEnemies();
+        this.gameState.gameActiveState ? this.game.runGame() : this.game.stopGame();
+        //this.gameState.gameActiveState ? this.game.runTowers() : this.game.stopTowers();
         
         this.game.updateMap(serverMessage.data.map);
         this.game.populateMapWithTowers();
@@ -153,7 +165,8 @@ export class AppComponent implements OnInit {
           text: "Prisijungei prie žaidimo"
         };
         this.chatMessages.push(tempMessage);
-        this.game.runEnemies();
+        //this.game.runEnemies();
+        //this.game.runTowers();
         let initialBacterias = serverMessage.data.bacterias as Bacteria[];
         console.log(serverMessage);
         console.log(initialBacterias);
@@ -163,7 +176,8 @@ export class AppComponent implements OnInit {
         break;
       case 'GAMESTATE_UPDATE':
         this.gameState = serverMessage.data;
-        this.gameState.gameActiveState ? this.game.runEnemies() : this.game.stopEnemies();
+        this.gameState.gameActiveState ? this.game.runGame() : this.game.stopGame();
+        //this.gameState.gameActiveState ? this.game.runTowers() : this.game.stopTowers();
         if(this.gameState.gameActiveState) {
           let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
   
@@ -195,6 +209,16 @@ export class AppComponent implements OnInit {
         this.gameState.gameIsOver = true;
         //this.gameState.gameActiveState = false; 
         this.game.gameOver();
+        break;
+      case 'RESET_GAME':
+        this.gameState = serverMessage.data;
+        this.game.updateMap(serverMessage.data.map);
+        this.game.initializeNewGame();
+        break;
+      case 'RESET_ROUND':
+        this.gameState = serverMessage.data;
+        this.game.updateMap(serverMessage.data.map);
+        this.game.initializePreviousRound();
         break;
       case 'SPAWN_ENEMY':
         let serverEnemy = serverMessage.data as Bacteria;

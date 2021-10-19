@@ -42,5 +42,15 @@ namespace uaTdServer.Class
         {
             map[y, x]++;
         }
+
+        public Map Clone()
+        {
+            Map clone = (Map)this.MemberwiseClone();
+            clone.map = map.Clone() as int[,]; //map;
+            clone.Name = Name;
+            clone.Size = Size;
+            clone.Budget = Budget;
+            return clone;
+        }
     }
 }

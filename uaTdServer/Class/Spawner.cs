@@ -55,6 +55,7 @@ namespace uaTdServer.Class
                 await Get().GetClients().All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetEnemyMessage(bacteria)));
                 Thread.Sleep(enemySpawn.Delay);
             }
+            while (!gameState.GetGameIsOver() && gameState.GetBacterias().Count > 0) { } //Game is not over and there are bacterias
             gameState.SetNextWave();
             gameState.SetRoundIsActive();
             gameState.SwitchGameActiveState();
@@ -114,16 +115,20 @@ namespace uaTdServer.Class
 
         private static void setWave0()
         {
+            spawnList.Add(new SpawnerStruct(0, 2000));
+            /*
             for(int i = 0; i < 10; i++)
             {
                 spawnList.Add(new SpawnerStruct(0, 2000));
             }
+            */
         }
         private static void setWave1()
         {
             for (int i = 0; i < 9; i++)
             {
-                spawnList.Add(new SpawnerStruct(0, 1500));
+                //spawnList.Add(new SpawnerStruct(0, 1500));
+                spawnList.Add(new SpawnerStruct(0, 100));
             }
             spawnList.Add(new SpawnerStruct(1, 1500));
         }
