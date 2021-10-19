@@ -115,20 +115,20 @@ namespace uaTdServer.Class
 
         private static void setWave0()
         {
-            spawnList.Add(new SpawnerStruct(0, 2000));
-            /*
+            //spawnList.Add(new SpawnerStruct(0, 2000));
+            
             for(int i = 0; i < 10; i++)
             {
                 spawnList.Add(new SpawnerStruct(0, 2000));
             }
-            */
+            
         }
         private static void setWave1()
         {
             for (int i = 0; i < 9; i++)
             {
-                //spawnList.Add(new SpawnerStruct(0, 1500));
-                spawnList.Add(new SpawnerStruct(0, 100));
+                spawnList.Add(new SpawnerStruct(0, 1500));
+                //spawnList.Add(new SpawnerStruct(0, 100));
             }
             spawnList.Add(new SpawnerStruct(1, 1500));
         }

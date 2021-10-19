@@ -131,7 +131,7 @@ namespace uaTdServer.Class
 
         public void UpdateHealth(int change)
         {
-            if (Health > 0)
+            if (Health - change > 0)
             {
                 Health -= change;
             }
