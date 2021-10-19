@@ -5,7 +5,9 @@ export class GameState {
     money: number;
     score: number;
     health: number;
+    wave: number;
     bacterias: Bacteria[];
     gameActiveState: boolean;
     gameIsOver: boolean;
+    roundIsActive: boolean;
 }
