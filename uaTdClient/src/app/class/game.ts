@@ -102,6 +102,10 @@ export default class Game extends Phaser.Game {
     initializeNewGame() {
         return initializeGame(this.scene.scenes[0]);
     }
+
+    initializePreviousRound() {
+        return initializePreviousRound(this.scene.scenes[0]);
+    }
 }
 
 var graphics;
@@ -203,6 +207,18 @@ function initializeGame(scene) {
     bullets.clear();
 }
 
+function initializePreviousRound(scene) {
+    //scene.children.destroy();
+    removeAllBacterias(scene, bacterias);
+    scene.nextBacteria = 0;
+    enemies.clear();
+    bullets.clear();
+    removeAllTowers(scene, towers);
+    towers.clear();
+    populateMapWithTowers(scene);
+}
+
+
 function damageEnemy(enemy, bullet) {
     // only if both enemy and bullet are alive
     if (enemy.active === true && bullet.active === true) {
@@ -212,6 +228,17 @@ function damageEnemy(enemy, bullet) {
 
         // decrease the enemy hp with BULLET_DAMAGE
         enemy.receiveDamage(bullet.damage);
+        if(enemy.hp <= 0) {
+            console.log("enemy died");
+            let message = {
+                type: 'ENEMY_DEATH',
+                data: {
+                    bacteriaID: enemy.id
+                }
+            };
+
+            connection.send('clientMessage', JSON.stringify(message));
+        }
     }
 }
 
@@ -225,7 +252,8 @@ function updateHealth(enemy, finTile) {
         let message = {
             type: 'HEALTH_UPDATE',
             data: {
-                change: Math.floor(enemy.hp)
+                change: Math.floor(enemy.hp),
+                bacteriaID: enemy.id
             }
         };
 
@@ -234,6 +262,7 @@ function updateHealth(enemy, finTile) {
 }
 
 function populateMapWithTowers(scene) {
+    console.log(map);
     map.forEach((row, j) => {
         row.forEach((col, i) => {
             if (row[i] > 0) {

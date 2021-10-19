@@ -15,6 +15,7 @@ namespace uaTdServer.Hubs
 
         }
 
+        static GameState previousGameState;
         static GameState gameState = GameState.Get();
 
         public async Task ClientMessage(string jsonData)
@@ -40,6 +41,7 @@ namespace uaTdServer.Hubs
                     gameState.SwitchGameActiveState();
                     if (gameState.GetGameActiveState() && !gameState.GetRoundIsActive())
                     {
+                        previousGameState = gameState.DeepCopy();
                         Spawner.Get().SetClients(Clients);
 
                         Thread workerThread = new Thread(() => Spawner.SpawnEnemies(gameState));
@@ -63,13 +65,22 @@ namespace uaTdServer.Hubs
                     break;
                 case "HEALTH_UPDATE":
                     gameState.UpdateHealth((int)data.data.change);
+                    gameState.RemoveBacteria((int)data.data.bacteriaID);
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     if (gameState.GetHealth() == 0)
                         await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(new Message<string>("GAME_OVER", "GAME_OVER")));
                     break;
+                case "ENEMY_DEATH":
+                    gameState.RemoveBacteria((int)data.data.bacteriaID);
+                    break;
                 case "RESET_GAME":
                     gameState.Reset();
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
+                case "RESET_ROUND":
+                    previousGameState.SwitchGameActiveState();
+                    gameState = previousGameState;
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("RESET_ROUND")));
                     break;
                 case "GAME_OVER":
                     gameState.SetGameIsOver();

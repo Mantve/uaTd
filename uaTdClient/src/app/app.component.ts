@@ -111,6 +111,15 @@ export class AppComponent implements OnInit {
     this.gameState.gameActiveState = false;
   }
 
+  resetRound() {
+    let message = {
+      type: 'RESET_ROUND',
+      data: {}
+    };
+
+    this.connection.send('clientMessage', JSON.stringify(message));
+  }
+
   sendChat() {
     if (this.message.length == 0)
       return;
@@ -195,6 +204,11 @@ export class AppComponent implements OnInit {
         this.gameState.gameIsOver = true;
         //this.gameState.gameActiveState = false; 
         this.game.gameOver();
+        break;
+      case 'RESET_ROUND':
+        this.gameState = serverMessage.data;
+        this.game.updateMap(serverMessage.data.map);
+        this.game.initializePreviousRound();
         break;
       case 'SPAWN_ENEMY':
         let serverEnemy = serverMessage.data as Bacteria;
