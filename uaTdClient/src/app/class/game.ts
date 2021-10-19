@@ -39,17 +39,23 @@ export default class Game extends Phaser.Game {
         map = map1;
     }
 
-    runEnemies() {
+    runGame() {
         isRunning = true;
         bacterias.forEach(enemy => {
             enemy.run();
         });
+        towers.children.entries.forEach(tower => {
+            tower.run();
+        });
     }
 
-    stopEnemies() {
+    stopGame() {
         isRunning = false;
         bacterias.forEach(enemy => {
             enemy.stop();
+        });
+        towers.children.entries.forEach(tower => {
+            tower.stop();
         });
     }
 
@@ -118,8 +124,10 @@ var map = [];
 var indicator;
 var finTile;
 var runEnemies: boolean = false;
+var runTowers: boolean = false;
 var eType = 0;
 var isRunning = false;
+//var towers: Tower[] = [];
 var bacterias: Bacteria[] = [];
 
 var purchasePreview: Phaser.GameObjects.Image;

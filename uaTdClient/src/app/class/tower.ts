@@ -24,6 +24,7 @@ export default class Tower extends Phaser.GameObjects.Image {
     towers;
     i;
     j;
+    isRunning;
     
     modifier: 1;
     
@@ -69,6 +70,14 @@ export default class Tower extends Phaser.GameObjects.Image {
     setStrategy(strategy: ShootingStrategy) {
         this.shootingStrategy = strategy;
     }
+
+    stop() {
+        this.isRunning = false;
+    }
+
+    run() {
+        this.isRunning = true;
+    }
 }
 
 export class Village extends Tower implements Publisher {
@@ -86,22 +95,24 @@ export class Village extends Tower implements Publisher {
     }
 
     update(time, delta) {
-        if(this.parts.includes('CANNON')) {
-            this.setModifier = 1.15;
+        if(this.isRunning) {
+            if(this.parts.includes('CANNON')) {
+                this.setModifier = 1.15;
 
-            if (time > this.nextTic) {
-                this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, 1);
-                this.nextTic = time + 2000;
+                if (time > this.nextTic) {
+                    this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, 1);
+                    this.nextTic = time + 2000;
+                }
             }
-        }
 
-        if(this.parts.includes('WALLS')) {
-            this.setModifier = 1.25;
-        }
+            if(this.parts.includes('WALLS')) {
+                this.setModifier = 1.25;
+            }
 
-        if(this.notifiedFor != this.setModifier) {
-            this.notify();
-            this.notifiedFor = this.setModifier;
+            if(this.notifiedFor != this.setModifier) {
+                this.notify();
+                this.notifiedFor = this.setModifier;
+            }
         }
     }
 
@@ -167,9 +178,11 @@ export class Shooter extends Tower implements Subscriber {
     }
 
     update(time, delta) {
-        if (time > this.nextTic) {
-            this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, this.multiplier);
-            this.nextTic = time + 1000;
+        if(this.isRunning) {
+            if (time > this.nextTic) {
+                this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, this.multiplier);
+                this.nextTic = time + 1000;
+            }
         }
     }
 

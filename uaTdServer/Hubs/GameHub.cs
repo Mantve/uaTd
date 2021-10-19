@@ -75,7 +75,7 @@ namespace uaTdServer.Hubs
                     break;
                 case "RESET_GAME":
                     gameState.Reset();
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("RESET_GAME")));
                     break;
                 case "RESET_ROUND":
                     previousGameState.SwitchGameActiveState();
