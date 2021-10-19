@@ -54,7 +54,9 @@ export abstract class Bacteria extends Phaser.GameObjects.Image {
 
     setSprite() {
         let bacteriaType = this.type ? 'bacteriapink' : 'bacteriablue';
-        this.setFrame(bacteriaType + this.damage.join('') + 'damaged');
+        if (this.damage.length > 0) {       // if not true, means that there is no damage, so no need to change sprite, default is suitable
+            this.setFrame(bacteriaType + this.damage.join('') + 'damaged');
+        }
     }
 }
 
@@ -114,7 +116,13 @@ class BacteriaBlue extends Bacteria {
         }
         else if(this.hp <= constants.ENEMY_HP*0.3)
         {
-            this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
+            if (this.damage.includes('semi')) {
+                this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
+            }
+            else {
+                this.addDamageDecoration(new SemiDamagedDecorator(this.scene));
+                this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
+            }
         }
     }
 
@@ -135,7 +143,7 @@ class BacteriaPink extends Bacteria {
 
     update(time, delta) {
         if(this.isRunning) {
-            this.follower.t += constants.ENEMY_SPEED * delta * 0.5;
+            this.follower.t += constants.ENEMY_SPEED * delta * 2;
     
             // get the new x and y coordinates in vec
             this.path.getPoint(this.follower.t, this.follower.vec);
@@ -178,7 +186,13 @@ class BacteriaPink extends Bacteria {
         }
         else if(this.hp <= constants.ENEMY_HP*0.3*0.5)
         {
-            this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
+            if (this.damage.includes('semi')) {
+                this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
+            }
+            else {
+                this.addDamageDecoration(new SemiDamagedDecorator(this.scene));
+                this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
+            }
         }
     }
 
@@ -202,6 +216,19 @@ export class BacteriaPinkCreator implements BacteriaCreator {
         return new BacteriaPink(scene);
     }
 }
+
+// ******************** Decorator *************************
+/*
+    possible Bacteria damage options:
+
+    1.	(empty string)		+ implemented
+    2.	semi			    + implemented
+    3.	critical		    not possible, if there is no semi damage when the 
+                            critical one is added, both are added in bulk,
+                            resulting in semicritical damage
+    4.	semi critical		+ implemented
+    5.	critical semi		not possible, as hp is not increased in any way
+*/
 
 abstract class BacteriaDamageDecorator extends Bacteria {
     constructor(scene) {
