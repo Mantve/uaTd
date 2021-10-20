@@ -14,7 +14,6 @@ namespace uaTdServer.Class
             { 2, 200}  //village
         };*/
         Dictionary<string, Player> playersByUsername;
-        Dictionary<string, Player> playersByConnectionID;
         Map Map;
         double Money;
         double Score;
@@ -29,7 +28,6 @@ namespace uaTdServer.Class
         private GameState()
         {
             playersByUsername = new Dictionary<string, Player>();
-            playersByConnectionID = new Dictionary<string, Player>();
             this.Reset();
         }
 
@@ -52,6 +50,11 @@ namespace uaTdServer.Class
             gameActiveState = false;
             gameIsOver = false;
             roundIsActive = false;
+        }
+
+        public void ResetPlayers()
+        {
+            playersByUsername = new();
         }
 
         public GameState ShallowCopy()
@@ -98,12 +101,6 @@ namespace uaTdServer.Class
                 playersByConnectionID.Add(connectionID, player);*/
         }
 
-        public void NewConnection(string username, string connectionID)
-        {
-            playersByConnectionID.Add(connectionID, playersByUsername[username]);
-            playersByUsername[username].ConnectionIDs.Add(connectionID);
-        }
-
         public double GetMoney()
         {
             return Money;
@@ -121,7 +118,7 @@ namespace uaTdServer.Class
 
         public void UpdateScore(double change)
         {
-            Score -= change;
+            Score += change;
         }
 
         public int GetHealth()
