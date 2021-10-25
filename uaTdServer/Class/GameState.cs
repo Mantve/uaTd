@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace uaTdServer.Class
 {
-    public class GameState : Prototype
+    public class GameState : IPrototype
     {
         private static GameState singleton;
         /*readonly Dictionary<int, double> TowerCosts = new()

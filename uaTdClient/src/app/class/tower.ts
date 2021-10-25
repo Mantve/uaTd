@@ -1,6 +1,52 @@
 import * as Phaser from 'phaser';
 import { constants } from './_constants';
 
+// ################### Command #####################
+
+interface Command {
+    execute(tower: Tower): void;
+}
+
+
+class NearShootingCommand implements Command {
+
+    public execute(tower: Tower): void {
+        if (tower instanceof Shooter) {
+            tower.setStrategy(new NearShootingStrategy());
+        }
+    }
+}
+
+class FarShootingCommand implements Command {
+
+    public execute(tower: Tower): void {
+        if (tower instanceof Shooter && tower.parts.includes('SNIPER')) {
+            tower.setStrategy(new FarShootingStrategy());
+        }
+    }
+}
+
+class DoNotShootCommand implements Command {
+
+    public execute(tower: Tower): void {
+        tower.setStrategy(new DoNotShootShootingStrategy());
+    }
+}
+
+class CannonShootingCommand implements Command {
+
+    public execute(tower: Tower): void {
+        if (tower.parts.includes('CANNON')) {
+            tower.setStrategy(new CannonShootingStrategy());
+        }
+    }
+}
+
+class Invoker {
+    public executeCommand(command: Command, tower: Tower) {
+        command.execute(tower);
+    }
+}
 // ################### OBSERVER ####################
 
 export interface Publisher {
@@ -25,9 +71,9 @@ export default class Tower extends Phaser.GameObjects.Image {
     i;
     j;
     isRunning;
-    
+
     modifier: 1;
-    
+
     parts: string[];
     shootingStrategy: ShootingStrategy;
     //dtype: Phaser.GameObjects.Text;
@@ -55,7 +101,7 @@ export default class Tower extends Phaser.GameObjects.Image {
 
     place(i, j) {
         this.i = i,
-        this.j = j;
+            this.j = j;
 
         this.y = i * 64 + 64 / 2;
         this.x = j * 64 + 64 / 2;
@@ -66,7 +112,7 @@ export default class Tower extends Phaser.GameObjects.Image {
         this.label.setText(`${this.i} ${this.j}`);
         */
     }
-    
+
     setStrategy(strategy: ShootingStrategy) {
         this.shootingStrategy = strategy;
     }
@@ -85,9 +131,9 @@ export class Village extends Tower implements Publisher {
     setModifier: number = 1;
     notifiedFor = this.setModifier;
 
-    constructor(scene, strategy: ShootingStrategy) {
+    constructor(scene, strategy?: ShootingStrategy) {
         super(scene, 'village');
-        this.shootingStrategy = strategy;
+        //this.shootingStrategy = strategy;
     }
 
     place(i, j) {
@@ -95,8 +141,8 @@ export class Village extends Tower implements Publisher {
     }
 
     update(time, delta) {
-        if(this.isRunning) {
-            if(this.parts.includes('CANNON')) {
+        if (this.isRunning) {
+            if (this.parts.includes('CANNON')) {
                 this.setModifier = 1.15;
 
                 if (time > this.nextTic) {
@@ -105,11 +151,11 @@ export class Village extends Tower implements Publisher {
                 }
             }
 
-            if(this.parts.includes('WALLS')) {
+            if (this.parts.includes('WALLS')) {
                 this.setModifier = 1.25;
             }
 
-            if(this.notifiedFor != this.setModifier) {
+            if (this.notifiedFor != this.setModifier) {
                 this.notify();
                 this.notifiedFor = this.setModifier;
             }
@@ -138,7 +184,7 @@ export class Village extends Tower implements Publisher {
             observer.getNotified(this);
         }
     }
-    
+
     resetObservers() {
         this.observers = [];
     }
@@ -167,9 +213,9 @@ export class Village extends Tower implements Publisher {
 export class Shooter extends Tower implements Subscriber {
     private multiplier = 1;
 
-    constructor(scene, strategy: ShootingStrategy) {
+    constructor(scene, strategy?: ShootingStrategy) {
         super(scene, 'shooter');
-        this.shootingStrategy = strategy;
+        //this.shootingStrategy = strategy;
     }
 
     place(i, j) {
@@ -178,7 +224,7 @@ export class Shooter extends Tower implements Subscriber {
     }
 
     update(time, delta) {
-        if(this.isRunning) {
+        if (this.isRunning) {
             if (time > this.nextTic) {
                 this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, this.multiplier);
                 this.nextTic = time + 1000;
@@ -212,7 +258,7 @@ export class Shooter extends Tower implements Subscriber {
         }
     }
     */
-    
+
 }
 
 // ################### BUILDER ####################
@@ -229,6 +275,7 @@ export interface Builder {
 export class VillageBuilder implements Builder {
     private village: Village;
     scene;
+    private invoker = new Invoker();
 
     constructor(scene) {
         this.scene = scene;
@@ -236,7 +283,8 @@ export class VillageBuilder implements Builder {
     }
 
     reset() {
-        this.village = new Village(this.scene, new DoNotShootShootingStrategy())
+        this.village = new Village(this.scene);
+        this.invoker.executeCommand(new DoNotShootCommand(), this.village);
     }
 
     buildMainPart() {
@@ -245,7 +293,8 @@ export class VillageBuilder implements Builder {
 
     buildCannon() {
         this.village.parts.push('CANNON');
-        this.village.setStrategy(new CannonShootingStrategy());
+        this.invoker.executeCommand(new CannonShootingCommand(), this.village);
+        //this.village.setStrategy(new CannonShootingStrategy());
     }
 
     buildRadar() {
@@ -270,6 +319,7 @@ export class VillageBuilder implements Builder {
 export class ShooterBuilder implements Builder {
     private shooter: Shooter;
     scene;
+    private invoker = new Invoker();
 
     constructor(scene) {
         this.scene = scene;
@@ -277,7 +327,8 @@ export class ShooterBuilder implements Builder {
     }
 
     reset() {
-        this.shooter = new Shooter(this.scene, new NearShootingStrategy());
+        this.shooter = new Shooter(this.scene);
+        this.invoker.executeCommand(new NearShootingCommand(), this.shooter);
     }
 
     buildMainPart() {
@@ -286,12 +337,14 @@ export class ShooterBuilder implements Builder {
 
     buildCannon() {
         this.shooter.parts.push('CANNON');
-        this.shooter.setStrategy(new CannonShootingStrategy());
+        this.invoker.executeCommand(new CannonShootingCommand(), this.shooter);
+ //       this.shooter.setStrategy(new CannonShootingStrategy());
     }
 
     buildSniper() {
         this.shooter.parts.push('SNIPER');
-        this.shooter.setStrategy(new FarShootingStrategy());
+        this.invoker.executeCommand(new FarShootingCommand(), this.shooter);
+       // this.shooter.setStrategy(new FarShootingStrategy());
     }
 
     buildRadar() {
@@ -311,26 +364,26 @@ export class ShooterBuilder implements Builder {
 
 export class Director {
     private builder: Builder;
-    
+
     public setBuilder(builder: Builder): void {
         this.builder = builder;
     }
-    
+
     public buildVillage(): void {
         this.builder.buildMainPart();
     }
-    
+
     public buildVillageWithCannon(): void {
         this.builder.buildMainPart();
         this.builder.buildCannon();
     }
-    
+
     public buildVillageWithCannonAndRadar(): void {
         this.builder.buildMainPart();
         this.builder.buildCannon();
         this.builder.buildRadar();
     }
-    
+
     public buildVillageWithEverything(): void {
         this.builder.buildMainPart();
         this.builder.buildCannon();
@@ -361,7 +414,7 @@ export interface ShootingStrategy {
 }
 
 export class DoNotShootShootingStrategy implements ShootingStrategy {
-    shoot(enemies, bullets, x, y, multiplier = 1) {}
+    shoot(enemies, bullets, x, y, multiplier = 1) { }
 }
 
 export class NearShootingStrategy implements ShootingStrategy {
@@ -378,7 +431,7 @@ export class NearShootingStrategy implements ShootingStrategy {
 
         return 0;
     }
-    
+
     getEnemy(enemies, x, y, distance) {
         var enemyUnits = enemies.getChildren();
         for (var i = 0; i < enemyUnits.length; i++) {
@@ -413,7 +466,7 @@ export class FarShootingStrategy implements ShootingStrategy {
 
         return 0;
     }
-    
+
     getEnemy(enemies, x, y, distance) {
         var enemyUnits = enemies.getChildren();
         for (var i = 0; i < enemyUnits.length; i++) {
@@ -448,7 +501,7 @@ export class CannonShootingStrategy implements ShootingStrategy {
 
         return 0;
     }
-    
+
     getEnemy(enemies, x, y, distance) {
         var enemyUnits = enemies.getChildren();
         for (var i = 0; i < enemyUnits.length; i++) {

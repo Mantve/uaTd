@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace uaTdServer.Class
 {
-    public interface Prototype
+    public interface IPrototype
     {
         public GameState ShallowCopy();
         public GameState DeepCopy();
