@@ -177,28 +177,32 @@ namespace uaTdServer.Class.Tests
         }
 
         [TestMethod()]
-        public void UpdateMoneyPositiveTest()
+        [DataRow(100)]
+        [DataRow(200)]
+        public void UpdateMoneyPositiveTest(double change)
         {
             GameState game = GameState.Get();
 
             double currentMoney = game.GetMoney();
 
-            game.UpdateMoney(100);
+            game.UpdateMoney(change);
 
-            Assert.AreEqual(game.GetMoney(), currentMoney + 100, 0.01);
+            Assert.AreEqual(game.GetMoney(), currentMoney + change, 0.01);
             //Assert.Fail();
         }
 
         [TestMethod()]
-        public void UpdateMoneyNegativeSuccessTest()
+        [DataRow(-100)]
+        [DataRow(-200)]
+        public void UpdateMoneyNegativeSuccessTest(double change)
         {
             GameState game = GameState.Get();
 
             double currentMoney = game.GetMoney();
 
-            game.UpdateMoney(-100);
+            game.UpdateMoney(change);
 
-            Assert.AreEqual(game.GetMoney(), currentMoney - 100, 0.01);
+            Assert.AreEqual(game.GetMoney(), currentMoney + change, 0.01);
             //Assert.Fail();
         }
 
@@ -229,24 +233,31 @@ namespace uaTdServer.Class.Tests
         }
 
         [TestMethod()]
-        public void UpdateHealthAboveZeroTest()
+        [DataRow(10)]
+        [DataRow(30)]
+        [DataRow(60)]
+        [DataRow(99)]
+        public void UpdateHealthAboveZeroTest(int change)
         {
             GameState game = GameState.Get();
 
             int startingHealth = game.GetHealth();
 
-            game.UpdateHealth(50);
+            game.UpdateHealth(change);
 
-            Assert.AreEqual(startingHealth - 50, game.GetHealth());
+            Assert.AreEqual(startingHealth - change, game.GetHealth());
             //Assert.Fail();
         }
 
         [TestMethod()]
-        public void UpdateHealthBelowZeroTest()
+        [DataRow(100)]
+        [DataRow(150)]
+        [DataRow(200)]
+        public void UpdateHealthBelowZeroTest(int change)
         {
             GameState game = GameState.Get();
 
-            game.UpdateHealth(1000);
+            game.UpdateHealth(change);
 
             Assert.AreEqual(game.GetHealth(), 0);
             //Assert.Fail();
