@@ -39,19 +39,7 @@ export class AppComponent implements OnInit {
       name: 'Village',
       price: 200,
       image: 'milk.png'
-    }/*,
-    {
-      name: 'Choco Milk',
-      price: 150
-    },
-    {
-      name: 'Berry Milk',
-      price: 125
-    },
-    {
-      name: 'Almond Milk',
-      price: 50
-    }*/
+    }
   ]
 
   constructor() {
@@ -60,9 +48,6 @@ export class AppComponent implements OnInit {
       .build();
 
     this.connection.start().catch(err => document.write(err));
-
-    // Server messages processing
-
     this.connection.on("serverDataMessage", (data: string) => {
       this.processServerMessage(data);
     });
@@ -71,46 +56,38 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.game = new Game(this.connection, [])
+    this.game = new Game(this.connection);
   }
 
   join() {
     if (this.username.length > 3) {
-      let message = {
+      this.connection.send('clientMessage', JSON.stringify({
         type: 'JOIN',
         data: {
           username: this.username
         }
-      };
-
-      this.connection.send('clientMessage', JSON.stringify(message));
+      }));
     }
   }
 
   loadGame(map) {
     this.game = new Game(this.connection, map);
-    //this.initFlag = true;
   }
 
   startGame() {
     if(!this.gameState.gameIsOver) {
-      let message = {
+      this.connection.send('clientMessage', JSON.stringify({
         type: 'GAME_RUN_STOP',
         data: {}
-      };
-
-      this.connection.send('clientMessage', JSON.stringify(message));
+      }));
     }
   }
 
   resetGame() {
-    let message = {
+    this.connection.send('clientMessage', JSON.stringify({
       type: 'RESET_GAME',
       data: {}
-    };
-
-    this.connection.send('clientMessage', JSON.stringify(message))
-    //this.gameState.gameActiveState = false;
+    }))
   }
 
   resetRound() {
@@ -126,15 +103,13 @@ export class AppComponent implements OnInit {
     if (this.message.length == 0)
       return;
 
-    let message = {
+    this.connection.send('clientMessage', JSON.stringify({
       type: 'CHAT_SEND',
       data: {
         username: this.username,
         text: this.message
       }
-    };
-
-    this.connection.send('clientMessage', JSON.stringify(message)).then(x => {
+    })).then(x => {
       this.message = "";
     });
   }
@@ -142,42 +117,36 @@ export class AppComponent implements OnInit {
   processServerMessage(encodedData: string) {
     const serverMessage = JSON.parse(encodedData);
     console.log(serverMessage);
-    let tempMessage;
 
     switch (serverMessage.type) {
       case 'JOIN':
-        tempMessage = {
+        this.chatMessages.push({
           username: "Server",
           text: serverMessage.data.username + " prisijungė prie žaidimo"
-        };
-        this.chatMessages.push(tempMessage);
+        });
         break;
+
       case 'GAMESTATE_INIT':
         this.gameState = serverMessage.data;
         this.gameState.gameActiveState ? this.game.runGame() : this.game.stopGame();
-        //this.gameState.gameActiveState ? this.game.runTowers() : this.game.stopTowers();
         
         this.game.updateMap(serverMessage.data.map);
         this.game.populateMapWithTowers();
 
-        tempMessage = {
+        this.chatMessages.push({
           username: "Server",
           text: "Prisijungei prie žaidimo"
-        };
-        this.chatMessages.push(tempMessage);
-        //this.game.runEnemies();
-        //this.game.runTowers();
+        });
+
         let initialBacterias = serverMessage.data.bacterias as Bacteria[];
-        console.log(serverMessage);
-        console.log(initialBacterias);
         this.game.spawnNewBacterias(initialBacterias);
-        console.log("***")
         this.shownScreen = 'game';
         break;
+
       case 'GAMESTATE_UPDATE':
         this.gameState = serverMessage.data;
         this.gameState.gameActiveState ? this.game.runGame() : this.game.stopGame();
-        //this.gameState.gameActiveState ? this.game.runTowers() : this.game.stopTowers();
+
         if(this.gameState.gameActiveState) {
           let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
   
@@ -190,40 +159,47 @@ export class AppComponent implements OnInit {
 
         this.game.updateMap(serverMessage.data.map);
         break;
+
       case 'CHAT_SEND':
-        tempMessage = serverMessage.data;
-        this.chatMessages.push(tempMessage);
+        this.chatMessages.push(serverMessage.data);
         break;
+
       case 'TOWER_PURCHASE':
         this.gameState.money -= serverMessage.data.change;
         break;
+
       case 'TOWER_BUILD':
         this.game.placeTowerFromServer(serverMessage.data.x, serverMessage.data.y, serverMessage.data.type)
         this.game.subscribeShooters(); //Should be called on tower changes
         break;
+
       case 'TOWER_UPGRADE':
         this.game.upgradeTower(serverMessage.data.x, serverMessage.data.y)
         this.game.subscribeShooters(); //Should be called on tower changes
         break;
+
       case 'GAME_OVER':
         this.gameState.gameIsOver = true;
-        //this.gameState.gameActiveState = false; 
         this.game.gameOver();
         break;
+
       case 'RESET_GAME':
         this.gameState = serverMessage.data;
         this.game.updateMap(serverMessage.data.map);
         this.game.initializeNewGame();
         break;
+        
       case 'RESET_ROUND':
         this.gameState = serverMessage.data;
         this.game.updateMap(serverMessage.data.map);
         this.game.initializePreviousRound();
         break;
+
       case 'SPAWN_ENEMY':
         let serverEnemy = serverMessage.data as Bacteria;
         this.game.spawnNewBacteria(serverEnemy)
         break;
+
       case 'ROUND_OVER':
         this.gameState = serverMessage.data;
         break;
@@ -241,15 +217,5 @@ export class AppComponent implements OnInit {
       var price = this.storeTowers[i - 1].price;
       this.game.setForPurchase(i, price);
     }
-
-
-    /*let message = {
-      type: 'TOWER_PURCHASE',
-      data: {
-        change: this.storeTowers[i].price
-      }
-    };
-
-    this.connection.send('clientMessage', JSON.stringify(message));*/
   }
 }
