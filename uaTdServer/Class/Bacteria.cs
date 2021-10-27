@@ -24,8 +24,8 @@ namespace uaTdServer.Class
         public int hitCount { get; set; }
         public bool isDead { get; set; }
         public BacteriaFollower follower { get; set; }
-
         public int type { get; set; }
+        public long spawnTime { get; set; }
 
         public Bacteria(double health, int t, double[] vec, int type)
         {
@@ -34,6 +34,7 @@ namespace uaTdServer.Class
             hitCount = 0;
             isDead = false;
             this.type = type;
+            this.spawnTime = DateTimeOffset.Now.ToUnixTimeSeconds();
 
             Vector2 newVec;
 

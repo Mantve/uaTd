@@ -46,23 +46,15 @@ export default class Game extends Phaser.Game {
     }
 
     runGame() {
-        this.gameScene.isRunning = true;
-        this.gameScene.bacterias.forEach(enemy => {
-            enemy.run();
-        });
-        this.gameScene.towers.children.entries.forEach(tower => {
-            tower.run();
-        });
+        this.gameScene.enemies.runChildUpdate = true;
+        this.gameScene.towers.runChildUpdate = true;
+        this.gameScene.bullets.runChildUpdate = true;
     }
 
     stopGame() {
-        this.gameScene.isRunning = false;
-        this.gameScene.bacterias.forEach(enemy => {
-            enemy.stop();
-        });
-        this.gameScene.towers.children.entries.forEach(tower => {
-            tower.stop();
-        });
+        this.gameScene.enemies.runChildUpdate = false;
+        this.gameScene.towers.runChildUpdate = false;
+        this.gameScene.bullets.runChildUpdate = false;
     }
 
     printMap() {
@@ -91,7 +83,7 @@ export default class Game extends Phaser.Game {
     }
 
     spawnNewBacteria(bacteria: Bacteria) {
-        return this.gameScene.spawnBacteria(0, bacteria.type, bacteria.follower.t, [bacteria.follower.vec.x, bacteria.follower.vec.y], bacteria.id);
+        return this.gameScene.spawnBacteria(bacteria);
     }
 
     spawnNewBacterias(bacterias: Bacteria[]) {
@@ -117,14 +109,11 @@ export class Scene extends Phaser.Scene {
     
     map = [];
     path;
+
     enemies;
     towers;
     bullets;
     obstacles;
-
-    runEnemies: boolean = false;
-    runTowers: boolean = false;
-    isRunning = false;
 
     bacterias: Bacteria[] = [];
     nextBacteria: number = 0;
@@ -147,8 +136,8 @@ export class Scene extends Phaser.Scene {
     }
 
     create() {
-        let gameWidth = <integer><unknown>this.game.config.width;
-        let gameHeight = <integer><unknown>this.game.config.height;
+        let gameWidth = <number><unknown>this.game.config.width;
+        let gameHeight = <number><unknown>this.game.config.height;
 
         this.children.add(new Phaser.GameObjects.Image(this, gameWidth / 2, gameHeight / 2, 'map'));
 
@@ -205,8 +194,8 @@ export class Scene extends Phaser.Scene {
     }
 
     drawGrid(graphics) {
-        let gameWidth = <integer><unknown>this.game.config.width;
-        let gameHeight = <integer><unknown>this.game.config.height;
+        let gameWidth = <number><unknown>this.game.config.width;
+        let gameHeight = <number><unknown>this.game.config.height;
 
         graphics.lineStyle(1, 0xffffff, 0.15);
         for (var i = 0; i <= gameWidth / 64; i++) {
@@ -395,8 +384,6 @@ export class Scene extends Phaser.Scene {
             tower.setActive(true);
             tower.setVisible(true);
             tower.place(y, x);
-
-            tower.isRunning = this.isRunning;
         }
 
         this.children.add(tower)
@@ -531,7 +518,6 @@ export class Scene extends Phaser.Scene {
         this.towers.remove(tower);
         this.children.remove(tower);
 
-        newTower.isRunning = this.isRunning;
         this.towers.add(newTower);
         newTower.setGameData(this.enemies, this.bullets);
         newTower.setActive(true);
@@ -559,25 +545,25 @@ export class Scene extends Phaser.Scene {
     spawnNewBacterias(time, bacterias: Bacteria[]) {
         if(bacterias) {
             bacterias.forEach(b => {
-                this.spawnBacteria(time, b.type, b.t, [b.follower.vec.x, b.follower.vec.y], b.id);
+                this.spawnBacteria(b);
             })
         }
     }
 
-    spawnBacteria(time, bacteriaType: number, t: number, vec: number[], id: number) {
+    spawnBacteria(bacteriaData) {
         var enemyClient = new EnemyClient();
         let bacteria;
 
-        if(bacteriaType == 0) {
+        if(bacteriaData.type == 0) {
             enemyClient.createBacteria(this, new BacteriaBlueCreator());
-            enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+            enemyClient.bacteria.setBacteriaData(bacteriaData.t, bacteriaData.vec, bacteriaData.id, bacteriaData.type, bacteriaData.spawnTime);
             if (enemyClient) {
                 bacteria = enemyClient.bacteria;
             }
         }
         else {
             enemyClient.createBacteria(this, new BacteriaPinkCreator());
-            enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
+            enemyClient.bacteria.setBacteriaData(bacteriaData.t, bacteriaData.vec, bacteriaData.id, bacteriaData.type, bacteriaData.spawnTime);
             if (enemyClient) {
                 bacteria = enemyClient.bacteria;
             }
@@ -592,13 +578,11 @@ export class Scene extends Phaser.Scene {
             this.enemies.add(bacteria);
             this.children.add(bacteria);
             this.bacterias.push(bacteria);
-            
-            !this.isRunning ? bacteria.stop() : bacteria.run();
         }
     }
 
     gameOver()
     {
-        //this.scene.stop();
+        //this.scene.pause();
     }
 }

@@ -75,6 +75,11 @@ export class AppComponent implements OnInit {
   }
 
   startGame() {
+    if(this.gameState.health <= 0) {
+      this.resetGame();
+      return;
+    }
+
     if(!this.gameState.gameIsOver) {
       this.connection.send('clientMessage', JSON.stringify({
         type: 'GAME_RUN_STOP',
