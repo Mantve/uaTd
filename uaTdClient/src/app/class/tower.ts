@@ -7,7 +7,6 @@ interface Command {
     execute(tower: Tower): void;
 }
 
-
 class NearShootingCommand implements Command {
 
     public execute(tower: Tower): void {
@@ -70,7 +69,6 @@ export default class Tower extends Phaser.GameObjects.Image {
     towers;
     i;
     j;
-    isRunning;
 
     modifier: 1;
 
@@ -116,14 +114,6 @@ export default class Tower extends Phaser.GameObjects.Image {
     setStrategy(strategy: ShootingStrategy) {
         this.shootingStrategy = strategy;
     }
-
-    stop() {
-        this.isRunning = false;
-    }
-
-    run() {
-        this.isRunning = true;
-    }
 }
 
 export class Village extends Tower implements Publisher {
@@ -133,7 +123,6 @@ export class Village extends Tower implements Publisher {
 
     constructor(scene, strategy?: ShootingStrategy) {
         super(scene, 'village');
-        //this.shootingStrategy = strategy;
     }
 
     place(i, j) {
@@ -141,24 +130,22 @@ export class Village extends Tower implements Publisher {
     }
 
     update(time, delta) {
-        if (this.isRunning) {
-            if (this.parts.includes('CANNON')) {
-                this.setModifier = 1.15;
+        if (this.parts.includes('CANNON')) {
+            this.setModifier = 1.15;
 
-                if (time > this.nextTic) {
-                    this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, 1);
-                    this.nextTic = time + 2000;
-                }
+            if (time > this.nextTic) {
+                this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, 1);
+                this.nextTic = time + 2000;
             }
+        }
 
-            if (this.parts.includes('WALLS')) {
-                this.setModifier = 1.25;
-            }
+        if (this.parts.includes('WALLS')) {
+            this.setModifier = 1.25;
+        }
 
-            if (this.notifiedFor != this.setModifier) {
-                this.notify();
-                this.notifiedFor = this.setModifier;
-            }
+        if (this.notifiedFor != this.setModifier) {
+            this.notify();
+            this.notifiedFor = this.setModifier;
         }
     }
 
@@ -188,26 +175,6 @@ export class Village extends Tower implements Publisher {
     resetObservers() {
         this.observers = [];
     }
-
-    /*addShootersToSubs() {
-        var shooterTowers = this.towers.getChildren();
-        var nearbyShooters: Subscriber[] = [];
-
-        for (var i = 0; i < shooterTowers.length; i++) {
-            if (shooterTowers[i] instanceof Shooter 
-                && shooterTowers[i].active 
-                && Phaser.Math.Distance.Between(this.x, this.y, shooterTowers[i].x, shooterTowers[i].y) <= 256) {
-                
-            console.log('adding to subs')
-                //nearbyShooters.push(shooterSub);
-            }
-        }
-
-        for (var i = 0; i < nearbyShooters.length; i++) {
-            console.log('adding to subs')
-            this.subscribe(nearbyShooters[i]);
-        }
-    }*/
 }
 
 export class Shooter extends Tower implements Subscriber {
@@ -224,11 +191,9 @@ export class Shooter extends Tower implements Subscriber {
     }
 
     update(time, delta) {
-        if (this.isRunning) {
-            if (time > this.nextTic) {
-                this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, this.multiplier);
-                this.nextTic = time + 1000;
-            }
+        if (time > this.nextTic) {
+            this.angle = this.shootingStrategy.shoot(this.enemies, this.bullets, this.x, this.y, this.multiplier);
+            this.nextTic = time + 1000;
         }
     }
 
@@ -237,28 +202,6 @@ export class Shooter extends Tower implements Subscriber {
         this.multiplier = village.setModifier;
         console.log("i've been notified")
     }
-    /*
-    subToVillages() {
-        var villageTowers = this.towers;
-        var nearbyVillageTowers: Village[] = [];
-        console.log(villageTowers);
-        console.log(nearbyVillageTowers);
-        for (var i = 0; i < villageTowers.length; i++) {
-            console.log(villageTowers[i])
-            if (villageTowers[i] instanceof Village && villageTowers[i].active && Phaser.Math.Distance.Between(this.x, this.y, villageTowers[i].x, villageTowers[i].y) <= 256) {
-                nearbyVillageTowers.push(villageTowers[i]);
-                console.log(villageTowers[i])
-            }
-        }
-        
-        console.log(nearbyVillageTowers);
-        
-        for (var i = 0; i < nearbyVillageTowers.length; i++) {
-            nearbyVillageTowers[i].subscribe(this);
-        }
-    }
-    */
-
 }
 
 // ################### BUILDER ####################
@@ -294,7 +237,6 @@ export class VillageBuilder implements Builder {
     buildCannon() {
         this.village.parts.push('CANNON');
         this.invoker.executeCommand(new CannonShootingCommand(), this.village);
-        //this.village.setStrategy(new CannonShootingStrategy());
     }
 
     buildRadar() {
@@ -338,13 +280,11 @@ export class ShooterBuilder implements Builder {
     buildCannon() {
         this.shooter.parts.push('CANNON');
         this.invoker.executeCommand(new CannonShootingCommand(), this.shooter);
- //       this.shooter.setStrategy(new CannonShootingStrategy());
     }
 
     buildSniper() {
         this.shooter.parts.push('SNIPER');
         this.invoker.executeCommand(new FarShootingCommand(), this.shooter);
-       // this.shooter.setStrategy(new FarShootingStrategy());
     }
 
     buildRadar() {

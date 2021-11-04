@@ -11,7 +11,7 @@
     <div class="screen game-screen" [ngClass]="shownScreen == 'game' ? 'shown' : ''">
         <div class="game-stack">
             <div class="game-window">
-                <div class="overlay" *ngIf="gameState.gameIsOver">
+                <div class="overlay" *ngIf="gameState.gameIsOver || gameState.health == 0">
                     <div class="overlay-inner">
                         <div class="overlay-text">
                             Game over

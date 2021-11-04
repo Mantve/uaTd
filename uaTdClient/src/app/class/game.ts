@@ -1,11 +1,8 @@
-import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 import * as Phaser from 'phaser';
-import { constants } from './_constants';
-import Tower, { Builder, Director, Publisher, Shooter, ShooterBuilder, Subscriber, Village, VillageBuilder } from './tower';
+import Tower, { Director, Shooter, ShooterBuilder, Village, VillageBuilder } from './tower';
 import Bullet from './bullet';
 import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
-import { GameState } from '.';
 
 var config = {
     type: Phaser.AUTO,
@@ -14,633 +11,578 @@ var config = {
     height: 704,
     physics: {
         default: 'arcade'
-    },
-    scene: {
-        key: 'main',
-        preload: preload,
-        create: create,
-        update: update
     }
 };
 
-let connection;
-var game;
-
 export default class Game extends Phaser.Game {
+    gameScene: Scene;
 
-    constructor(connection1, map1) {
+    constructor(connection, map: number[] = []) {
         super(config);
-        connection = connection1;
-        map = map1;
-        game = this;
-    }
-
-    updateMap(map1) {
-        map = map1;
-    }
-
-    runGame() {
-        isRunning = true;
-        bacterias.forEach(enemy => {
-            enemy.run();
+        connection = connection;
+        
+        this.gameScene = new Scene({
+            key: 'main',
+            active: true,
+            visible: true
         });
-        towers.children.entries.forEach(tower => {
-            tower.run();
-        });
+        
+        this.gameScene.connection = connection;
+
+        this.scene.add('main', this.gameScene);
+        this.updateMap(map);
     }
 
-    stopGame() {
-        isRunning = false;
-        bacterias.forEach(enemy => {
-            enemy.stop();
-        });
-        towers.children.entries.forEach(tower => {
-            tower.stop();
-        });
-    }
-
-    printMap() {
-        console.log(map)
-    }
-
-    placeTowerFromServer(x, y, type) {
-        return placeTowerFromServer(x, y, type, this.scene.scenes[0])
-    }
-
-    populateMapWithTowers() {
-        return populateMapWithTowers(this.scene.scenes[0]);
+    updateMap(map) {
+        this.gameScene.map = map;
     }
 
     setForPurchase(i: number, price: number) {
-        setForPurchase(i, price);
+        this.gameScene.setForPurchase(i, price);
     }
 
     cancelPurchase() {
-        cancelPurchase();
+        this.gameScene.cancelPurchase();
+    }
+
+    runGame() {
+        this.gameScene.enemies.runChildUpdate = true;
+        this.gameScene.towers.runChildUpdate = true;
+        this.gameScene.bullets.runChildUpdate = true;
+    }
+
+    stopGame() {
+        this.gameScene.enemies.runChildUpdate = false;
+        this.gameScene.towers.runChildUpdate = false;
+        this.gameScene.bullets.runChildUpdate = false;
+    }
+
+    printMap() {
+        console.log(this.gameScene.map)
+    }
+
+    placeTowerFromServer(x, y, type) {
+        this.gameScene.placeTowerFromServer(x, y, type)
+    }
+
+    populateMapWithTowers() {
+        this.gameScene.populateMapWithTowers();
     }
 
     upgradeTower(x, y) {
-        return upgradeTower(x, y, this.scene.scenes[0]);
+        this.gameScene.upgradeTower(x, y);
     }
 
     subscribeShooters() {
-        return subscribeShooters();
+        return this.gameScene.subscribeShooters();
     }
 
     gameOver()
     {
-        return gameOver(this.scene);
-        //return gameOver();
+        return this.gameScene.gameOver();
     }
 
     spawnNewBacteria(bacteria: Bacteria) {
-        return spawnBacteria(this.scene.scenes[0], this.scene.scenes[0].time, bacteria.type, bacteria.follower.t, [bacteria.follower.vec.x, bacteria.follower.vec.y], bacteria.id);
+        return this.gameScene.spawnBacteria(bacteria);
     }
 
     spawnNewBacterias(bacterias: Bacteria[]) {
-        return spawnNewBacterias(this.scene.scenes[0], this.scene.scenes[0].time, bacterias);
+        return this.gameScene.spawnNewBacterias(0, bacterias);
     }
 
     removeOldBacterias(newBacterias: Bacteria[]) {
-        return removeOldBacterias(this.scene.scenes[0], newBacterias);
+        return this.gameScene.removeOldBacterias(newBacterias);
     }
 
     initializeNewGame() {
-        return initializeGame(this.scene.scenes[0]);
+        return this.gameScene.initializeGame();
     }
 
     initializePreviousRound() {
-        return initializePreviousRound(this.scene.scenes[0]);
+        return this.gameScene.initializePreviousRound();
     }
 }
 
-var graphics;
-var path;
-var enemies;
-var towers;
-var bullets;
-var obstacles;
-var map = [];
-var indicator;
-var finTile;
-var runEnemies: boolean = false;
-var runTowers: boolean = false;
-var eType = 0;
-var isRunning = false;
-//var towers: Tower[] = [];
-var bacterias: Bacteria[] = [];
+export class Scene extends Phaser.Scene {
+    connection;
+    graphics;
+    
+    map = [];
+    path;
 
-var purchasePreview: Phaser.GameObjects.Image;
-var selectedIndex: number = -1;
-var selectedPrice: number = 0;
+    enemies;
+    towers;
+    bullets;
+    obstacles;
 
-function setForPurchase(i: number, price: number) {
-    purchasePreview.setFrame(i == 1 ? 'tower' : 'village')
-    purchasePreview.visible = true;
-    selectedIndex = i;
-    selectedPrice = price;
-}
+    bacterias: Bacteria[] = [];
+    nextBacteria: number = 0;
 
-function cancelPurchase() {
-    purchasePreview.visible = false;
-    selectedIndex = -1;
-    selectedPrice = 0;
-}
+    purchasePreview: Phaser.GameObjects.Image;
+    selectedIndex: number = -1;
+    selectedPrice: number = 0;
 
-function preload() {
-    // load the game assets – enemy and tower atlas
-    this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
-    this.load.image('bullet', 'assets/bullet.png');
-    this.load.image('map', 'assets/map.png');
-}
+    indicator;
+    finTile;
 
-function create() {
-    let map = new Phaser.GameObjects.Image(this, this.game.config.width / 2, this.game.config.height / 2, 'map');
-    this.children.add(map); // https://blurymind.github.io/tilemap-editor/
-    // this graphics element is only for visualization, 
-    // its not related to our path
-    var graphics = this.add.graphics();
-    drawGrid(graphics);
-    // the path for our enemies
-    // parameters are the start x and y of our path
-    path = this.add.path(96, -32);
-    path.lineTo(96, 160);
-    path.lineTo(352, 160);
-    path.lineTo(352, 288);
-    path.lineTo(544, 288);
-    path.lineTo(544, 96);
-    path.lineTo(736, 96);
-    path.lineTo(736, 416);
-    path.lineTo(160, 416);
-    path.lineTo(160, 608);
-    path.lineTo(352, 608);
-    path.lineTo(352, 544);
-    path.lineTo(672, 544);
-    path.lineTo(672, 736);
+    constructor(config) {
+        super(config);
+    }
 
-    graphics.lineStyle(3, 0xffffff, 1);
-    // visualize the path
-    path.draw(graphics);
+    preload() {
+        this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
+        this.load.image('bullet', 'assets/bullet.png');
+        this.load.image('map', 'assets/map.png');
+    }
 
-    enemies = this.physics.add.group({ classType: Bacteria, runChildUpdate: true });
-    this.nextBacteria = 0;
-    towers = this.add.group({ classType: Tower, runChildUpdate: true });
-    this.input.on('pointerdown', placeTower);
-    bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
-    this.physics.add.overlap(enemies, bullets, damageEnemy);
-    obstacles = this.add.group({ classType: Obstacle, runChildUpdate: true });
+    create() {
+        let gameWidth = <number><unknown>this.game.config.width;
+        let gameHeight = <number><unknown>this.game.config.height;
 
-    indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
-    this.children.add(indicator);
+        this.children.add(new Phaser.GameObjects.Image(this, gameWidth / 2, gameHeight / 2, 'map'));
 
-    purchasePreview = new Phaser.GameObjects.Image(this, 0, 0, 'sprites', 'tower');
-    this.children.add(purchasePreview);
-    purchasePreview.visible = false;
+        this.enemies = this.physics.add.group({ classType: Bacteria, runChildUpdate: true });
+        this.nextBacteria = 0;
 
-    finTile = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
-    let ft = new Phaser.GameObjects.Rectangle(this, 64 * 11 - 32, 64 * 11, 64, 64, 0xff0000, 0.25);
-    ft.setActive(true);
-    ft.setVisible(true);
-    finTile.add(ft);
-    this.physics.add.overlap(enemies, finTile, updateHealth);
-}
+        this.towers = this.add.group({ classType: Tower, runChildUpdate: true });
+        this.input.on('pointerdown', this.placeTower);
+        this.bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
+        this.physics.add.overlap(this.enemies, this.bullets, this.damageEnemy);
+        this.obstacles = this.add.group({ classType: Obstacle, runChildUpdate: true });
 
-function initializeGame(scene) {
-    //scene.children.destroy();
-    removeAllBacterias(scene, bacterias);
-    scene.nextBacteria = 0;
-    removeAllTowers(scene, towers);
-    enemies.clear();
-    towers.clear();
-    bullets.clear();
-}
+        var graphics = this.add.graphics();
+        this.drawGrid(graphics);
+        
+        this.path = this.add.path(96, -32);
+        let pathPoints = [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]];
+        pathPoints.forEach(point => this.path.lineTo(point[0], point[1]));
 
-function initializePreviousRound(scene) {
-    //scene.children.destroy();
-    removeAllBacterias(scene, bacterias);
-    scene.nextBacteria = 0;
-    enemies.clear();
-    bullets.clear();
-    removeAllTowers(scene, towers);
-    towers.clear();
-    populateMapWithTowers(scene);
-}
+        graphics.lineStyle(3, 0xffffff, 1);
+        this.path.draw(graphics);
 
+        this.indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
+        this.children.add(this.indicator);
 
-function damageEnemy(enemy, bullet) {
-    // only if both enemy and bullet are alive
-    if (enemy.active === true && bullet.active === true) {
-        // we remove the bullet right away
-        bullet.setActive(false);
-        bullet.setVisible(false);
+        this.purchasePreview = new Phaser.GameObjects.Image(this, 0, 0, 'sprites', 'tower');
+        this.children.add(this.purchasePreview);
+        this.purchasePreview.visible = false;
 
-        // decrease the enemy hp with BULLET_DAMAGE
-        enemy.receiveDamage(bullet.damage);
-        if(enemy.hp <= 0) {
-            console.log("enemy died");
-            let message = {
-                type: 'ENEMY_DEATH',
-                data: {
-                    bacteriaID: enemy.id
-                }
-            };
+        this.finTile = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
+        let ft = new Phaser.GameObjects.Rectangle(this, 64 * 11 - 32, 64 * 11, 64, 64, 0xff0000, 0.25);
+        ft.setActive(true);
+        ft.setVisible(true);
+        this.finTile.add(ft);
+        this.physics.add.overlap(this.enemies, this.finTile, this.updateHealth);
+    }
 
-            connection.send('clientMessage', JSON.stringify(message));
+    update() {
+        let ix = Math.floor(this.input.activePointer.x / 64);
+        let iy = Math.floor(this.input.activePointer.y / 64);
+
+        let gridX = ix * 64 + 32;
+        let gridY = iy * 64 + 32;
+
+        this.indicator.x = gridX;
+        this.indicator.y = gridY;
+
+        if (this.purchasePreview != undefined) {
+            this.purchasePreview.x = gridX;
+            this.purchasePreview.y = gridY;
         }
+
+        !this.canPlaceTower(iy, ix) ? this.indicator.fillColor = 0xff0000 : this.indicator.fillColor = 0x00ff00;
     }
-}
 
-function updateHealth(enemy, finTile) {
-    // only if both enemy and bullet are alive
-    if (enemy.active === true && finTile.active === true) {
-        // we remove the bullet right away
-        enemy.setActive(false);
-        enemy.setVisible(false);
+    drawGrid(graphics) {
+        let gameWidth = <number><unknown>this.game.config.width;
+        let gameHeight = <number><unknown>this.game.config.height;
 
-        let message = {
-            type: 'HEALTH_UPDATE',
-            data: {
-                change: Math.floor(enemy.hp),
-                bacteriaID: enemy.id
-            }
-        };
-
-        connection.send('clientMessage', JSON.stringify(message));
+        graphics.lineStyle(1, 0xffffff, 0.15);
+        for (var i = 0; i <= gameWidth / 64; i++) {
+            graphics.moveTo(i * 64, 0);
+            graphics.lineTo(i * 64, gameHeight);
+        }
+        for (var j = 0; j <= gameHeight / 64; j++) {
+            graphics.moveTo(0, j * 64);
+            graphics.lineTo(gameWidth, j * 64);
+        }
+        graphics.strokePath();
     }
-}
 
-function populateMapWithTowers(scene) {
-    console.log(map);
-    map.forEach((row, j) => {
-        row.forEach((col, i) => {
-            if (row[i] > 0) {
-                placeTowerFromServer(i, j, row[i], scene);
-            }
-            else if (row[i] < 0) {
-                placeObstacleFromServer(scene, i, j, row[i]);
-            }
+    initializeGame() {
+        this.removeAllBacterias(this.bacterias);
+        this.nextBacteria = 0;
+        this.removeAllTowers(this.towers);
+
+        this.enemies.clear();
+        this.towers.clear();
+        this.bullets.clear();
+    }
+
+    initializePreviousRound() {
+        this.removeAllBacterias(this.bacterias);
+        this.nextBacteria = 0;
+
+        this.enemies.clear();
+        this.bullets.clear();
+        this.removeAllTowers(this.towers);
+        this.towers.clear();
+        this.populateMapWithTowers();
+    }
+
+    removeOldBacterias(oldBacterias: Bacteria[]) {
+        oldBacterias.forEach(ob => {
+            this.removeBacteria(ob);
+        })
+    }
+
+    removeBacteria(oldBacteria) {
+        oldBacteria.setActive(false);
+        oldBacteria.setVisible(false);
+        this.enemies.remove(oldBacteria);
+        this.bacterias.splice(this.bacterias.indexOf(oldBacteria), 1);
+        this.children.remove(oldBacteria);
+    }
+
+    removeAllBacterias(bacterias: Bacteria[]) {
+        bacterias.forEach(bacteria => {
+            this.children.remove(bacteria);
         });
-    })
-}
-
-function placeTower(pointer) {
-    var x = Math.floor(pointer.x / 64);
-    var y = Math.floor(pointer.y / 64);
-
-    //console.log([x, y], selectedIndex, map[y][x]);
-
-    if (selectedIndex != -1 && canPlaceTower(y, x)) {
-
-        let message = {
-            type: 'TOWER_BUILD',
-            data: {
-                x: x,
-                y: y,
-                type: selectedIndex,
-                price: selectedPrice
-            }
-        };
-
-        connection.send('clientMessage', JSON.stringify(message));
+        bacterias = [];
     }
-    else if (selectedIndex != -1 && selectedIndex == Math.floor(map[y][x] / 10)) {
-        if ((selectedIndex == 1 && map[y][x] % 10 < 2) || (selectedIndex == 2 && map[y][x] % 10 < 3)) {
-            let message = {
-                type: 'TOWER_UPGRADE',
+
+    removeAllTowers(towers) {
+        towers.children.entries.forEach(tower => {
+            this.children.remove(tower);
+        });
+    }
+
+    setForPurchase(i: number, price: number) {
+        this.purchasePreview.setFrame(i == 1 ? 'tower' : 'village')
+        this.purchasePreview.visible = true;
+        this.selectedIndex = i;
+        this.selectedPrice = price;
+    }
+
+    cancelPurchase() {
+        this.purchasePreview.visible = false;
+        this.selectedIndex = -1;
+        this.selectedPrice = 0;
+    }
+
+    canPlaceTower(y, x) {
+        if (!this.map || this.map.length == 0 || this.map[y] === undefined || this.map[y][x] === undefined)
+            return false;
+
+        return this.map[y][x] === 0;
+    }
+
+    placeTower(pointer) {
+        var x = Math.floor(pointer.x / 64);
+        var y = Math.floor(pointer.y / 64);
+
+        let gameScene = <Scene><unknown>this.scene.scene.scene;
+
+        if (gameScene.selectedIndex != -1 && gameScene.canPlaceTower(y, x)) {
+            gameScene.connection.send('clientMessage', JSON.stringify({
+                type: 'TOWER_BUILD',
                 data: {
                     x: x,
                     y: y,
-                    price: selectedPrice
+                    type: gameScene.selectedIndex,
+                    price: gameScene.selectedPrice
                 }
-            };
-
-            connection.send('clientMessage', JSON.stringify(message));
+            }));
+        }
+        else if (gameScene.selectedIndex != -1 && gameScene.selectedIndex == Math.floor(gameScene.map[y][x] / 10)) {
+            if ((gameScene.selectedIndex == 1 && gameScene.map[y][x] % 10 < 2) || (gameScene.selectedIndex == 2 && gameScene.map[y][x] % 10 < 3)) {
+                gameScene.connection.send('clientMessage', JSON.stringify({
+                    type: 'TOWER_UPGRADE',
+                    data: {
+                        x: x,
+                        y: y,
+                        price: gameScene.selectedPrice
+                    }
+                }));
+            }
         }
     }
-}
 
-function subscribeShooters() {
-    var villageTowers = towers.getChildren();
-    villageTowers.forEach(tower => {
-        if (tower instanceof Village) {
-            tower.resetObservers();
-            villageTowers.forEach(shooter => {
-                if (shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 100) {
-                    tower.subscribe(shooter);
+    damageEnemy(enemy, bullet) {
+        if (enemy.active === true && bullet.active === true) {
+            bullet.setActive(false);
+            bullet.setVisible(false);
+
+            enemy.receiveDamage(bullet.damage);
+            if(enemy.hp <= 0) {
+                let gameScene = <Scene><unknown>enemy.scene;
+                gameScene.connection.send('clientMessage', JSON.stringify({
+                    type: 'ENEMY_DEATH',
+                    data: {
+                        bacteriaID: enemy.id
+                    }
+                }));
+            }
+        }
+    }
+
+    updateHealth(enemy, finTile) {
+        if (enemy.active === true && finTile.active === true) {
+            enemy.setActive(false);
+            enemy.setVisible(false);
+
+            let gameScene = <Scene><unknown>enemy.scene;
+            gameScene.connection.send('clientMessage', JSON.stringify({
+                type: 'HEALTH_UPDATE',
+                data: {
+                    change: Math.floor(enemy.hp),
+                    bacteriaID: enemy.id
+                }
+            }));
+        }
+    }
+
+    populateMapWithTowers() {
+        this.map.forEach((row, j) => {
+            row.forEach((col, i) => {
+                if (row[i] > 0) {
+                    this.placeTowerFromServer(i, j, row[i]);
+                }
+                else if (row[i] < 0) {
+                    this.placeObstacleFromServer(i, j, row[i]);
                 }
             });
-        }
-    });
-}
-
-function spawnNewBacterias(scene, time, bacterias: Bacteria[]) {
-    if(bacterias) {
-        bacterias.forEach(b => {
-            spawnBacteria(scene, time, b.type, b.t, [b.follower.vec.x, b.follower.vec.y], b.id);
         })
     }
-}
 
-function spawnBacteria(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
-    //console.log("SPAWNING", bacteriaType, t, vec, id)
+    placeTowerFromServer(x, y, type) {
+        let director = new Director();
+        let tower: Tower;
+        let towerType = Math.floor(type / 10);
 
-    var enemyClient = new EnemyClient();
-    let bacteria;
+        switch (towerType) {
+            case 1:
+                let shooterBuilder = new ShooterBuilder(this);
+                director.setBuilder(shooterBuilder);
+                director.buildShooter();
 
-    if(bacteriaType == 0) {
-        enemyClient.createBacteria(scene, new BacteriaBlueCreator());
-        enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
-        if (enemyClient) {
-            bacteria = enemyClient.bacteria;
+                tower = shooterBuilder.get();
+                break;
+            case 2:
+                let villageBuilder = new VillageBuilder(this);
+                director.setBuilder(villageBuilder);
+
+                tower = villageBuilder.get();
+                break;
+        }
+
+        this.towers.add(tower);
+
+        if (tower) {
+            this.map[y][x] = type;
+            tower.setGameData(this.enemies, this.bullets, this.towers);
+            tower.setActive(true);
+            tower.setVisible(true);
+            tower.place(y, x);
+        }
+
+        this.children.add(tower)
+        let upgrades = type % 10;
+
+        for (let i = 0; i < upgrades; i++) {
+            this.upgradeTower(x, y);
         }
     }
-    else {
-        enemyClient.createBacteria(scene, new BacteriaPinkCreator());
-        enemyClient.bacteria.setBacteriaData(t, vec, id, bacteriaType);
-        if (enemyClient) {
-            bacteria = enemyClient.bacteria;
-        }
-    }
-    if (bacteria) {
-        bacteria.setPath(path);
-        bacteria.setActive(true);
-        bacteria.setVisible(true);
-        
-        bacteria.startOnPath();
-        
-        enemies.add(bacteria);
-        scene.children.add(bacteria);
-        bacterias.push(bacteria);
-        
-        !isRunning ? bacteria.stop() : bacteria.run();
-    }
-}
 
-function removeOldBacterias(scene, oldBacterias: Bacteria[]) {
-    oldBacterias.forEach(ob => {
-        removeBacteria(scene, ob);
-    })
-}
+    placeObstacleFromServer(j, i, type) {
+        var obstacle = new ObstacleClient();
 
-function removeBacteria(scene, oldBacteria) {
-    oldBacteria.setActive(false);
-    oldBacteria.setVisible(false);
-    enemies.remove(oldBacteria);
-    bacterias.splice(bacterias.indexOf(oldBacteria), 1);
-    scene.children.remove(oldBacteria);
-}
-
-function removeAllBacterias(scene, bacterias: Bacteria[]) {
-    bacterias.forEach(bacteria => {
-        scene.children.remove(bacteria);
-    });
-    bacterias = [];
-}
-
-function removeAllTowers(scene, towers) {
-    towers.children.entries.forEach(tower => {
-        scene.children.remove(tower);
-    });
-}
-
-/*
-function subscribeShooter(shooter: Shooter) {
-    var villageTowers = towers.getChildren();
-    console.log(villageTowers);
-    console.log(map);
-    villageTowers.forEach(tower => {
-        if(tower instanceof Village) {
-                console.log(Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y))
-                if(shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 64) {
-                    tower.subscribe(shooter);
+        switch (type) {
+            case -2: {
+                obstacle.createPlantObstacle(this, new SmallObstacleFactory());
+                let spo = obstacle.plantObstacle;
+                if (spo) {
+                    spo.setActive(true);
+                    spo.setVisible(true);
+                    spo.place(i, j);
+                    this.obstacles.add(spo);
+                    this.children.add(spo);
                 }
-            console.log("YES")
+                break;
+            }
+            case -3: {
+                obstacle.createPlantObstacle(this, new MediumObstacleFactory());
+                let mpo = obstacle.plantObstacle;
+                if (mpo) {
+                    mpo.setActive(true);
+                    mpo.setVisible(true);
+                    mpo.place(i, j);
+                    this.obstacles.add(mpo);
+                    this.children.add(mpo);
+                }
+                break;
+            }
+            case -4: {
+                obstacle.createPlantObstacle(this, new BigObstacleFactory());
+                let bpo = obstacle.plantObstacle;
+                if (bpo) {
+                    bpo.setActive(true);
+                    bpo.setVisible(true);
+                    bpo.place(i, j);
+                    this.obstacles.add(bpo);
+                    this.children.add(bpo);
+                }
+                break;
+            }
+            case -5: {
+                obstacle.createRockObstacle(this, new SmallObstacleFactory());
+                let smo = obstacle.rockObstacle;
+                if (smo) {
+                    smo.setActive(true);
+                    smo.setVisible(true);
+                    smo.place(i, j);
+                    this.obstacles.add(smo);
+                    this.children.add(smo);
+                }
+                break;
+            }
+            case -6: {
+                obstacle.createRockObstacle(this, new MediumObstacleFactory());
+                let mmo = obstacle.rockObstacle;
+                if (mmo) {
+                    mmo.setActive(true);
+                    mmo.setVisible(true);
+                    mmo.place(i, j);
+                    this.obstacles.add(mmo);
+                    this.children.add(mmo);
+                }
+                break;
+            }
+            case -7: {
+                obstacle.createRockObstacle(this, new BigObstacleFactory());
+                let bmo = obstacle.rockObstacle;
+                if (bmo) {
+                    bmo.setActive(true);
+                    bmo.setVisible(true);
+                    bmo.place(i, j);
+                    this.obstacles.add(bmo);
+                    this.children.add(bmo);
+                }
+                break;
+            }
+            default: {
+                break;
+            }
         }
-        console.log(tower);
-    });
+    }
 
-    console.log(towers);
-}
-*/
+    upgradeTower(x, y) {
 
-function placeTowerFromServer(x, y, type, scene) {
+        let tower = this.towers.getChildren().filter(c => c.j == x && c.i == y)[0];
+        var director = new Director();
+        var newTower;
 
-    let director = new Director();
-    let tower: Tower;
-    let towerType = Math.floor(type / 10);
-    switch (towerType) {
-        case 1:
-            let shooterBuilder = new ShooterBuilder(scene);
+        if (tower instanceof Shooter) {
+            let shooterBuilder = new ShooterBuilder(this);
+
             director.setBuilder(shooterBuilder);
-            director.buildShooter();
+            if (!tower.parts.includes('SNIPER')) {
+                director.buildShooterWithSniper();
+            }
+            else {
+                director.buildShooterWithEverything();
+            }
+            newTower = shooterBuilder.get();
+        }
+        else if (tower instanceof Village) {
+            let villageBuilder = new VillageBuilder(this);
 
-            tower = shooterBuilder.get();
-            break;
-        case 2:
-            let villageBuilder = new VillageBuilder(scene);
+            if (tower.parts.includes('WALLS'))
+                return;
+
             director.setBuilder(villageBuilder);
+            if (!tower.parts.includes('CANNON')) {
+                director.buildVillageWithCannon();
+            }
+            else if (!tower.parts.includes('RADAR')) {
+                director.buildVillageWithCannonAndRadar();
+            }
+            else {
+                director.buildVillageWithEverything();
+            }
 
-            tower = villageBuilder.get();
-            break;
+            newTower = villageBuilder.get();
+            newTower.cloneSubsribers(tower);
+        }
+
+        this.towers.remove(tower);
+        this.children.remove(tower);
+
+        this.towers.add(newTower);
+        newTower.setGameData(this.enemies, this.bullets);
+        newTower.setActive(true);
+        newTower.setVisible(true);
+        newTower.setFrame(newTower.parts.join('').toLowerCase())
+        newTower.place(y, x);
+
+        this.children.add(newTower);
     }
 
-    towers.add(tower);
-
-    //var tower = towers.get();
-    if (tower) {
-        map[y][x] = type;
-        tower.setGameData(enemies, bullets, towers);
-        tower.setActive(true);
-        tower.setVisible(true);
-        tower.place(y, x);
+    subscribeShooters() {
+        var villageTowers = this.towers.getChildren();
+        villageTowers.forEach(tower => {
+            if (tower instanceof Village) {
+                tower.resetObservers();
+                villageTowers.forEach(shooter => {
+                    if (shooter instanceof Shooter && Phaser.Math.Distance.Between(tower.x, tower.y, shooter.x, shooter.y) <= 100) {
+                        tower.subscribe(shooter);
+                    }
+                });
+            }
+        });
     }
 
-    scene.children.add(tower)
-    let upgrades = type % 10
-    console.log(upgrades);
-
-    for (let i = 0; i < upgrades; i++) {
-        upgradeTower(x, y, scene);
+    spawnNewBacterias(time, bacterias: Bacteria[]) {
+        if(bacterias) {
+            bacterias.forEach(b => {
+                this.spawnBacteria(b);
+            })
+        }
     }
-}
 
-function upgradeTower(x, y, scene) {
+    spawnBacteria(bacteriaData) {
+        var enemyClient = new EnemyClient();
+        let bacteria;
 
-    let tower = towers.getChildren().filter(c => c.j == x && c.i == y)[0];
-    //console.log(tower);
-    var director = new Director();
-    var newTower;
-
-    if (tower instanceof Shooter) {
-        let shooterBuilder = new ShooterBuilder(scene);
-
-        director.setBuilder(shooterBuilder);
-        if (!tower.parts.includes('SNIPER')) {
-            director.buildShooterWithSniper();
+        if(bacteriaData.type == 0) {
+            enemyClient.createBacteria(this, new BacteriaBlueCreator());
+            enemyClient.bacteria.setBacteriaData(bacteriaData.t, bacteriaData.vec, bacteriaData.id, bacteriaData.type, bacteriaData.spawnTime);
+            if (enemyClient) {
+                bacteria = enemyClient.bacteria;
+            }
         }
         else {
-            director.buildShooterWithEverything();
-        }
-        newTower = shooterBuilder.get();
-    }
-    else if (tower instanceof Village) {
-        let villageBuilder = new VillageBuilder(scene);
-
-        if (tower.parts.includes('WALLS'))
-            return;
-
-        director.setBuilder(villageBuilder);
-        if (!tower.parts.includes('CANNON')) {
-            director.buildVillageWithCannon();
-        }
-        else if (!tower.parts.includes('RADAR')) {
-            director.buildVillageWithCannonAndRadar();
-        }
-        else {
-            director.buildVillageWithEverything();
-        }
-
-        newTower = villageBuilder.get();
-        newTower.cloneSubsribers(tower);
-    }
-
-    towers.remove(tower);
-    scene.children.remove(tower);
-
-    towers.add(newTower);
-    newTower.setGameData(enemies, bullets);
-    newTower.setActive(true);
-    newTower.setVisible(true);
-    newTower.setFrame(newTower.parts.join('').toLowerCase())
-    newTower.place(y, x);
-
-    scene.children.add(newTower);
-}
-
-function canPlaceTower(y, x) {
-    if (!map || map.length == 0 || map[y] === undefined || map[y][x] === undefined)
-        return false;
-
-    return map[y][x] === 0;
-}
-
-function placeObstacleFromServer(scene, j, i, type) {
-    var obstacle = new ObstacleClient();
-
-    switch (type) {
-        case -2: {
-            obstacle.createPlantObstacle(scene, new SmallObstacleFactory());
-            let spo = obstacle.plantObstacle;
-            if (spo) {
-                spo.setActive(true);
-                spo.setVisible(true);
-                spo.place(i, j);
-                obstacles.add(spo);
-                scene.children.add(spo);
+            enemyClient.createBacteria(this, new BacteriaPinkCreator());
+            enemyClient.bacteria.setBacteriaData(bacteriaData.t, bacteriaData.vec, bacteriaData.id, bacteriaData.type, bacteriaData.spawnTime);
+            if (enemyClient) {
+                bacteria = enemyClient.bacteria;
             }
-            break;
         }
-        case -3: {
-            obstacle.createPlantObstacle(scene, new MediumObstacleFactory());
-            let mpo = obstacle.plantObstacle;
-            if (mpo) {
-                mpo.setActive(true);
-                mpo.setVisible(true);
-                mpo.place(i, j);
-                obstacles.add(mpo);
-                scene.children.add(mpo);
-            }
-            break;
-        }
-        case -4: {
-            obstacle.createPlantObstacle(scene, new BigObstacleFactory());
-            let bpo = obstacle.plantObstacle;
-            if (bpo) {
-                bpo.setActive(true);
-                bpo.setVisible(true);
-                bpo.place(i, j);
-                obstacles.add(bpo);
-                scene.children.add(bpo);
-            }
-            break;
-        }
-        case -5: {
-            obstacle.createRockObstacle(scene, new SmallObstacleFactory());
-            let smo = obstacle.rockObstacle;
-            if (smo) {
-                smo.setActive(true);
-                smo.setVisible(true);
-                smo.place(i, j);
-                obstacles.add(smo);
-                scene.children.add(smo);
-            }
-            break;
-        }
-        case -6: {
-            obstacle.createRockObstacle(scene, new MediumObstacleFactory());
-            let mmo = obstacle.rockObstacle;
-            if (mmo) {
-                mmo.setActive(true);
-                mmo.setVisible(true);
-                mmo.place(i, j);
-                obstacles.add(mmo);
-                scene.children.add(mmo);
-            }
-            break;
-        }
-        case -7: {
-            obstacle.createRockObstacle(scene, new BigObstacleFactory());
-            let bmo = obstacle.rockObstacle;
-            if (bmo) {
-                bmo.setActive(true);
-                bmo.setVisible(true);
-                bmo.place(i, j);
-                obstacles.add(bmo);
-                scene.children.add(bmo);
-            }
-            break;
-        }
-        default: {
-            break;
+        if (bacteria) {
+            bacteria.setPath(this.path);
+            bacteria.setActive(true);
+            bacteria.setVisible(true);
+            
+            bacteria.startOnPath();
+            
+            this.enemies.add(bacteria);
+            this.children.add(bacteria);
+            this.bacterias.push(bacteria);
         }
     }
-}
 
-function update(scene, time, bacteriaType: number, t: number, vec: number[], id: number) {
-    let ix = Math.floor(this.input.activePointer.x / 64);
-    let iy = Math.floor(this.input.activePointer.y / 64);
-
-    indicator.x = ix * 64 + 32;
-    indicator.y = iy * 64 + 32;
-
-    if (purchasePreview != undefined) {
-        purchasePreview.x = ix * 64 + 32;
-        purchasePreview.y = iy * 64 + 32;
+    gameOver()
+    {
+        //this.scene.pause();
     }
-
-    if (!canPlaceTower(iy, ix)) {
-        indicator.fillColor = 0xff0000;
-    }
-    else {
-        indicator.fillColor = 0x00ff00;
-    }
-}
-
-function gameOver(scene)
-{
-    console.log('stop');
-    scene.scene.stop();
-}
-
-function drawGrid(graphics) {
-    graphics.lineStyle(1, 0xffffff, 0.15);
-    for (var i = 0; i <= config.width / 64; i++) {
-        graphics.moveTo(i * 64, 0);
-        graphics.lineTo(i * 64, config.height);
-    }
-    for (var j = 0; j <= config.height / 64; j++) {
-        graphics.moveTo(0, j * 64);
-        graphics.lineTo(config.width, j * 64);
-    }
-    graphics.strokePath();
 }
