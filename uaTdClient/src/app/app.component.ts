@@ -134,7 +134,7 @@ export class AppComponent implements OnInit {
       case 'GAMESTATE_INIT':
         this.gameState = serverMessage.data;
         this.gameState.gameActiveState ? this.game.runGame() : this.game.stopGame();
-        
+
         this.game.updateMap(serverMessage.data.map);
         this.game.populateMapWithTowers();
 
@@ -154,10 +154,10 @@ export class AppComponent implements OnInit {
 
         if(this.gameState.gameActiveState) {
           let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
-  
+
           let newBacterias = bacteriasFromServer.filter(nb => !this.game.bacteria.some(b => b.id == nb.id));
           let oldBacterias = this.game.bacteria.filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
-          
+
           this.game.spawnNewBacterias(newBacterias);
           this.game.removeOldBacterias(oldBacterias);
         }
@@ -183,6 +183,11 @@ export class AppComponent implements OnInit {
         this.game.subscribeShooters(); //Should be called on tower changes
         break;
 
+      case 'TOWER_DOWNGRADE':
+        this.game.downgradeTower(serverMessage.data.x, serverMessage.data.y)
+        this.game.subscribeShooters(); //Should be called on tower changes
+        break;
+
       case 'GAME_OVER':
         this.gameState.gameIsOver = true;
         this.game.gameOver();
@@ -193,7 +198,7 @@ export class AppComponent implements OnInit {
         this.game.updateMap(serverMessage.data.map);
         this.game.initializeNewGame();
         break;
-        
+
       case 'RESET_ROUND':
         this.gameState = serverMessage.data;
         this.game.updateMap(serverMessage.data.map);
@@ -213,7 +218,15 @@ export class AppComponent implements OnInit {
   }
 
   purchase(i: integer) {
-    if (this.selectedIndex != -1 && this.selectedIndex == i) {
+    if(i == -2) {
+      if(this.selectedIndex == -2) {
+        this.selectedIndex = -1;
+        return;
+      }
+      this.selectedIndex = -2;
+      this.game.setForDowngrade();
+    }
+    else if (this.selectedIndex != -1 && this.selectedIndex == i) {
       this.selectedIndex = -1;
       this.game.cancelPurchase();
     }

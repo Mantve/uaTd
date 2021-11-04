@@ -20,13 +20,13 @@ export default class Game extends Phaser.Game {
     constructor(connection, map: number[] = []) {
         super(config);
         connection = connection;
-        
+
         this.gameScene = new Scene({
             key: 'main',
             active: true,
             visible: true
         });
-        
+
         this.gameScene.connection = connection;
 
         this.scene.add('main', this.gameScene);
@@ -39,6 +39,10 @@ export default class Game extends Phaser.Game {
 
     setForPurchase(i: number, price: number) {
         this.gameScene.setForPurchase(i, price);
+    }
+
+    setForDowngrade() {
+        this.gameScene.setForDowngrade();
     }
 
     cancelPurchase() {
@@ -71,6 +75,10 @@ export default class Game extends Phaser.Game {
 
     upgradeTower(x, y) {
         this.gameScene.upgradeTower(x, y);
+    }
+
+    downgradeTower(x, y) {
+        this.gameScene.downgradeTower(x, y);
     }
 
     subscribeShooters() {
@@ -106,7 +114,7 @@ export default class Game extends Phaser.Game {
 export class Scene extends Phaser.Scene {
     connection;
     graphics;
-    
+
     map = [];
     path;
 
@@ -152,7 +160,7 @@ export class Scene extends Phaser.Scene {
 
         var graphics = this.add.graphics();
         this.drawGrid(graphics);
-        
+
         this.path = this.add.path(96, -32);
         let pathPoints = [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]];
         pathPoints.forEach(point => this.path.lineTo(point[0], point[1]));
@@ -264,6 +272,11 @@ export class Scene extends Phaser.Scene {
         this.selectedPrice = price;
     }
 
+    setForDowngrade() {
+      this.purchasePreview.visible = false;
+      this.selectedIndex = -2;
+    }
+
     cancelPurchase() {
         this.purchasePreview.visible = false;
         this.selectedIndex = -1;
@@ -283,7 +296,22 @@ export class Scene extends Phaser.Scene {
 
         let gameScene = <Scene><unknown>this.scene.scene.scene;
 
-        if (gameScene.selectedIndex != -1 && gameScene.canPlaceTower(y, x)) {
+        if (gameScene.selectedIndex == -2) {
+          if([10, 20].includes(gameScene.map[y][x])) {
+            return;
+          }
+
+          if (gameScene.map[y][x] >= 1 && gameScene.map[y][x] % 10 <= 3) {
+              gameScene.connection.send('clientMessage', JSON.stringify({
+                  type: 'TOWER_DOWNGRADE',
+                  data: {
+                      x: x,
+                      y: y
+                  }
+              }));
+          }
+        }
+        else if (gameScene.selectedIndex != -1 && gameScene.canPlaceTower(y, x)) {
             gameScene.connection.send('clientMessage', JSON.stringify({
                 type: 'TOWER_BUILD',
                 data: {
@@ -522,7 +550,40 @@ export class Scene extends Phaser.Scene {
         newTower.setGameData(this.enemies, this.bullets);
         newTower.setActive(true);
         newTower.setVisible(true);
-        newTower.setFrame(newTower.parts.join('').toLowerCase())
+        newTower.setFrame(newTower.parts.join('').toLowerCase());
+        newTower.place(y, x);
+
+        this.children.add(newTower);
+    }
+
+    downgradeTower(x, y) {
+        let tower = this.towers.getChildren().filter(c => c.j == x && c.i == y)[0];
+        var newTower;
+
+        if (tower instanceof Shooter) {
+            let shooterBuilder = new ShooterBuilder(this);
+            shooterBuilder.buildFromParts(tower);
+            shooterBuilder.undo();
+
+            newTower = shooterBuilder.get();
+        }
+        else if (tower instanceof Village) {
+            let villageBuilder = new VillageBuilder(this);
+            villageBuilder.buildFromParts(tower);
+            villageBuilder.undo();
+
+            newTower = villageBuilder.get();
+            newTower.cloneSubsribers(tower);
+        }
+
+        this.towers.remove(tower);
+        this.children.remove(tower);
+
+        this.towers.add(newTower);
+        newTower.setGameData(this.enemies, this.bullets);
+        newTower.setActive(true);
+        newTower.setVisible(true);
+        newTower.setFrame(newTower.parts.join('').toLowerCase());
         newTower.place(y, x);
 
         this.children.add(newTower);
@@ -572,9 +633,9 @@ export class Scene extends Phaser.Scene {
             bacteria.setPath(this.path);
             bacteria.setActive(true);
             bacteria.setVisible(true);
-            
+
             bacteria.startOnPath();
-            
+
             this.enemies.add(bacteria);
             this.children.add(bacteria);
             this.bacterias.push(bacteria);

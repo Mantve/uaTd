@@ -170,6 +170,16 @@ namespace uaTdServer.Class
             }
         }
 
+        public void DowngradeTower(int x, int y)
+        {
+            var existingTower = Towers.Any(t => t == (x, y));
+            if(existingTower)
+            {
+                UpdateMoney(50);
+                GetMap().DowngradeTower(x, y);
+            }
+        }
+
         public List<(int, int)> GetTowers()
         {
             return Towers;

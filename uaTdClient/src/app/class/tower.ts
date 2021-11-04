@@ -45,6 +45,26 @@ class Invoker {
     public executeCommand(command: Command, tower: Tower) {
         command.execute(tower);
     }
+
+    public undoCommand(tower: Tower) {
+      tower.parts = tower.parts.slice(0, -1);
+      let command = tower.parts.slice(-1)[0];
+
+      if(tower instanceof Shooter) {
+        switch (command) {
+          case 'CANNON':
+            this.executeCommand(new FarShootingCommand(), tower);
+            break;
+
+          case 'SNIPER':
+            this.executeCommand(new NearShootingCommand(), tower);
+            break;
+        }
+      }
+      else if(tower instanceof Village && command == 'CANNON') {
+        this.executeCommand(new DoNotShootCommand(), tower);
+      }
+    }
 }
 // ################### OBSERVER ####################
 
@@ -213,6 +233,8 @@ export interface Builder {
     buildRadar();
     buildWalls();
     buildSniper();
+
+    undo();
 }
 
 export class VillageBuilder implements Builder {
@@ -249,6 +271,14 @@ export class VillageBuilder implements Builder {
 
     buildSniper() {
         console.log('Village can not have a sniper.');
+    }
+
+    buildFromParts(village: Village) {
+      this.village = village;
+    }
+
+    undo() {
+      this.invoker.undoCommand(this.village);
     }
 
     public get(): Village {
@@ -293,6 +323,14 @@ export class ShooterBuilder implements Builder {
 
     buildWalls() {
         console.log('Shooter can not have walls.');
+    }
+
+    buildFromParts(shooter: Shooter) {
+      this.shooter = shooter;
+    }
+
+    undo() {
+      this.invoker.undoCommand(this.shooter);
     }
 
     public get(): Shooter {
@@ -344,6 +382,10 @@ export class Director {
         this.builder.buildMainPart();
         this.builder.buildSniper();
         this.builder.buildCannon();
+    }
+
+    public undo(): void {
+      this.builder.undo();
     }
 }
 

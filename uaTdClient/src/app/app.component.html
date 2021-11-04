@@ -43,12 +43,18 @@
                 <div class="title">Bokšteliai</div>
                 <div class="towers-grid" id="towers-store">
                     <button class="item" *ngFor="let tower of storeTowers; index as i" (click)="purchase(i + 1)" [class]="i + 1 == selectedIndex ? 'selected' : ''">
-            <div class="item-title">{{tower.name}}</div>
-            <div><span>{{tower.price}} P</span></div>
-            <div class="preview">
-              <img src="./assets/{{tower.image}}" alt="" draggable="false">
-            </div>
-          </button>
+                      <div class="item-title">{{tower.name}}</div>
+                      <div><span>{{tower.price}} P</span></div>
+                      <div class="preview">
+                        <img src="./assets/{{tower.image}}" alt="" draggable="false">
+                      </div>
+                    </button>
+                    <button class="item" (click)="purchase(-2)" [class]="-2 == selectedIndex ? 'selected' : ''">
+                      <div class="item-title">Down<br/>grade</div>
+                      <div class="preview">
+                        <!--<img src="./assets/{{tower.image}}" alt="" draggable="false">-->
+                      </div>
+                    </button>
                 </div>
             </div>
             <div class="game-chat">

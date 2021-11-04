@@ -43,6 +43,11 @@ namespace uaTdServer.Class
             map[y, x]++;
         }
 
+        public void DowngradeTower(int x, int y)
+        {
+            map[y, x]--;
+        }
+
         public Map Clone()
         {
             Map clone = (Map)this.MemberwiseClone();

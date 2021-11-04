@@ -63,6 +63,11 @@ namespace uaTdServer.Hubs
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerUpgradeMessage((int)data.data.x, (int)data.data.y)));
                     break;
+                case "TOWER_DOWNGRADE":
+                    gameState.DowngradeTower((int)data.data.x, (int)data.data.y);
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerDowngradeMessage((int)data.data.x, (int)data.data.y)));
+                    break;
                 case "HEALTH_UPDATE":
                     gameState.UpdateHealth((int)data.data.change);
                     gameState.RemoveBacteria((int)data.data.bacteriaID);
@@ -117,6 +122,11 @@ namespace uaTdServer.Hubs
         private Message<Message_Tower_Upgrade> TowerUpgradeMessage(int x, int y)
         {
             return new Message<Message_Tower_Upgrade>("TOWER_UPGRADE", new Message_Tower_Upgrade() { x = x, y = y });
+        }
+
+        private Message<Message_Tower_Downgrade> TowerDowngradeMessage(int x, int y)
+        {
+            return new Message<Message_Tower_Downgrade>("TOWER_DOWNGRADE", new Message_Tower_Downgrade() { x = x, y = y });
         }
     }
 }
