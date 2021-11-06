@@ -26,7 +26,7 @@ export class AppComponent implements OnInit {
 
   gameState: GameState;
 
-  game: any;
+  game: IGame;
   initFlag: boolean = false;
 
   storeTowers = [
@@ -155,8 +155,8 @@ export class AppComponent implements OnInit {
         if(this.gameState.gameActiveState) {
           let bacteriasFromServer = serverMessage.data.bacterias as Bacteria[];
 
-          let newBacterias = bacteriasFromServer.filter(nb => !this.game.bacteria.some(b => b.id == nb.id));
-          let oldBacterias = this.game.bacteria.filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
+          let newBacterias = bacteriasFromServer.filter(nb => !this.game.getBacterias().some(b => b.id == nb.id));
+          let oldBacterias = this.game.getBacterias().filter(nb => !bacteriasFromServer.some(b => b.id == nb.id));
 
           this.game.spawnNewBacterias(newBacterias);
           this.game.removeOldBacterias(oldBacterias);
