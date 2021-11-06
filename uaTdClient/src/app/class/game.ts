@@ -35,6 +35,7 @@ export interface IGame {
     removeOldBacterias(newBacterias: Bacteria[]);
     initializeNewGame();
     initializePreviousRound();
+    getBacterias();
 }
 
 export default class Game extends Phaser.Game implements IGame {
@@ -131,6 +132,10 @@ export default class Game extends Phaser.Game implements IGame {
 
     initializePreviousRound() {
         return this.gameScene.initializePreviousRound();
+    }
+
+    getBacterias() {
+      return this.gameScene.bacterias;
     }
 }
 
