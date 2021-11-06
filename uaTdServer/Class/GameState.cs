@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace uaTdServer.Class
 {
     public class GameState : IPrototype
     {
-        private static GameState singleton;
+        private static GameState singleton = new GameState();
         /*readonly Dictionary<int, double> TowerCosts = new()
         {
             { 1, 100}, //shooter
@@ -25,6 +24,10 @@ namespace uaTdServer.Class
         bool roundIsActive = false;
         bool gameIsOver = false;
 
+        static GameState()
+        {
+        }
+
         private GameState()
         {
             playersByUsername = new Dictionary<string, Player>();
@@ -33,11 +36,9 @@ namespace uaTdServer.Class
 
         public static GameState Get()
         {
-            if (singleton == null)
-                singleton = new GameState();
-
             return singleton;
         }
+
         public void Reset() 
         {
             Money = 1000;
