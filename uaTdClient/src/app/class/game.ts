@@ -14,7 +14,30 @@ var config = {
     }
 };
 
-export default class Game extends Phaser.Game {
+export interface IGame {
+    updateMap(map);
+    setForPurchase(i: number, price: number);
+    setForDowngrade();
+    updateMap(map);
+    setForPurchase(i: number, price: number);
+    setForDowngrade();
+    cancelPurchase();
+    runGame();
+    stopGame();
+    placeTowerFromServer(x, y, type);
+    populateMapWithTowers();
+    upgradeTower(x, y);
+    downgradeTower(x, y);
+    subscribeShooters();
+    gameOver();
+    spawnNewBacteria(bacteria: Bacteria);
+    spawnNewBacterias(bacterias: Bacteria[]);
+    removeOldBacterias(newBacterias: Bacteria[]);
+    initializeNewGame();
+    initializePreviousRound();
+}
+
+export default class Game extends Phaser.Game implements IGame {
     gameScene: Scene;
 
     constructor(connection, map: number[] = []) {

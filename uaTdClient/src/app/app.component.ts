@@ -1,7 +1,7 @@
 import { ThrowStmt } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
-import Game from "./class/game";
+import Game, { IGame } from "./class/game";
 import { Bacteria, GameState } from './class';
 import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
