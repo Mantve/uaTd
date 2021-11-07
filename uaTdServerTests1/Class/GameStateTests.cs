@@ -347,6 +347,43 @@ namespace uaTdServer.Class.Tests
         }
 
         [TestMethod()]
+        public void DowngradeTowerTowerTypeIsChangedCorrectlyTest()
+        {
+            GameState game = GameState.Get();
+
+            game.AddTower(0, 0, 0, 100);
+
+            int initialTowerType = game.GetMap().map[0, 0];
+
+            game.UpgradeTower(0, 0, 100);
+
+            int towerTypeBeforeDowngrade = game.GetMap().map[0, 0];
+
+            game.DowngradeTower(0, 0);
+
+            int towerTypeAfterDowngrade = game.GetMap().map[0, 0];
+
+            Assert.AreNotEqual(towerTypeBeforeDowngrade, towerTypeAfterDowngrade);
+            Assert.AreEqual(initialTowerType, towerTypeAfterDowngrade);
+        }
+
+        [TestMethod()]
+        public void DowngradeTowerMoneyTest()
+        {
+            GameState game = GameState.Get();
+
+            game.AddTower(0, 0, 0, 100);
+
+            game.UpgradeTower(0, 0, 100);
+            
+            double moneyBefore = game.GetMoney();
+            game.DowngradeTower(0, 0);
+            double moneyAfter = game.GetMoney();
+
+            Assert.AreNotEqual(moneyBefore, moneyAfter);
+        }
+
+        [TestMethod()]
         public void GetTowersTest()
         {
             GameState game = GameState.Get();
