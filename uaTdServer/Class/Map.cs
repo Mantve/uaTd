@@ -33,6 +33,13 @@ namespace uaTdServer.Class
             //map = new int[size, size];
         }
 
+        public Map() { }
+
+        public virtual int[,] GetMap()
+        {
+            return map;
+        }
+
         public void SetTower(int x, int y, int type)
         {
             map[y, x] = type * 10;

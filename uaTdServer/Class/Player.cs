@@ -16,5 +16,12 @@ namespace uaTdServer.Class
             this.Username = username;
             Score = 0;
         }
+        
+        public Player() { }
+
+        public virtual string GetPlayerUsername()
+        {
+            return Username;
+        }
     }
 }

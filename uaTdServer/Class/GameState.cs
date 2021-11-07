@@ -24,15 +24,16 @@ namespace uaTdServer.Class
         bool roundIsActive = false;
         bool gameIsOver = false;
 
-        static GameState()
-        {
-        }
+        static GameState() { }
 
         private GameState()
         {
             playersByUsername = new Dictionary<string, Player>();
             this.Reset();
         }
+
+        // for mock test
+        //public GameState() { }
 
         public static GameState Get()
         {
@@ -140,7 +141,7 @@ namespace uaTdServer.Class
             }
         }
 
-        public List<String> GetPlayers()
+        public virtual List<String> GetPlayers()
         {
             return playersByUsername.Keys.ToList();
         }

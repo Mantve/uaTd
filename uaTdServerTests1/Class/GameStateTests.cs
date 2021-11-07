@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Moq;
 
 namespace uaTdServer.Class.Tests
 {
@@ -518,5 +519,54 @@ namespace uaTdServer.Class.Tests
 
             Assert.AreNotEqual(startingRoundIsActiveState, game.GetRoundIsActive());
         }
+
+        [TestMethod()]
+        public void PlayerMockTest()
+        {
+            Mock<Player> mockPlayer = new Mock<Player>();
+            mockPlayer.Setup(mk => mk.GetPlayerUsername()).Returns("mockPlayer");
+            var mockUsername = mockPlayer.Object.GetPlayerUsername();
+            
+            GameState game = GameState.Get();
+            game.NewPlayer(new Player(mockUsername));
+
+            Assert.IsNotNull(game.GetPlayerByUsername(mockUsername));
+        }
+
+        [TestMethod()]
+        public void GetPlayersMockTest()
+        {
+            var gameState = new Mock<GameState>();
+            gameState.Setup(mk => mk.GetPlayers()).Returns(new List<string>() { "Player 1", "Player 2", "Player 3" });
+
+            Assert.IsTrue(gameState.Object.GetPlayers().Contains("Player 1"));
+            Assert.IsTrue(gameState.Object.GetPlayers().Contains("Player 2"));
+            Assert.IsTrue(gameState.Object.GetPlayers().Contains("Player 3"));
+            Assert.IsTrue(gameState.Object.GetPlayers().Count == 3);
+        }
+
+        //[TestMethod()]
+        //public void MapMockTest()
+        //{
+        //    int[,] expectedMap = {{0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+        //                     {0, -1,  0,  0,  0,  0,  0,  0, -1, -1, -1, -1,  0},
+        //                     {0, -1, -1, -1, -1, -1,  0,  0, -1,  0,  0, -1,  0},
+        //                     {0,  0,  0, -7,  0, -1,  0,  0, -1,  0, -4, -1,  0},
+        //                     {0,  0,  0,  0,  0, -1, -1, -1, -1,  0,  0, -1,  0},
+        //                     {0,  -2,  0,  0,  0, 0, -5,  0,  0,  0,  0, -1,  0},
+        //                     {0,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0},
+        //                     {0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+        //                     {0,  0, -1,  -3,  0, -1, -1, -1, -1, -1, -1,  0,  0},
+        //                     {0,  0, -1, -1, -1, -1,  0,  0,  0, -6, -1,  0,  0},
+        //                     {0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0}};
+
+        //    Mock<Map> mockMap = new Mock<Map>();
+        //    mockMap.Setup(mk => mk.GetMap()).Returns(expectedMap);
+        //    int[,] mockMap2 = mockMap.Object.GetMap();
+
+        //    GameState game = GameState.Get();
+
+        //    Assert.AreEqual(game.GetMap().map, mockMap2);
+        //}
     }
 }
