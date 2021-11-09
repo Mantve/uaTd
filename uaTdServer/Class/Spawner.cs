@@ -59,6 +59,7 @@ namespace uaTdServer.Class
             gameState.SetNextWave();
             gameState.SetRoundIsActive();
             gameState.SwitchGameActiveState();
+            gameState.UpdateMoney(300);
             await Get().GetClients().All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState(gameState, "ROUND_OVER")));
             /*
             bool isBlue = false;

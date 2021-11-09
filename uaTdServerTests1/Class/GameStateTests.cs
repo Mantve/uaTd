@@ -310,7 +310,7 @@ namespace uaTdServer.Class.Tests
             int towerCount = game.GetTowers().Count;
             game.AddTower(0, 0, 0, 10000000);
 
-            Assert.AreNotEqual(towerCount, game.GetTowers().Count);
+            Assert.AreEqual(towerCount, game.GetTowers().Count);
             //Assert.Fail();
         }
 
@@ -343,7 +343,7 @@ namespace uaTdServer.Class.Tests
 
             int towerTypeAfterUpgrade = game.GetMap().map[0, 0];
 
-            Assert.AreNotEqual(towerType, towerTypeAfterUpgrade);
+            Assert.AreEqual(towerType, towerTypeAfterUpgrade);
         }
 
         [TestMethod()]

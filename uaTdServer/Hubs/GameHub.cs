@@ -54,14 +54,18 @@ namespace uaTdServer.Hubs
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
                 case "TOWER_BUILD":
-                    gameState.AddTower((int)data.data.x, (int)data.data.y, (int)data.data.type, (double)data.data.price);
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y, (int)data.data.type)));
+                    if (gameState.AddTower((int)data.data.x, (int)data.data.y, (int)data.data.type, (double)data.data.price))
+                    {
+                        await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                        await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerBuildMessage((int)data.data.x, (int)data.data.y, (int)data.data.type)));
+                    }
                     break;
                 case "TOWER_UPGRADE":
-                    gameState.UpgradeTower((int)data.data.x, (int)data.data.y, (double)data.data.price);
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
-                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerUpgradeMessage((int)data.data.x, (int)data.data.y)));
+                    if (gameState.UpgradeTower((int)data.data.x, (int)data.data.y, (double)data.data.price))
+                    {
+                        await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                        await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(TowerUpgradeMessage((int)data.data.x, (int)data.data.y)));
+                    }
                     break;
                 case "TOWER_DOWNGRADE":
                     gameState.DowngradeTower((int)data.data.x, (int)data.data.y);

@@ -150,25 +150,37 @@ namespace uaTdServer.Class
             return Map;
         }
 
-        public void AddTower(int x, int y, int type, double price)
+        public bool AddTower(int x, int y, int type, double price)
         {
             var existingTower = Towers.Any(t => t == (x, y));
             if(!existingTower)
             {
-                UpdateMoney(-price);
-                Towers.Add((x, y));
-                GetMap().SetTower(x, y, type);
+                if (GetMoney() - price >= 0)
+                {
+                    UpdateMoney(-price);
+                    Towers.Add((x, y));
+                    GetMap().SetTower(x, y, type);
+                    return true;
+                }
+                return false;
             }
+            return false;
         }
 
-        public void UpgradeTower(int x, int y, double price)
+        public bool UpgradeTower(int x, int y, double price)
         {
             var existingTower = Towers.Any(t => t == (x, y));
             if(existingTower)
             {
-                UpdateMoney(-price);
-                GetMap().UpgradeTower(x, y);
+                if (GetMoney() - price >= 0)
+                {
+                    UpdateMoney(-price);
+                    GetMap().UpgradeTower(x, y);
+                    return true;
+                }
+                return false;
             }
+            return false;
         }
 
         public void DowngradeTower(int x, int y)
