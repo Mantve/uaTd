@@ -23,6 +23,7 @@ namespace uaTdServer.Class
         bool gameActiveState = false;
         bool roundIsActive = false;
         bool gameIsOver = false;
+        int stage = -1;
 
         static GameState()
         {
@@ -246,6 +247,15 @@ namespace uaTdServer.Class
         public void SetRoundIsActive()
         {
             roundIsActive = !roundIsActive;
+        }
+
+        public void SetStage(int stage) {
+            if (this.stage == -1)
+                this.stage = stage;
+        }
+
+        public int GetStage() {
+            return stage;
         }
     }
 }

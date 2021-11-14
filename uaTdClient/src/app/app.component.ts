@@ -20,6 +20,7 @@ export class AppComponent implements OnInit {
   shownScreen: string = 'meet';
   connection: any;
   username: string = new Date().getTime().toString();
+  stage: number = 0;
   message: string = '';
   chatMessages: ChatMessage[] = [];
   selectedIndex = -1;
@@ -64,7 +65,8 @@ export class AppComponent implements OnInit {
       this.connection.send('clientMessage', JSON.stringify({
         type: 'JOIN',
         data: {
-          username: this.username
+          username: this.username,
+          stage: this.stage
         }
       }));
     }

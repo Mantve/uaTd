@@ -17,5 +17,6 @@ namespace uaTdServer.Class
         public bool gameActiveState { get; set; }
         public bool gameIsOver { get; set; }
         public bool roundIsActive { get; set; }
+        public int stage {get; set; }
     }
 }

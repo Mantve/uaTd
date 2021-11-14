@@ -55,7 +55,8 @@ body {
     font-weight: bold;
 }
 
-.screen.meet-screen .meet-form form input {
+.screen.meet-screen .meet-form form input,
+.screen.meet-screen .meet-form form select {
     border: 0;
     color: #ffffff;
     padding: .75rem;

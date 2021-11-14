@@ -4,6 +4,10 @@
             <form (submit)="join()">
                 <label for="username">Įveskite slapyvardį</label>
                 <input [(ngModel)]="username" [ngModelOptions]="{standalone: true}">
+                <select [(ngModel)]="stage" [ngModelOptions]="{standalone: true}">
+                  <option value="0">Easy</option>
+                  <option value="1">Hard</option>
+                </select>
                 <button type="submit">Jungtis</button>
             </form>
         </div>

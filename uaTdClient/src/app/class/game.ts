@@ -161,6 +161,7 @@ export class Scene extends Phaser.Scene {
 
     indicator;
     finTiles;
+    stage: number = 0;
 
     constructor(config) {
         super(config);
@@ -174,11 +175,7 @@ export class Scene extends Phaser.Scene {
     }
 
     create() {
-        let pathPoints0 = [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]];
-        let pathPoints = [[288, 224], [96, 224], [96, 416], [224, 416], [224, 608], [288, 608], [288, 704]];
-        let pathPoints2 = [[544, 224], [736, 224], [736, 416], [608, 416], [608, 608], [544, 608], [544, 704]];
-
-        this.gameMap = new Map(this, 'map_stage_2', [pathPoints, pathPoints2]);
+        this.createMap(this.stage);
         this.finTiles = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
 
         this.children.add(this.gameMap);
@@ -204,6 +201,29 @@ export class Scene extends Phaser.Scene {
         this.purchasePreview.visible = false;
 
         this.physics.add.overlap(this.enemies, this.finTiles, this.updateHealth);
+    }
+
+    createMap(stage) {
+      let points = [];
+
+      switch (stage) {
+        case 1:
+          points = [
+            [[288, 224], [96, 224], [96, 416], [224, 416], [224, 608], [288, 608], [288, 704]],
+            [[544, 224], [736, 224], [736, 416], [608, 416], [608, 608], [544, 608], [544, 704]]
+          ]
+
+          this.gameMap = new Map(this, 'map_stage_2', points);
+          break;
+
+        default:
+          points = [
+            [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]]
+          ]
+
+          this.gameMap = new Map(this, 'map', points);
+          break;
+      }
     }
 
     update() {

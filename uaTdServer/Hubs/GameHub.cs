@@ -28,8 +28,12 @@ namespace uaTdServer.Hubs
             {
                 case "JOIN":
                     string username = (string)data.data.username;
+                    int stage = (int)data.data.stage;
+
                     if (!gameState.GetPlayers().Contains(username))
                         gameState.NewPlayer(new Player(username));
+
+                    gameState.SetStage(stage);
 
                     // Send caller current game state
                     await Clients.Caller.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState()));
@@ -110,6 +114,7 @@ namespace uaTdServer.Hubs
             messageGameState.gameActiveState = gameState.GetGameActiveState();
             messageGameState.gameIsOver = gameState.GetGameIsOver();
             messageGameState.roundIsActive = gameState.GetRoundIsActive();
+            messageGameState.stage = gameState.GetStage();
 
             return new Message<Message_GameState>(messageType, messageGameState);
         }
