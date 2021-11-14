@@ -251,7 +251,7 @@ body {
 
 .towers-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: .25rem;
     padding: .5rem;
 }
@@ -302,8 +302,7 @@ body {
 
 .towers-grid .item .preview {
     position: absolute;
-    width: 80%;
-    height: 80%;
+    height: 100%;
     right: 0;
     bottom: 0;
     transform: translate(25%, 25%);

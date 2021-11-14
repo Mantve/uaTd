@@ -231,9 +231,16 @@ export class AppComponent implements OnInit {
       this.game.cancelPurchase();
     }
     else {
-      this.selectedIndex = i;
       var price = this.storeTowers[i - 1].price;
-      this.game.setForPurchase(i, price);
+
+      if(this.gameState.money >= price) {
+        this.selectedIndex = i;
+        this.game.setForPurchase(i, price);
+      }
+      else {
+        this.game.cancelPurchase();
+        this.selectedIndex = -1;
+      }
     }
   }
 }

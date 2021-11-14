@@ -50,10 +50,7 @@
                       </div>
                     </button>
                     <button class="item" (click)="purchase(-2)" [class]="-2 == selectedIndex ? 'selected' : ''">
-                      <div class="item-title">Down<br/>grade</div>
-                      <div class="preview">
-                        <!--<img src="./assets/{{tower.image}}" alt="" draggable="false">-->
-                      </div>
+                      <div class="item-title">Downgrade Tower</div>
                     </button>
                 </div>
             </div>
@@ -70,8 +67,8 @@
                 <form (submit)="sendChat()">
                     <textarea placeholder="Nauja žinutė..." [(ngModel)]="message" [ngModelOptions]="{standalone: true}"></textarea>
                     <button type="submit" *ngIf="message.length > 0">
-            <i class="fas fa-paper-plane"></i>
-          </button>
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
                 </form>
             </div>
         </div>

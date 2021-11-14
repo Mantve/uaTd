@@ -3,6 +3,7 @@ import Tower, { Director, Shooter, ShooterBuilder, Village, VillageBuilder } fro
 import Bullet from './bullet';
 import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
+import Map from './map';
 
 var config = {
     type: Phaser.AUTO,
@@ -52,7 +53,6 @@ export default class Game extends Phaser.Game implements IGame {
         });
 
         this.gameScene.connection = connection;
-
         this.scene.add('main', this.gameScene);
         this.updateMap(map);
     }
@@ -144,6 +144,7 @@ export class Scene extends Phaser.Scene {
     graphics;
 
     map = [];
+    gameMap: Map;
     path;
 
     enemies;
@@ -159,7 +160,7 @@ export class Scene extends Phaser.Scene {
     selectedPrice: number = 0;
 
     indicator;
-    finTile;
+    finTiles;
 
     constructor(config) {
         super(config);
@@ -169,13 +170,22 @@ export class Scene extends Phaser.Scene {
         this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
         this.load.image('bullet', 'assets/bullet.png');
         this.load.image('map', 'assets/map.png');
+        this.load.image('map_stage_2', 'assets/map_stage_2.png');
     }
 
     create() {
-        let gameWidth = <number><unknown>this.game.config.width;
-        let gameHeight = <number><unknown>this.game.config.height;
+        let pathPoints0 = [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]];
+        let pathPoints = [[288, 224], [96, 224], [96, 416], [224, 416], [224, 608], [288, 608], [288, 704]];
+        let pathPoints2 = [[544, 224], [736, 224], [736, 416], [608, 416], [608, 608], [544, 608], [544, 704]];
 
-        this.children.add(new Phaser.GameObjects.Image(this, gameWidth / 2, gameHeight / 2, 'map'));
+        this.gameMap = new Map(this, 'map_stage_2', [pathPoints, pathPoints2]);
+        this.finTiles = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
+
+        this.children.add(this.gameMap);
+
+        let graphics = this.add.graphics();
+        this.gameMap.drawPath(graphics, this.finTiles);
+        this.gameMap.drawGrid(graphics);
 
         this.enemies = this.physics.add.group({ classType: Bacteria, runChildUpdate: true });
         this.nextBacteria = 0;
@@ -186,16 +196,6 @@ export class Scene extends Phaser.Scene {
         this.physics.add.overlap(this.enemies, this.bullets, this.damageEnemy);
         this.obstacles = this.add.group({ classType: Obstacle, runChildUpdate: true });
 
-        var graphics = this.add.graphics();
-        this.drawGrid(graphics);
-
-        this.path = this.add.path(96, -32);
-        let pathPoints = [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]];
-        pathPoints.forEach(point => this.path.lineTo(point[0], point[1]));
-
-        graphics.lineStyle(3, 0xffffff, 1);
-        this.path.draw(graphics);
-
         this.indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
         this.children.add(this.indicator);
 
@@ -203,12 +203,7 @@ export class Scene extends Phaser.Scene {
         this.children.add(this.purchasePreview);
         this.purchasePreview.visible = false;
 
-        this.finTile = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
-        let ft = new Phaser.GameObjects.Rectangle(this, 64 * 11 - 32, 64 * 11, 64, 64, 0xff0000, 0.25);
-        ft.setActive(true);
-        ft.setVisible(true);
-        this.finTile.add(ft);
-        this.physics.add.overlap(this.enemies, this.finTile, this.updateHealth);
+        this.physics.add.overlap(this.enemies, this.finTiles, this.updateHealth);
     }
 
     update() {
@@ -227,22 +222,6 @@ export class Scene extends Phaser.Scene {
         }
 
         !this.canPlaceTower(iy, ix) ? this.indicator.fillColor = 0xff0000 : this.indicator.fillColor = 0x00ff00;
-    }
-
-    drawGrid(graphics) {
-        let gameWidth = <number><unknown>this.game.config.width;
-        let gameHeight = <number><unknown>this.game.config.height;
-
-        graphics.lineStyle(1, 0xffffff, 0.15);
-        for (var i = 0; i <= gameWidth / 64; i++) {
-            graphics.moveTo(i * 64, 0);
-            graphics.lineTo(i * 64, gameHeight);
-        }
-        for (var j = 0; j <= gameHeight / 64; j++) {
-            graphics.moveTo(0, j * 64);
-            graphics.lineTo(gameWidth, j * 64);
-        }
-        graphics.strokePath();
     }
 
     initializeGame() {
@@ -658,7 +637,7 @@ export class Scene extends Phaser.Scene {
             }
         }
         if (bacteria) {
-            bacteria.setPath(this.path);
+            bacteria.setPath(this.gameMap.paths[bacteria.id % this.gameMap.paths.length]);
             bacteria.setActive(true);
             bacteria.setVisible(true);
 
@@ -670,8 +649,7 @@ export class Scene extends Phaser.Scene {
         }
     }
 
-    gameOver()
-    {
+    gameOver() {
         //this.scene.pause();
     }
 }
