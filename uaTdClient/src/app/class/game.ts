@@ -37,6 +37,7 @@ export interface IGame {
     initializeNewGame();
     initializePreviousRound();
     getBacterias();
+    checkStage(stage: number);
 }
 
 export default class Game extends Phaser.Game implements IGame {
@@ -137,6 +138,12 @@ export default class Game extends Phaser.Game implements IGame {
     getBacterias() {
       return this.gameScene.bacterias;
     }
+
+    checkStage(stage: number) {
+        this.gameScene.children.remove(this.gameScene.gameMap);
+        this.gameScene.createMap(stage);
+        this.initializeNewGame();
+    }
 }
 
 export class Scene extends Phaser.Scene {
@@ -175,14 +182,15 @@ export class Scene extends Phaser.Scene {
     }
 
     create() {
-        this.createMap(this.stage);
+        this.graphics = this.add.graphics();
         this.finTiles = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
 
-        this.children.add(this.gameMap);
+        //this.createMap(this.stage);
 
-        let graphics = this.add.graphics();
-        this.gameMap.drawPath(graphics, this.finTiles);
-        this.gameMap.drawGrid(graphics);
+        //this.gameMap.drawPath(this.graphics, this.finTiles);
+        //this.gameMap.drawGrid(this.graphics);
+
+        //this.children.add(this.gameMap);
 
         this.enemies = this.physics.add.group({ classType: Bacteria, runChildUpdate: true });
         this.nextBacteria = 0;
@@ -224,6 +232,10 @@ export class Scene extends Phaser.Scene {
           this.gameMap = new Map(this, 'map', points);
           break;
       }
+      this.gameMap.drawPath(this.graphics, this.finTiles);
+      this.gameMap.drawGrid(this.graphics);
+      this.gameMap.depth = -1;
+      this.children.add(this.gameMap);
     }
 
     update() {

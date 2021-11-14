@@ -46,7 +46,7 @@ namespace uaTdServer.Class
             Score = 0;
             Health = 100;
             Wave = 0;
-            Map = new Map("Map", 64, 1000);
+            Map = new Map("Map", 64, 1000, stage);
             Towers = new();
             Bacterias = new();
             gameActiveState = false;

@@ -96,6 +96,10 @@ namespace uaTdServer.Hubs
                     //gameState.SwitchGameActiveState();
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
+                case "LOAD":
+                    //gameState.SwitchGameActiveState();
+                    await Clients.Caller.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(new Message<int>("LOAD", gameState.GetPlayers().Count())));
+                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
