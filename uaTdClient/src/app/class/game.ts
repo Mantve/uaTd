@@ -5,6 +5,7 @@ import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, 
 import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 import Map from './map';
 import Turret from './turret';
+import Rocket from './rocket';
 
 var config = {
     type: Phaser.AUTO,
@@ -76,12 +77,15 @@ export default class Game extends Phaser.Game implements IGame {
         this.gameScene.enemies.runChildUpdate = true;
         this.gameScene.towers.runChildUpdate = true;
         this.gameScene.bullets.runChildUpdate = true;
+        this.gameScene.rockets.runChildUpdate = true;
     }
 
     stopGame() {
         this.gameScene.enemies.runChildUpdate = false;
         this.gameScene.towers.runChildUpdate = false;
         this.gameScene.bullets.runChildUpdate = false;
+        this.gameScene.rockets.runChildUpdate = false;
+
     }
 
     printMap() {
@@ -154,6 +158,7 @@ export class Scene extends Phaser.Scene {
     enemies;
     towers;
     bullets;
+    rockets;
     obstacles;
 
     bacterias: Bacteria[] = [];
@@ -195,7 +200,9 @@ export class Scene extends Phaser.Scene {
         this.towers = this.add.group({ classType: Tower, runChildUpdate: true });
         this.input.on('pointerdown', this.placeTower);
         this.bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
+        this.rockets = this.physics.add.group({ classType: Rocket, runChildUpdate: true });
         this.physics.add.overlap(this.enemies, this.bullets, this.damageEnemy);
+        this.physics.add.overlap(this.enemies, this.rockets, this.damageEnemyRocket);
         this.obstacles = this.add.group({ classType: Obstacle, runChildUpdate: true });
 
         this.indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
@@ -261,6 +268,7 @@ export class Scene extends Phaser.Scene {
         this.enemies.clear();
         this.towers.clear();
         this.bullets.clear();
+        this.rockets.clear();
     }
 
     initializePreviousRound() {
@@ -269,6 +277,7 @@ export class Scene extends Phaser.Scene {
 
         this.enemies.clear();
         this.bullets.clear();
+        this.rockets.clear();
         this.removeAllTowers(this.towers);
         this.towers.clear();
         this.populateMapWithTowers();
@@ -302,7 +311,17 @@ export class Scene extends Phaser.Scene {
     }
 
     setForPurchase(i: number, price: number) {
-        this.purchasePreview.setFrame(i == 1 ? 'tower' : 'village')
+        switch (i) {
+            case 1:
+                this.purchasePreview.setFrame('tower')
+                break;
+            case 2:
+                this.purchasePreview.setFrame('village')
+                break;
+            case 3:
+                this.purchasePreview.setFrame('turret')
+                break;
+        }
         this.purchasePreview.visible = true;
         this.selectedIndex = i;
         this.selectedPrice = price;
@@ -390,6 +409,24 @@ export class Scene extends Phaser.Scene {
         }
     }
 
+    damageEnemyRocket(enemy, rocket) {
+        if (enemy.active === true && rocket.active === true) {
+            rocket.setActive(false);
+            rocket.setVisible(false);
+
+            enemy.receiveDamage(rocket.rocket.damage);
+            if (enemy.hp <= 0) {
+                let gameScene = <Scene><unknown>enemy.scene;
+                gameScene.connection.send('clientMessage', JSON.stringify({
+                    type: 'ENEMY_DEATH',
+                    data: {
+                        bacteriaID: enemy.id
+                    }
+                }));
+            }
+        }
+    }
+
     updateHealth(enemy, finTile) {
         if (enemy.active === true && finTile.active === true) {
             enemy.setActive(false);
@@ -423,7 +460,6 @@ export class Scene extends Phaser.Scene {
         let director = new Director();
         let tower: Tower;
         let towerType = Math.floor(type / 10);
-        console.log(towerType);
 
         switch (towerType) {
             case 1:
@@ -443,15 +479,15 @@ export class Scene extends Phaser.Scene {
                 break;
             case 3:
                 tower = new Turret(this);
-                console.log("made it");
-
                 this.towers.add(tower);
                 break;
         }
-console.log(this.towers);
         if (tower) {
             this.map[y][x] = type;
-            tower.setGameData(this.enemies, this.bullets, this.towers);
+            if (towerType < 3)
+                tower.setGameData(this.enemies, this.bullets, this.towers);
+            else
+                tower.setGameData(this.enemies, this.rockets, this.towers);
             tower.setActive(true);
             tower.setVisible(true);
             tower.place(y, x);

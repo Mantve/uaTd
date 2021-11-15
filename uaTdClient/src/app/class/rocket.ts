@@ -34,13 +34,13 @@ export default class Rocket extends Phaser.GameObjects.Image {
         //  this.setRotation(angle);
         this.dx = Math.cos(angle);
         this.dy = Math.sin(angle);
-        this.rocket.lifespan = 300;
     }
 
     update(time, delta) {
         this.rocket.lifespan -= delta;
         this.x += this.dx * (this.rocket.speed * delta);
         this.y += this.dy * (this.rocket.speed * delta);
+
         if (this.rocket.lifespan <= 0) {
             this.setActive(false);
             this.setVisible(false);

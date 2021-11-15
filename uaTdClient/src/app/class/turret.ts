@@ -67,8 +67,10 @@ export default class Turret extends Tower {
 
     addBullet(rockets, x, y, angle, multiplier = 1) {
         var rocket = rockets.get();
+        console.log(rocket)
+
         if (rocket) {
-            var rocketType = this.getBulletType(0, 15, 600)
+            var rocketType = this.getBulletType(300, constants.BULLET_DAMAGE, 0.6)
             rocket.rocket = rocketType;
             rocket.fire(x, y, angle);
         }

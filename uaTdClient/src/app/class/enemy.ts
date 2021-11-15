@@ -69,7 +69,7 @@ class BacteriaBlue extends Bacteria {
         // SYNCED MOVEMENT IN MAP, BUT HEALTH DOESNT SYNC
         // ----------------------------------------------
         //this.follower.t = 1 - ((35 - ((Date.now() / 1000) - this.spawnTime)) / 100) * 3;
-        
+
         this.path.getPoint(this.follower.t, this.follower.vec);
         this.setPosition(this.follower.vec.x, this.follower.vec.y);
         if (this.follower.t >= 1) {
@@ -99,12 +99,10 @@ class BacteriaBlue extends Bacteria {
             this.setActive(false);
             this.setVisible(false);
         }
-        else if(this.hp <= constants.ENEMY_HP*0.5 && this.hp > constants.ENEMY_HP*0.3)
-        {
+        else if (this.hp <= constants.ENEMY_HP * 0.5 && this.hp > constants.ENEMY_HP * 0.3) {
             this.addDamageDecoration(new SemiDamagedDecorator(this.scene));
         }
-        else if(this.hp <= constants.ENEMY_HP*0.3)
-        {
+        else if (this.hp <= constants.ENEMY_HP * 0.3) {
             if (this.damage.includes('semi')) {
                 this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
             }
@@ -167,12 +165,10 @@ class BacteriaPink extends Bacteria {
             this.setActive(false);
             this.setVisible(false);
         }
-        else if(this.hp <= constants.ENEMY_HP*0.5*0.5 && this.hp > constants.ENEMY_HP*0.3*0.5)
-        {
+        else if (this.hp <= constants.ENEMY_HP * 0.5 * 0.5 && this.hp > constants.ENEMY_HP * 0.3 * 0.5) {
             this.addDamageDecoration(new SemiDamagedDecorator(this.scene));
         }
-        else if(this.hp <= constants.ENEMY_HP*0.3*0.5)
-        {
+        else if (this.hp <= constants.ENEMY_HP * 0.3 * 0.5) {
             if (this.damage.includes('semi')) {
                 this.addDamageDecoration(new CriticalDamagedDecorator(this.scene));
             }
@@ -228,7 +224,7 @@ abstract class BacteriaDamageDecorator extends Bacteria {
 
 class SemiDamagedDecorator extends BacteriaDamageDecorator {
     public addDamageDecoration(bacteria: Bacteria) {
-        if(!bacteria.damage.includes('semi')) {
+        if (!bacteria.damage.includes('semi')) {
             bacteria.damage.push('semi');
         }
         bacteria.setSprite();
@@ -237,7 +233,7 @@ class SemiDamagedDecorator extends BacteriaDamageDecorator {
 
 class CriticalDamagedDecorator extends BacteriaDamageDecorator {
     public addDamageDecoration(bacteria: Bacteria) {
-        if(!bacteria.damage.includes('critical')) {
+        if (!bacteria.damage.includes('critical')) {
             bacteria.damage.push('critical');
         }
         bacteria.setSprite();
