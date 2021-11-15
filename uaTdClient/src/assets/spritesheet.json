@@ -428,6 +428,27 @@
 						"w": 64,
 						"h": 64
 					}
+				},
+				{
+					"filename": "turret",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 64,
+						"h": 64
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 64,
+						"h": 64
+					},
+					"frame": {
+						"x": 0,
+						"y": 128,
+						"w": 64,
+						"h": 64
+					}
 				}
 			]
 		}

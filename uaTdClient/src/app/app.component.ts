@@ -41,6 +41,11 @@ export class AppComponent implements OnInit {
       name: 'Village',
       price: 200,
       image: 'milk.png'
+    },
+    {
+      name: 'Turret',
+      price: 50,
+      image: 'milk.png'
     }
   ]
 

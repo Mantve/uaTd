@@ -4,6 +4,7 @@ import Bullet from './bullet';
 import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 import Map from './map';
+import Turret from './turret';
 
 var config = {
     type: Phaser.AUTO,
@@ -16,9 +17,6 @@ var config = {
 };
 
 export interface IGame {
-    updateMap(map);
-    setForPurchase(i: number, price: number);
-    setForDowngrade();
     updateMap(map);
     setForPurchase(i: number, price: number);
     setForDowngrade();
@@ -110,8 +108,7 @@ export default class Game extends Phaser.Game implements IGame {
         return this.gameScene.subscribeShooters();
     }
 
-    gameOver()
-    {
+    gameOver() {
         return this.gameScene.gameOver();
     }
 
@@ -136,7 +133,7 @@ export default class Game extends Phaser.Game implements IGame {
     }
 
     getBacterias() {
-      return this.gameScene.bacterias;
+        return this.gameScene.bacterias;
     }
 
     checkStage(stage: number) {
@@ -212,30 +209,30 @@ export class Scene extends Phaser.Scene {
     }
 
     createMap(stage) {
-      let points = [];
+        let points = [];
 
-      switch (stage) {
-        case 1:
-          points = [
-            [[288, 224], [96, 224], [96, 416], [224, 416], [224, 608], [288, 608], [288, 704]],
-            [[544, 224], [736, 224], [736, 416], [608, 416], [608, 608], [544, 608], [544, 704]]
-          ]
+        switch (stage) {
+            case 1:
+                points = [
+                    [[288, 224], [96, 224], [96, 416], [224, 416], [224, 608], [288, 608], [288, 704]],
+                    [[544, 224], [736, 224], [736, 416], [608, 416], [608, 608], [544, 608], [544, 704]]
+                ]
 
-          this.gameMap = new Map(this, 'map_stage_2', points);
-          break;
+                this.gameMap = new Map(this, 'map_stage_2', points);
+                break;
 
-        default:
-          points = [
-            [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]]
-          ]
+            default:
+                points = [
+                    [[96, 160], [352, 160], [352, 288], [544, 288], [544, 96], [736, 96], [736, 416], [160, 416], [160, 608], [352, 608], [352, 544], [672, 544], [672, 736]]
+                ]
 
-          this.gameMap = new Map(this, 'map', points);
-          break;
-      }
-      this.gameMap.drawPath(this.graphics, this.finTiles);
-      this.gameMap.drawGrid(this.graphics);
-      this.gameMap.depth = -1;
-      this.children.add(this.gameMap);
+                this.gameMap = new Map(this, 'map', points);
+                break;
+        }
+        this.gameMap.drawPath(this.graphics, this.finTiles);
+        this.gameMap.drawGrid(this.graphics);
+        this.gameMap.depth = -1;
+        this.children.add(this.gameMap);
     }
 
     update() {
@@ -312,8 +309,8 @@ export class Scene extends Phaser.Scene {
     }
 
     setForDowngrade() {
-      this.purchasePreview.visible = false;
-      this.selectedIndex = -2;
+        this.purchasePreview.visible = false;
+        this.selectedIndex = -2;
     }
 
     cancelPurchase() {
@@ -336,19 +333,19 @@ export class Scene extends Phaser.Scene {
         let gameScene = <Scene><unknown>this.scene.scene.scene;
 
         if (gameScene.selectedIndex == -2) {
-          if([10, 20].includes(gameScene.map[y][x])) {
-            return;
-          }
+            if ([10, 20].includes(gameScene.map[y][x])) {
+                return;
+            }
 
-          if (gameScene.map[y][x] >= 1 && gameScene.map[y][x] % 10 <= 3) {
-              gameScene.connection.send('clientMessage', JSON.stringify({
-                  type: 'TOWER_DOWNGRADE',
-                  data: {
-                      x: x,
-                      y: y
-                  }
-              }));
-          }
+            if (gameScene.map[y][x] >= 1 && gameScene.map[y][x] % 10 <= 3) {
+                gameScene.connection.send('clientMessage', JSON.stringify({
+                    type: 'TOWER_DOWNGRADE',
+                    data: {
+                        x: x,
+                        y: y
+                    }
+                }));
+            }
         }
         else if (gameScene.selectedIndex != -1 && gameScene.canPlaceTower(y, x)) {
             gameScene.connection.send('clientMessage', JSON.stringify({
@@ -381,7 +378,7 @@ export class Scene extends Phaser.Scene {
             bullet.setVisible(false);
 
             enemy.receiveDamage(bullet.damage);
-            if(enemy.hp <= 0) {
+            if (enemy.hp <= 0) {
                 let gameScene = <Scene><unknown>enemy.scene;
                 gameScene.connection.send('clientMessage', JSON.stringify({
                     type: 'ENEMY_DEATH',
@@ -426,6 +423,7 @@ export class Scene extends Phaser.Scene {
         let director = new Director();
         let tower: Tower;
         let towerType = Math.floor(type / 10);
+        console.log(towerType);
 
         switch (towerType) {
             case 1:
@@ -434,17 +432,23 @@ export class Scene extends Phaser.Scene {
                 director.buildShooter();
 
                 tower = shooterBuilder.get();
+                this.towers.add(tower);
                 break;
             case 2:
                 let villageBuilder = new VillageBuilder(this);
                 director.setBuilder(villageBuilder);
 
                 tower = villageBuilder.get();
+                this.towers.add(tower);
+                break;
+            case 3:
+                tower = new Turret(this);
+                console.log("made it");
+
+                this.towers.add(tower);
                 break;
         }
-
-        this.towers.add(tower);
-
+console.log(this.towers);
         if (tower) {
             this.map[y][x] = type;
             tower.setGameData(this.enemies, this.bullets, this.towers);
@@ -452,13 +456,13 @@ export class Scene extends Phaser.Scene {
             tower.setVisible(true);
             tower.place(y, x);
         }
-
         this.children.add(tower)
         let upgrades = type % 10;
 
         for (let i = 0; i < upgrades; i++) {
             this.upgradeTower(x, y);
         }
+
     }
 
     placeObstacleFromServer(j, i, type) {
@@ -643,7 +647,7 @@ export class Scene extends Phaser.Scene {
     }
 
     spawnNewBacterias(time, bacterias: Bacteria[]) {
-        if(bacterias) {
+        if (bacterias) {
             bacterias.forEach(b => {
                 this.spawnBacteria(b);
             })
@@ -654,7 +658,7 @@ export class Scene extends Phaser.Scene {
         var enemyClient = new EnemyClient();
         let bacteria;
 
-        if(bacteriaData.type == 0) {
+        if (bacteriaData.type == 0) {
             enemyClient.createBacteria(this, new BacteriaBlueCreator());
             enemyClient.bacteria.setBacteriaData(bacteriaData.t, bacteriaData.vec, bacteriaData.id, bacteriaData.type, bacteriaData.spawnTime);
             if (enemyClient) {
