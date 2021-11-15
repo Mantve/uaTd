@@ -251,7 +251,10 @@ namespace uaTdServer.Class
 
         public void SetStage(int stage) {
             if (this.stage == -1)
+            {
                 this.stage = stage;
+                Map.SetMap(stage);
+            }
         }
 
         public int GetStage() {
