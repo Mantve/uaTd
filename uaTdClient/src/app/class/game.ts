@@ -257,7 +257,13 @@ export class Scene extends Phaser.Scene {
             this.purchasePreview.y = gridY;
         }
 
-        !this.canPlaceTower(iy, ix) ? this.indicator.fillColor = 0xff0000 : this.indicator.fillColor = 0x00ff00;
+        if(this.purchasePreview.visible) {
+          !this.canPlaceTower(iy, ix) ? this.indicator.fillColor = 0xff0000 : this.indicator.fillColor = 0x00ff00;
+          this.indicator.fillAlpha = 0.25;
+        } else {
+          this.indicator.fillColor = 0xffffff;
+          this.indicator.fillAlpha = 0.05;
+        }
     }
 
     initializeGame() {

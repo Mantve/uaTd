@@ -24,6 +24,7 @@ export class AppComponent implements OnInit {
   message: string = '';
   chatMessages: ChatMessage[] = [];
   selectedIndex = -1;
+  isLoaded = false;
   isFirst = false;
 
   gameState: GameState;
@@ -228,11 +229,12 @@ export class AppComponent implements OnInit {
       case 'ROUND_OVER':
         this.gameState = serverMessage.data;
         break;
-      
+
       case 'LOAD':
         this.isFirst = serverMessage.data == 0;
+        this.isLoaded = true;
         break;
-         
+
       default:
     }
   }

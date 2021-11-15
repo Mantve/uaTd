@@ -1,7 +1,7 @@
 <div class="game-container">
     <div class="screen meet-screen" [ngClass]="shownScreen == 'meet' ? 'shown' : ''">
         <div class="meet-form">
-            <form (submit)="join()">
+            <form (submit)="join()" *ngIf="isLoaded">
                 <label for="username">Įveskite slapyvardį</label>
                 <input [(ngModel)]="username" [ngModelOptions]="{standalone: true}">
                 <select *ngIf="isFirst" [(ngModel)]="stage" [ngModelOptions]="{standalone: true}">
@@ -10,6 +10,10 @@
                 </select>
                 <button type="submit">Jungtis</button>
             </form>
+            <div *ngIf="!isLoaded" class="loading">
+                <div class="spinner"></div>
+                Kraunama
+            </div>
         </div>
     </div>
     <div class="screen game-screen" [ngClass]="shownScreen == 'game' ? 'shown' : ''">
@@ -29,7 +33,7 @@
                     <div id="player-name">{{username}}</div>
                     <div id="cash-balance">{{gameState.money}} Pinigų</div>
                 </div>
-                <div class="footer">
+                <div class="footer" [ngClass]="{'stopped': !gameState.gameActiveState}">
                     <div class="left"></div>
                     <div class="start">
                         <button type="button" (click)="startGame()">{{gameState.gameActiveState ? "Stabdyti žaidimą" : "Pradėti Žaidimą"}}</button>
