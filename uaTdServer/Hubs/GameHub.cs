@@ -5,15 +5,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using uaTdServer.Class;
+using System.IO;
 
 namespace uaTdServer.Hubs
 {
     public class GameHub : Hub
     {
         public GameHub()
-        {
-
-        }
+        { }
 
         static GameState previousGameState;
         static GameState gameState = GameState.Get();
@@ -21,11 +20,26 @@ namespace uaTdServer.Hubs
         public async Task ClientMessage(string jsonData)
         {
             var data = JsonConvert.DeserializeObject<dynamic>(jsonData);
-
             string messageType = (string)data.type;
 
             switch (messageType)
             {
+                case "LOAD":
+                    string [] mapFiles = Directory.GetFiles("./Maps");
+                    string [] mapNames = new string[mapFiles.Length];
+
+                    for (int i = 0; i < mapFiles.Length; i++)
+                    {
+                        JObject mapData = JObject.Parse(File.ReadAllText(mapFiles[i]));
+                        mapNames[i] = (string)mapData["name"];
+                    }
+
+                    await Clients.Caller.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(new Message<Message_Load>("LOAD", new Message_Load(){
+                        playersCount = gameState.GetPlayers().Count(),
+                        loadedMaps = mapNames
+                    })));
+                    break;
+
                 case "JOIN":
                     string username = (string)data.data.username;
                     int stage = (int)data.data.stage;
@@ -99,9 +113,6 @@ namespace uaTdServer.Hubs
                     gameState.SetGameIsOver();
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
-                case "LOAD":
-                    await Clients.Caller.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(new Message<int>("LOAD", gameState.GetPlayers().Count())));
-                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
@@ -111,7 +122,7 @@ namespace uaTdServer.Hubs
         private Message<Message_GameState> GetGameState(string messageType = "GAMESTATE_INIT")
         {
             Message_GameState messageGameState = new();
-            messageGameState.map = gameState.GetMap().map;
+            messageGameState.map = gameState.GetMap();
             messageGameState.money = gameState.GetMoney();
             messageGameState.score = gameState.GetScore();
             messageGameState.health = gameState.GetHealth();

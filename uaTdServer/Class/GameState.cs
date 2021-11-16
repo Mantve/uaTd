@@ -18,7 +18,6 @@ namespace uaTdServer.Class
         double Score;
         int Health;
         int Wave;
-        List<(int, int)> Towers;
         List<Bacteria> Bacterias;
         bool gameActiveState = false;
         bool roundIsActive = false;
@@ -46,8 +45,7 @@ namespace uaTdServer.Class
             Score = 0;
             Health = 100;
             Wave = 0;
-            Map = new Map("Map", 64, 1000, stage);
-            Towers = new();
+            Map = new Map(stage);
             Bacterias = new();
             gameActiveState = false;
             gameIsOver = false;
@@ -72,7 +70,6 @@ namespace uaTdServer.Class
             clone.Health = Health;
             clone.Wave = Wave;
             clone.Map = Map.Clone();
-            clone.Towers = Towers.Select(tower => (tower.Item1, tower.Item2)).ToList();
             clone.Bacterias = Bacterias.Select(bacteria => new Bacteria(bacteria.health, bacteria.follower.t, new double[] { bacteria.follower.vec.x, bacteria.follower.vec.y }, bacteria.type)).ToList();
             clone.gameActiveState = gameActiveState;
             clone.gameIsOver = gameIsOver;
@@ -153,38 +150,32 @@ namespace uaTdServer.Class
 
         public void AddTower(int x, int y, int type, double price)
         {
-            var existingTower = Towers.Any(t => t == (x, y));
+            var existingTower = Map.objects.Any(t => t.x == x && t.y == y);
             if(!existingTower)
             {
                 UpdateMoney(-price);
-                Towers.Add((x, y));
-                GetMap().SetTower(x, y, type);
+                Map.AddTower(x, y, type);
             }
         }
 
         public void UpgradeTower(int x, int y, double price)
-        {
-            var existingTower = Towers.Any(t => t == (x, y));
+        {           
+            var existingTower = Map.objects.Any(t => t.x == x && t.y == y);
             if(existingTower)
             {
                 UpdateMoney(-price);
-                GetMap().UpgradeTower(x, y);
+                Map.UpgradeTower(x, y);
             }
         }
 
         public void DowngradeTower(int x, int y)
-        {
-            var existingTower = Towers.Any(t => t == (x, y));
+        {            
+            var existingTower = Map.objects.Any(t => t.x == x && t.y == y);
             if(existingTower)
             {
                 UpdateMoney(50);
-                GetMap().DowngradeTower(x, y);
+                Map.DowngradeTower(x, y);
             }
-        }
-
-        public List<(int, int)> GetTowers()
-        {
-            return Towers;
         }
 
         public Bacteria AddBacteria(double health, int t = 0, double[] vec = null, int type = 0)
@@ -253,7 +244,7 @@ namespace uaTdServer.Class
             if (this.stage == -1)
             {
                 this.stage = stage;
-                Map.SetMap(stage);
+                Map.ReadMap(stage);
             }
         }
 

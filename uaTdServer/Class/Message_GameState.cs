@@ -13,7 +13,7 @@ namespace uaTdServer.Class
         public int wave { get; set; }
         public List<string> players { get; set; }
         public List<Bacteria> bacterias { get; set; }
-        public int[,] map { get; set; }
+        public Map map { get; set; }
         public bool gameActiveState { get; set; }
         public bool gameIsOver { get; set; }
         public bool roundIsActive { get; set; }

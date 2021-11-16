@@ -2,6 +2,7 @@ export * from './bullet';
 export * from './enemy';
 export * from './game';
 export * from './gamestate';
+export * from './map-data';
 export * from './map';
 export * from './minion';
 export * from './obstacle';
