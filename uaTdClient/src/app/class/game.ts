@@ -6,6 +6,7 @@ import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from 
 import Map from './map';
 import Turret, { LaserTurret, WaveTurret } from './turret';
 import Rocket from './rocket';
+import { LavaPoolTile, Pool, WaterPoolTile } from '.';
 
 var config = {
     type: Phaser.AUTO,
@@ -172,18 +173,22 @@ export class Scene extends Phaser.Scene {
     finTiles;
     stage: number = 0;
 
+    pool: Pool;
+
     constructor(config) {
         super(config);
     }
 
     preload() {
         this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
+        this.load.atlas('pool', 'assets/pool.png', 'assets/pool.json');
         this.load.image('bullet', 'assets/bullet.png');
         this.load.image('map', 'assets/map.png');
         this.load.image('map_stage_2', 'assets/map_stage_2.png');
     }
 
     create() {
+        this.pool = new Pool(this, '');
         this.graphics = this.add.graphics();
         this.finTiles = this.physics.add.group({ classType: Phaser.GameObjects.Rectangle, runChildUpdate: true });
 
@@ -588,6 +593,18 @@ export class Scene extends Phaser.Scene {
                     this.obstacles.add(bmo);
                     this.children.add(bmo);
                 }
+                break;
+            }
+            case -8: {
+                let waterTile = new WaterPoolTile(this);
+                waterTile.place(i, j);
+                this.pool.add(waterTile);
+                break;
+            }
+            case -9: {
+                let lavaTile = new LavaPoolTile(this);
+                lavaTile.place(i, j);
+                this.pool.add(lavaTile);
                 break;
             }
             default: {
