@@ -20,9 +20,12 @@ export class AppComponent implements OnInit {
   shownScreen: string = 'meet';
   connection: any;
   username: string = new Date().getTime().toString();
+  stage: number = 0;
   message: string = '';
   chatMessages: ChatMessage[] = [];
   selectedIndex = -1;
+  isLoaded = false;
+  isFirst = false;
 
   gameState: GameState;
 
@@ -39,6 +42,16 @@ export class AppComponent implements OnInit {
       name: 'Village',
       price: 200,
       image: 'milk.png'
+    },
+    {
+      name: 'Laser',
+      price: 50,
+      image: 'milk.png'
+    },
+    {
+      name: 'Wave',
+      price: 50,
+      image: 'milk.png'
     }
   ]
 
@@ -46,13 +59,18 @@ export class AppComponent implements OnInit {
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl("https://localhost:5001/hub")
       .build();
-
-    this.connection.start().catch(err => document.write(err));
+    this.connection.start().then(() => this.initialMessage()).catch(err => document.write(err));
     this.connection.on("serverDataMessage", (data: string) => {
       this.processServerMessage(data);
     });
 
     this.gameState = new GameState();
+  }
+
+  initialMessage() {
+    this.connection.send('clientMessage', JSON.stringify({
+      type: 'LOAD'
+    }));
   }
 
   ngOnInit(): void {
@@ -64,7 +82,8 @@ export class AppComponent implements OnInit {
       this.connection.send('clientMessage', JSON.stringify({
         type: 'JOIN',
         data: {
-          username: this.username
+          username: this.username,
+          stage: this.stage
         }
       }));
     }
@@ -132,6 +151,8 @@ export class AppComponent implements OnInit {
         break;
 
       case 'GAMESTATE_INIT':
+        this.game.checkStage(serverMessage.data.stage);
+        //this.game.switchStage(serverMessage.data.stage);
         this.gameState = serverMessage.data;
         this.gameState.gameActiveState ? this.game.runGame() : this.game.stopGame();
 
@@ -213,6 +234,12 @@ export class AppComponent implements OnInit {
       case 'ROUND_OVER':
         this.gameState = serverMessage.data;
         break;
+
+      case 'LOAD':
+        this.isFirst = serverMessage.data == 0;
+        this.isLoaded = true;
+        break;
+
       default:
     }
   }
@@ -231,9 +258,16 @@ export class AppComponent implements OnInit {
       this.game.cancelPurchase();
     }
     else {
-      this.selectedIndex = i;
       var price = this.storeTowers[i - 1].price;
-      this.game.setForPurchase(i, price);
+
+      if(this.gameState.money >= price) {
+        this.selectedIndex = i;
+        this.game.setForPurchase(i, price);
+      }
+      else {
+        this.game.cancelPurchase();
+        this.selectedIndex = -1;
+      }
     }
   }
 }

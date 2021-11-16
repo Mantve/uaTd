@@ -10,4 +10,5 @@ export class GameState {
     gameActiveState: boolean;
     gameIsOver: boolean;
     roundIsActive: boolean;
+    stage: number;
 }

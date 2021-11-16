@@ -23,6 +23,7 @@ namespace uaTdServer.Class
         bool gameActiveState = false;
         bool roundIsActive = false;
         bool gameIsOver = false;
+        int stage = -1;
 
         static GameState()
         {
@@ -45,7 +46,7 @@ namespace uaTdServer.Class
             Score = 0;
             Health = 100;
             Wave = 0;
-            Map = new Map("Map", 64, 1000);
+            Map = new Map("Map", 64, 1000, stage);
             Towers = new();
             Bacterias = new();
             gameActiveState = false;
@@ -246,6 +247,18 @@ namespace uaTdServer.Class
         public void SetRoundIsActive()
         {
             roundIsActive = !roundIsActive;
+        }
+
+        public void SetStage(int stage) {
+            if (this.stage == -1)
+            {
+                this.stage = stage;
+                Map.SetMap(stage);
+            }
+        }
+
+        public int GetStage() {
+            return stage;
         }
     }
 }
