@@ -4,7 +4,7 @@ import Bullet from './bullet';
 import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 import Map from './map';
-import Turret from './turret';
+import Turret, { LaserTurret, WaveTurret } from './turret';
 import Rocket from './rocket';
 
 var config = {
@@ -257,12 +257,12 @@ export class Scene extends Phaser.Scene {
             this.purchasePreview.y = gridY;
         }
 
-        if(this.purchasePreview.visible) {
-          !this.canPlaceTower(iy, ix) ? this.indicator.fillColor = 0xff0000 : this.indicator.fillColor = 0x00ff00;
-          this.indicator.fillAlpha = 0.25;
+        if (this.purchasePreview.visible) {
+            !this.canPlaceTower(iy, ix) ? this.indicator.fillColor = 0xff0000 : this.indicator.fillColor = 0x00ff00;
+            this.indicator.fillAlpha = 0.25;
         } else {
-          this.indicator.fillColor = 0xffffff;
-          this.indicator.fillAlpha = 0.05;
+            this.indicator.fillColor = 0xffffff;
+            this.indicator.fillAlpha = 0.05;
         }
     }
 
@@ -325,7 +325,10 @@ export class Scene extends Phaser.Scene {
                 this.purchasePreview.setFrame('village')
                 break;
             case 3:
-                this.purchasePreview.setFrame('turret')
+                this.purchasePreview.setFrame('laser')
+                break;
+            case 4:
+                this.purchasePreview.setFrame('wave')
                 break;
         }
         this.purchasePreview.visible = true;
@@ -484,7 +487,11 @@ export class Scene extends Phaser.Scene {
                 this.towers.add(tower);
                 break;
             case 3:
-                tower = new Turret(this);
+                tower = new LaserTurret(this);
+                this.towers.add(tower);
+                break;
+            case 4:
+                tower = new WaveTurret(this);
                 this.towers.add(tower);
                 break;
         }

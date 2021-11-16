@@ -28,6 +28,8 @@ export default class Rocket extends Phaser.GameObjects.Image {
     fire(x, y, angle) {
         this.setActive(true);
         this.setVisible(true);
+        this.setTint(0xf700ff);
+        this.tintFill=true;
         //  Bullets fire from the middle of the screen to the given x/y
         this.setPosition(x, y);
         //  we don't need to rotate the bullets as they are round
