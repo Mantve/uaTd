@@ -91,7 +91,7 @@ export default class Turret extends Tower {
 
 export class LaserTurret extends Turret {
     constructor(scene) {
-        super(scene, 'laser');
+        super(scene, 'laserTurret');
     }
     override update(time, delta) {
         if (time > this.nextTic) {
@@ -114,7 +114,7 @@ export class LaserTurret extends Turret {
 export class WaveTurret extends Turret {
     shot: number = 0
     constructor(scene) {
-        super(scene, 'wave');
+        super(scene, 'waveTurret');
     }
 
     override update(time, delta) {

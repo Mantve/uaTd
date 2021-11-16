@@ -330,10 +330,10 @@ export class Scene extends Phaser.Scene {
                 this.purchasePreview.setFrame('village')
                 break;
             case 3:
-                this.purchasePreview.setFrame('laser')
+                this.purchasePreview.setFrame('laserTurret')
                 break;
             case 4:
-                this.purchasePreview.setFrame('wave')
+                this.purchasePreview.setFrame('waveTurret')
                 break;
         }
         this.purchasePreview.visible = true;
