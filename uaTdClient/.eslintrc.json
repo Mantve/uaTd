@@ -12,9 +12,12 @@
     },
     "plugins": [
         "@typescript-eslint",
-        "typescript"
+        "typescript",
+        "uatd-project"
     ],
     "rules": {
+        "uatd-project/no-template-literals": "warn",
+        "uatd-project/var-length": "warn",
         "no-use-before-define": "warn",
         "quotes": ["warn", "single"],
         "no-extra-semi": "warn",
