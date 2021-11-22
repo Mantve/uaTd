@@ -4,7 +4,7 @@ import Bullet from './bullet';
 import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 import Map from './map';
-import { LaserTurret, WaveTurret } from './turret';
+import Turret, { LaserTurret, MultiTurret, WaveTurret } from './turret';
 import Rocket from './rocket';
 import { LavaPoolTile, MapData, MapObject, Pool, WaterPoolTile } from '.';
 
@@ -360,7 +360,7 @@ export class Scene extends Phaser.Scene {
 
   placeTower(pointer) {
     let gameScene = <Scene><unknown>this.scene.scene.scene;
-    if(gameScene.selectedIndex == -1)
+    if (gameScene.selectedIndex == -1)
       return;
 
     var x = Math.floor(pointer.x / 64);
@@ -395,7 +395,7 @@ export class Scene extends Phaser.Scene {
       }));
     }
     else if (gameScene.selectedIndex == Math.floor(existingTower.value / 10)) {
-      if ((gameScene.selectedIndex == 1 && existingTower.value % 10 < 2) || (gameScene.selectedIndex == 2 && existingTower.value % 10 < 3)) {
+      if ((gameScene.selectedIndex == 1 && existingTower.value % 10 < 2) || (gameScene.selectedIndex == 2 && existingTower.value % 10 < 3) || gameScene.selectedIndex == 5) {
         gameScene.connection.send('clientMessage', JSON.stringify({
           type: 'TOWER_UPGRADE',
           data: {
@@ -500,6 +500,10 @@ export class Scene extends Phaser.Scene {
         tower = new WaveTurret(this);
         this.towers.add(tower);
         break;
+      case 5:
+        tower = new MultiTurret(this);
+        this.towers.add(tower);
+        break;
     }
     if (tower) {
       this.mapData.objects.push(new MapObject(x, y, type));
@@ -517,6 +521,10 @@ export class Scene extends Phaser.Scene {
     this.children.add(tower)
 
     let upgrades = type % 10;
+
+    if (towerType == 5) {
+      (tower as MultiTurret).changeState(upgrades);
+    }
 
     for (let i = 0; i < upgrades; i++) {
       this.upgradeTower(x, y);
@@ -628,6 +636,15 @@ export class Scene extends Phaser.Scene {
     let tower = this.towers.getChildren().filter(c => c.j == x && c.i == y)[0];
     var director = new Director();
     var newTower;
+
+    if (tower instanceof MultiTurret) {
+      if ((tower as MultiTurret).currentState >= 3)
+        tower.currentState = 0;
+      else
+        tower.currentState++;
+      tower.changeState(tower.currentState)
+      return;
+    }
 
     if (tower instanceof Shooter) {
       let shooterBuilder = new ShooterBuilder(this);
