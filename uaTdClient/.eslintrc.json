@@ -18,7 +18,8 @@
     "rules": {
         "uatd-project/no-template-literals": "warn",
         "uatd-project/var-length": "warn",
-        "no-use-before-define": "warn",
+
+        "no-use-before-define": "off",
         "quotes": ["warn", "single"],
         "no-extra-semi": "warn",
         "semi": "warn",
@@ -49,6 +50,16 @@
         "no-floating-decimal": "warn",
         "lines-between-class-members": "warn",
         "no-undef": "warn",
-        "no-unused-vars": "warn"
+        "no-unused-vars": "warn",
+        
+        "no-duplicate-imports": "error",
+        "no-const-assign": "error",
+        "no-duplicate-case": "error",
+        "no-unexpected-multiline": "error",
+        "no-unmodified-loop-condition": "error",
+        "no-unreachable": "error",
+        "no-unreachable-loop": "error",
+        "yoda": "error",
+        "no-extra-parens": "error"
     }
 }
