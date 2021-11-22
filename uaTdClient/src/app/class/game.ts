@@ -4,7 +4,7 @@ import Bullet from './bullet';
 import { ObstacleClient, Obstacle, SmallObstacleFactory, MediumObstacleFactory, BigObstacleFactory } from './obstacle';
 import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from './enemy';
 import Map from './map';
-import { LaserTurret, WaveTurret } from './turret';
+import Turret, { LaserTurret, MultiTurret, WaveTurret } from './turret';
 import Rocket from './rocket';
 import { LavaPoolTile, MapData, MapObject, Pool, WaterPoolTile } from '.';
 
@@ -58,7 +58,7 @@ export default class Game extends Phaser.Game implements IGame {
   }
 
   updateMapData(mapData) {
-    this.gameScene.mapData = mapData;
+    this.gameScene.updateMapData(mapData);
   }
 
   setForPurchase(i: number, price: number) {
@@ -74,26 +74,19 @@ export default class Game extends Phaser.Game implements IGame {
   }
 
   runGame() {
-    this.gameScene.enemies.runChildUpdate = true;
-    this.gameScene.towers.runChildUpdate = true;
-    this.gameScene.bullets.runChildUpdate = true;
-    this.gameScene.rockets.runChildUpdate = true;
+    this.gameScene.runGame();
   }
 
   stopGame() {
-    this.gameScene.enemies.runChildUpdate = false;
-    this.gameScene.towers.runChildUpdate = false;
-    this.gameScene.bullets.runChildUpdate = false;
-    this.gameScene.rockets.runChildUpdate = false;
-
+    this.gameScene.stopGame();
   }
 
   printMap() {
-    console.log(this.gameScene.mapData)
+    console.log(this.gameScene.mapData);
   }
 
   placeTowerFromServer(x, y, type) {
-    this.gameScene.placeTowerFromServer(x, y, type)
+    this.gameScene.placeTowerFromServer(x, y, type);
   }
 
   populateMapWithTowers() {
@@ -117,11 +110,11 @@ export default class Game extends Phaser.Game implements IGame {
   }
 
   spawnNewBacteria(bacteria: Bacteria) {
-    return this.gameScene.spawnBacteria(bacteria);
+    return this.gameScene.spawnNewBacteria(bacteria);
   }
 
   spawnNewBacterias(bacterias: Bacteria[]) {
-    return this.gameScene.spawnNewBacterias(0, bacterias);
+    return this.gameScene.spawnNewBacterias(bacterias);
   }
 
   removeOldBacterias(newBacterias: Bacteria[]) {
@@ -129,7 +122,7 @@ export default class Game extends Phaser.Game implements IGame {
   }
 
   initializeNewGame() {
-    return this.gameScene.initializeGame();
+    return this.gameScene.initializeNewGame();
   }
 
   initializePreviousRound() {
@@ -137,17 +130,15 @@ export default class Game extends Phaser.Game implements IGame {
   }
 
   getBacterias() {
-    return this.gameScene.bacterias;
+    return this.gameScene.getBacterias();
   }
 
   checkStage(stage: number) {
-    this.gameScene.children.remove(this.gameScene.gameMap);
-    this.gameScene.createMap(stage);
-    this.initializeNewGame();
+    this.gameScene.checkStage(stage);
   }
 }
 
-export class Scene extends Phaser.Scene {
+export class Scene extends Phaser.Scene implements IGame {
   connection;
   graphics;
 
@@ -219,6 +210,10 @@ export class Scene extends Phaser.Scene {
     this.physics.add.overlap(this.enemies, this.finTiles, this.updateHealth);
   }
 
+  updateMapData(mapData) {
+    this.mapData = mapData;
+  }
+
   createMap(stage) {
     let points = [];
 
@@ -246,6 +241,26 @@ export class Scene extends Phaser.Scene {
     this.children.add(this.gameMap);
   }
 
+  checkStage(stage: number) {
+    this.children.remove(this.gameMap);
+    this.createMap(stage);
+    this.initializeNewGame();
+  }
+
+  runGame() {
+    this.enemies.runChildUpdate = true;
+    this.towers.runChildUpdate = true;
+    this.bullets.runChildUpdate = true;
+    this.rockets.runChildUpdate = true;
+  }
+
+  stopGame() {
+    this.enemies.runChildUpdate = false;
+    this.towers.runChildUpdate = false;
+    this.bullets.runChildUpdate = false;
+    this.rockets.runChildUpdate = false;
+  }
+
   update() {
     let ix = Math.floor(this.input.activePointer.x / 64);
     let iy = Math.floor(this.input.activePointer.y / 64);
@@ -270,7 +285,7 @@ export class Scene extends Phaser.Scene {
     }
   }
 
-  initializeGame() {
+  initializeNewGame() {
     this.removeAllBacterias(this.bacterias);
     this.nextBacteria = 0;
     this.removeAllTowers(this.towers);
@@ -293,6 +308,10 @@ export class Scene extends Phaser.Scene {
     this.populateMapWithTowers();
   }
 
+  getBacterias() {
+    return this.bacterias;
+  }
+  
   removeOldBacterias(oldBacterias: Bacteria[]) {
     oldBacterias.forEach(ob => {
       this.removeBacteria(ob);
@@ -360,7 +379,7 @@ export class Scene extends Phaser.Scene {
 
   placeTower(pointer) {
     let gameScene = <Scene><unknown>this.scene.scene.scene;
-    if(gameScene.selectedIndex == -1)
+    if (gameScene.selectedIndex == -1)
       return;
 
     var x = Math.floor(pointer.x / 64);
@@ -395,7 +414,7 @@ export class Scene extends Phaser.Scene {
       }));
     }
     else if (gameScene.selectedIndex == Math.floor(existingTower.value / 10)) {
-      if ((gameScene.selectedIndex == 1 && existingTower.value % 10 < 2) || (gameScene.selectedIndex == 2 && existingTower.value % 10 < 3)) {
+      if ((gameScene.selectedIndex == 1 && existingTower.value % 10 < 2) || (gameScene.selectedIndex == 2 && existingTower.value % 10 < 3) || gameScene.selectedIndex == 5) {
         gameScene.connection.send('clientMessage', JSON.stringify({
           type: 'TOWER_UPGRADE',
           data: {
@@ -500,6 +519,10 @@ export class Scene extends Phaser.Scene {
         tower = new WaveTurret(this);
         this.towers.add(tower);
         break;
+      case 5:
+        tower = new MultiTurret(this);
+        this.towers.add(tower);
+        break;
     }
     if (tower) {
       this.mapData.objects.push(new MapObject(x, y, type));
@@ -517,6 +540,10 @@ export class Scene extends Phaser.Scene {
     this.children.add(tower)
 
     let upgrades = type % 10;
+
+    if (towerType == 5) {
+      (tower as MultiTurret).changeState(upgrades);
+    }
 
     for (let i = 0; i < upgrades; i++) {
       this.upgradeTower(x, y);
@@ -629,6 +656,15 @@ export class Scene extends Phaser.Scene {
     var director = new Director();
     var newTower;
 
+    if (tower instanceof MultiTurret) {
+      if ((tower as MultiTurret).currentState >= 3)
+        tower.currentState = 0;
+      else
+        tower.currentState++;
+      tower.changeState(tower.currentState)
+      return;
+    }
+
     if (tower instanceof Shooter) {
       let shooterBuilder = new ShooterBuilder(this);
 
@@ -722,15 +758,15 @@ export class Scene extends Phaser.Scene {
     });
   }
 
-  spawnNewBacterias(time, bacterias: Bacteria[]) {
+  spawnNewBacterias(bacterias: Bacteria[]) {
     if (bacterias) {
       bacterias.forEach(b => {
-        this.spawnBacteria(b);
+        this.spawnNewBacteria(b);
       })
     }
   }
 
-  spawnBacteria(bacteriaData) {
+  spawnNewBacteria(bacteriaData) {
     var enemyClient = new EnemyClient();
     let bacteria;
 
