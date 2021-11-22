@@ -5,8 +5,7 @@
                 <label for="username">Įveskite slapyvardį</label>
                 <input [(ngModel)]="username" [ngModelOptions]="{standalone: true}">
                 <select *ngIf="isFirst" [(ngModel)]="stage" [ngModelOptions]="{standalone: true}">
-                  <option value="0">Easy</option>
-                  <option value="1">Hard</option>
+                  <option *ngFor="let map of loadedMaps; index as i" value="{{i}}">{{map}}</option>
                 </select>
                 <button type="submit">Jungtis</button>
             </form>

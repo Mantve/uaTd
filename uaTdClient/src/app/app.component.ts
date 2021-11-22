@@ -1,9 +1,7 @@
-import { ThrowStmt } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
 import Game, { IGame } from "./class/game";
 import { Bacteria, GameState } from './class';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 interface ChatMessage {
   username: string,
@@ -26,6 +24,7 @@ export class AppComponent implements OnInit {
   selectedIndex = -1;
   isLoaded = false;
   isFirst = false;
+  loadedMaps: string[] = [];
 
   gameState: GameState;
 
@@ -59,6 +58,7 @@ export class AppComponent implements OnInit {
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl("https://localhost:5001/hub")
       .build();
+
     this.connection.start().then(() => this.initialMessage()).catch(err => document.write(err));
     this.connection.on("serverDataMessage", (data: string) => {
       this.processServerMessage(data);
@@ -89,10 +89,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-  loadGame(map) {
-    this.game = new Game(this.connection, map);
-  }
-
   startGame() {
     if(this.gameState.health <= 0) {
       this.resetGame();
@@ -115,12 +111,10 @@ export class AppComponent implements OnInit {
   }
 
   resetRound() {
-    let message = {
+    this.connection.send('clientMessage', JSON.stringify({
       type: 'RESET_ROUND',
       data: {}
-    };
-
-    this.connection.send('clientMessage', JSON.stringify(message));
+    }));
   }
 
   sendChat() {
@@ -143,6 +137,12 @@ export class AppComponent implements OnInit {
     console.log(serverMessage);
 
     switch (serverMessage.type) {
+      case 'LOAD':
+        this.loadedMaps = serverMessage.data.loadedMaps;
+        this.isFirst = serverMessage.data.playersCount == 0;
+        this.isLoaded = true;
+        break;
+
       case 'JOIN':
         this.chatMessages.push({
           username: "Server",
@@ -152,11 +152,12 @@ export class AppComponent implements OnInit {
 
       case 'GAMESTATE_INIT':
         this.game.checkStage(serverMessage.data.stage);
-        //this.game.switchStage(serverMessage.data.stage);
         this.gameState = serverMessage.data;
+
+        console.log(this.gameState)
         this.gameState.gameActiveState ? this.game.runGame() : this.game.stopGame();
 
-        this.game.updateMap(serverMessage.data.map);
+        this.game.updateMapData(serverMessage.data.map);
         this.game.populateMapWithTowers();
 
         this.chatMessages.push({
@@ -183,7 +184,7 @@ export class AppComponent implements OnInit {
           this.game.removeOldBacterias(oldBacterias);
         }
 
-        this.game.updateMap(serverMessage.data.map);
+        this.game.updateMapData(serverMessage.data.map);
         break;
 
       case 'CHAT_SEND':
@@ -216,13 +217,13 @@ export class AppComponent implements OnInit {
 
       case 'RESET_GAME':
         this.gameState = serverMessage.data;
-        this.game.updateMap(serverMessage.data.map);
+        this.game.updateMapData(serverMessage.data.map);
         this.game.initializeNewGame();
         break;
 
       case 'RESET_ROUND':
         this.gameState = serverMessage.data;
-        this.game.updateMap(serverMessage.data.map);
+        this.game.updateMapData(serverMessage.data.map);
         this.game.initializePreviousRound();
         break;
 
@@ -233,11 +234,6 @@ export class AppComponent implements OnInit {
 
       case 'ROUND_OVER':
         this.gameState = serverMessage.data;
-        break;
-
-      case 'LOAD':
-        this.isFirst = serverMessage.data == 0;
-        this.isLoaded = true;
         break;
 
       default:

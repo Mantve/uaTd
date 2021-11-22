@@ -83,7 +83,7 @@ namespace uaTdServer.Class
         private static Message<Message_GameState> GetGameState(GameState gameState, string messageType = "GAMESTATE_INIT")
         {
             Message_GameState messageGameState = new();
-            messageGameState.map = gameState.GetMap().map;
+            messageGameState.map = gameState.GetMap();
             messageGameState.money = gameState.GetMoney();
             messageGameState.score = gameState.GetScore();
             messageGameState.health = gameState.GetHealth();
