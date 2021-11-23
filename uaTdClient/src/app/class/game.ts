@@ -6,6 +6,7 @@ import { EnemyClient, BacteriaBlueCreator, BacteriaPinkCreator, Bacteria } from 
 import Map from './map';
 import Turret, { LaserTurret, MultiTurret, WaveTurret } from './turret';
 import Rocket from './rocket';
+import Crystal from './crystal';
 import { LavaPoolTile, MapData, MapObject, Pool, WaterPoolTile } from '.';
 
 var config = {
@@ -151,6 +152,7 @@ export class Scene extends Phaser.Scene implements IGame {
   bullets;
   rockets;
   obstacles;
+  crystals;
 
   bacterias: Bacteria[] = [];
   nextBacteria: number = 0;
@@ -199,6 +201,7 @@ export class Scene extends Phaser.Scene implements IGame {
     this.physics.add.overlap(this.enemies, this.bullets, this.damageEnemy);
     this.physics.add.overlap(this.enemies, this.rockets, this.damageEnemyRocket);
     this.obstacles = this.add.group({ classType: Obstacle, runChildUpdate: true });
+    this.crystals = this.add.group({ classType: Crystal, runChildUpdate: true });
 
     this.indicator = new Phaser.GameObjects.Rectangle(this, 0, 0, 64, 64, 0x00ff00, 0.25);
     this.children.add(this.indicator);
@@ -646,6 +649,16 @@ export class Scene extends Phaser.Scene implements IGame {
         let lavaTile = new LavaPoolTile(this);
         lavaTile.place(i, j);
         this.pool.add(lavaTile);
+        break;
+      }
+      case -10: {
+        let crystal = new Crystal(this);
+        //crystal.x = 100;
+        //crystal.y = 100;
+        //crystal.setDepth(2);
+        crystal.place(i, j);
+        this.crystals.add(crystal);
+        this.children.add(crystal);
         break;
       }
       default: {
