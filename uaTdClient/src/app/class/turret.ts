@@ -148,7 +148,7 @@ export class MultiTurret extends Turret {
     shootingState: ShootingState;
     public currentState: number = 3;
     constructor(scene) {
-        super(scene, 'waveTurret');
+        super(scene, 'multiTurret');
         this.shootingState = new LaserShooting();
     }
 

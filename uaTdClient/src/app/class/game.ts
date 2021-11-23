@@ -311,7 +311,7 @@ export class Scene extends Phaser.Scene implements IGame {
   getBacterias() {
     return this.bacterias;
   }
-  
+
   removeOldBacterias(oldBacterias: Bacteria[]) {
     oldBacterias.forEach(ob => {
       this.removeBacteria(ob);
@@ -352,6 +352,9 @@ export class Scene extends Phaser.Scene implements IGame {
         break;
       case 4:
         this.purchasePreview.setFrame('waveTurret')
+        break;
+      case 5:
+        this.purchasePreview.setFrame('multiTurret')
         break;
     }
     this.purchasePreview.visible = true;
