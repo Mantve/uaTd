@@ -18,6 +18,8 @@
     "rules": {
         "uatd-project/no-template-literals": "warn",
         "uatd-project/var-length": "warn",
+        "uatd-project/var-length-except-for": "warn",
+        "uatd-project/ts-type-annotation-spacing": ["error", {"before": 0, "after": 1}],
 
         "no-use-before-define": "off",
         "quotes": ["warn", "single"],
@@ -60,6 +62,8 @@
         "no-unreachable": "error",
         "no-unreachable-loop": "error",
         "yoda": "error",
-        "no-extra-parens": "error"
+        "no-extra-parens": "error",
+        "no-console": ["warn", { "allow": ["warn", "error"] }],
+        "switch-colon-spacing": ["error", {"after": true, "before": false}]
     }
 }
