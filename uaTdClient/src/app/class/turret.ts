@@ -143,3 +143,137 @@ export class WaveTurret extends Turret {
         }
     }
 }
+
+export class MultiTurret extends Turret {
+    shootingState: ShootingState;
+    public currentState: number = 3;
+    constructor(scene) {
+        super(scene, 'multiTurret');
+        this.shootingState = new LaserShooting();
+    }
+
+    override update(time, delta) {
+        this.shootingState.action(time, delta, this)
+    }
+
+    override shoot(enemies, rockets, x, y, multiplier = 1) {
+        var enemy;
+        var angle;
+
+        enemy = this.getEnemy(enemies, x, y, 125 * multiplier);
+        if (enemy) {
+            angle = Phaser.Math.Angle.Between(x, y, enemy.x, enemy.y);
+            this.shootingState.addBullet(rockets, x, y, angle, multiplier, this);
+            return (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
+        }
+        return 0;
+    }
+
+    changeState(state: number) {
+        this.currentState = state;
+        switch (state) {
+            case 3:
+                {
+                    this.shootingState = new NoShooting();
+                    break;
+                }
+            case 0:
+                {
+                    this.shootingState = new SimpleShooting();
+                    break;
+                }
+            case 1:
+                {
+                    this.shootingState = new LaserShooting();
+                    break;
+                }
+            case 2:
+                {
+                    this.shootingState = new WaveShooting();
+                }
+        }
+    }
+}
+
+export interface ShootingState {
+    action(time, delta, turret: Turret): void
+    addBullet(rockets, x, y, angle, multiplier, turret: Turret): void
+}
+
+class LaserShooting implements ShootingState {
+    action(time, delta, turret: Turret) {
+        if (time > turret.nextTic) {
+            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y);
+            turret.nextTic = time + 10;
+        }
+    }
+    addBullet(rockets, x, y, angle, multiplier, turret: Turret) {
+        var rocket = rockets.get();
+
+        if (rocket) {
+            var rocketType = turret.getBulletType(3000, constants.BULLET_DAMAGE / 50, 0.2)
+            rocket.rocket = rocketType;
+            rocket.fire(x, y, angle);
+        }
+    }
+
+}
+
+class SimpleShooting implements ShootingState {
+    action(time, delta, turret: Turret) {
+        if (time > turret.nextTic) {
+            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y);
+            turret.nextTic = time + 1000;
+        }
+    }
+    addBullet(rockets, x, y, angle, multiplier, turret: Turret) {
+        var rocket = rockets.get();
+
+        if (rocket) {
+            var rocketType = turret.getBulletType(300, constants.BULLET_DAMAGE, 0.6)
+            rocket.rocket = rocketType;
+            rocket.fire(x, y, angle);
+        }
+    }
+}
+
+class WaveShooting implements ShootingState {
+    shot: number = 0
+
+    action(time, delta, turret: Turret) {
+        if (time > turret.nextTic) {
+
+            if (time - turret.nextTic >= 1000)
+                this.shot = 0;
+            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y);
+            this.shot++
+            if (this.shot == 3) {
+                this.shot = 0;
+                turret.nextTic = time + 1000;
+            }
+            else {
+                turret.nextTic = time + 50;
+            }
+        }
+    }
+
+    addBullet(rockets, x, y, angle, multiplier, turret: Turret) {
+        var rocket = rockets.get();
+
+        if (rocket) {
+            var rocketType = turret.getBulletType(300, constants.BULLET_DAMAGE / 3, 0.6)
+            rocket.rocket = rocketType;
+            rocket.fire(x, y, angle);
+        }
+    }
+}
+
+class NoShooting implements ShootingState {
+    shot: number = 0
+
+    action(time, delta, turret: Turret) {
+    }
+
+    addBullet(rockets, x, y, angle, multiplier, turret: Turret) {
+    }
+}
