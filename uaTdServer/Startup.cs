@@ -48,7 +48,7 @@ namespace uaTdServer
                 .AllowAnyHeader()
                 .AllowCredentials());
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
             app.UseDefaultFiles();
