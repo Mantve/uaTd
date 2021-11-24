@@ -72,6 +72,39 @@ export class AppComponent implements OnInit {
     this.gameState = new GameState();
   }
 
+  devMoney(...args) {
+    this.connection.send('clientMessage', JSON.stringify({
+      type: 'DEV_MONEY',
+      data: {
+        action: args[0],
+        value: args[1]
+      }
+    }));
+  }
+
+  devReset(...args) {
+    this.connection.send('clientMessage', JSON.stringify({
+      type: 'DEV_GAME',
+      data: {
+        action: args[0]
+      }
+    }));
+  }
+
+  handleDevFn(...args) {
+    switch (args[0]) {
+      case 'money':
+        break;
+
+      case 'reset':
+        break;
+
+      default:
+        console.log('Usage:\nmoney add|set|sub amount\nreset game|round')
+        break;
+    }
+  }
+
   initialMessage() {
     this.connection.send('clientMessage', JSON.stringify({
       type: 'LOAD'

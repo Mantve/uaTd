@@ -105,6 +105,11 @@ namespace uaTdServer.Class
             return Money;
         }
 
+        public void SetMoney(double change)
+        {
+            Money = change;
+        }
+
         public void UpdateMoney(double change)
         {
             Money += change;

@@ -10,5 +10,14 @@
 </head>
 <body>
   <app-root></app-root>
+  <script>
+    window['devMoney'] = function(...args) {
+      return window.ng.getComponent($('app-root')).devMoney(...args);
+    }
+
+    window['devReset'] = function(...args) {
+      return window.ng.getComponent($('app-root')).devReset(...args);
+    }
+  </script>
 </body>
 </html>

@@ -113,6 +113,33 @@ namespace uaTdServer.Hubs
                     gameState.SetGameIsOver();
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
                     break;
+                case "DEV_MONEY":
+                    string moneyAction = (string)data.data.action;
+                    double moneyValue = (double)data.data.value;
+
+                    if(moneyAction == "add") {
+                        gameState.UpdateMoney(moneyValue);
+                    } else if(moneyAction == "sub") {
+                        gameState.UpdateMoney(moneyValue * -1);
+                    } else if(moneyAction == "set") {
+                        gameState.SetMoney(moneyValue);
+                    }
+
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
+                case "DEV_GAME":
+                    string gameAction = (string)data.data.action;
+
+                    if(gameAction == "game") {
+                        gameState.Reset();
+                        await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("RESET_GAME")));
+                    } else if(gameAction == "round") {
+                        previousGameState.SwitchGameActiveState();
+                        gameState = previousGameState;
+                        await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("RESET_ROUND")));
+                    }
+                    
+                    break;
                 default:
                     await Clients.All.SendAsync("serverDataMessage", jsonData);
                     break;
