@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
 import Game, { IGame } from "./class/game";
 import { Bacteria, GameState } from './class';
+import Context, { DevCommand, DevMoneyCommand, DevResetCommand } from './interpreter';
 
 interface ChatMessage {
   username: string,
@@ -73,36 +74,18 @@ export class AppComponent implements OnInit {
   }
 
   devMoney(...args) {
-    this.connection.send('clientMessage', JSON.stringify({
-      type: 'DEV_MONEY',
-      data: {
-        action: args[0],
-        value: args[1]
-      }
-    }));
+    let exp: DevCommand = new DevMoneyCommand();
+    let ctx: Context = new Context();
+    ctx.action = args[0];
+    ctx.value = args[1];
+    exp.interpret(this.connection, ctx);
   }
 
   devReset(...args) {
-    this.connection.send('clientMessage', JSON.stringify({
-      type: 'DEV_GAME',
-      data: {
-        action: args[0]
-      }
-    }));
-  }
-
-  handleDevFn(...args) {
-    switch (args[0]) {
-      case 'money':
-        break;
-
-      case 'reset':
-        break;
-
-      default:
-        console.log('Usage:\nmoney add|set|sub amount\nreset game|round')
-        break;
-    }
+    let exp: DevCommand = new DevResetCommand();
+    let ctx: Context = new Context();
+    ctx.action = args[0];
+    exp.interpret(this.connection, ctx);
   }
 
   initialMessage() {
