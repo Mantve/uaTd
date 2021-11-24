@@ -66,30 +66,32 @@ module.exports = {
                         const tokens = context.getTokens(node);
                         const identifierTokens = tokens.filter(t => t.type == 'Identifier');
                         const punctuatorToken = tokens.find(t => t.type == 'Punctuator');
-                        const spacesBeforeColon = punctuatorToken.range[0] - identifierTokens[0].range[1];
-                        const spacesAfterColon = identifierTokens[1].range[0] - punctuatorToken.range[1];
-                        if(spacesBeforeColon != rule.before || spacesAfterColon != rule.after){
-                            context.report({
-                                node,
-                                "message": `Wrong spacing used in TypeScript type annotation! Spaces needed before: ${rule.before}, after: ${rule.after}.`,
-                                suggest: [
-                                    {
-                                        desc: `uaTd FIX: TypeScript type annotation spacing. (Expected ${rule.before} spaces before and ${rule.after} spaces after the colum, but found ${initialSpacing.before} before and ${initialSpacing.after} after).`,
-                                        fix: function(fixer){
-                                            return [
-                                                fixer.replaceTextRange([identifierTokens[0].range[1], punctuatorToken.range[0]], ' '.repeat(rule.before)),
-                                                fixer.replaceTextRange([punctuatorToken.range[1], identifierTokens[1].range[0]], ' '.repeat(rule.after))
-                                            ];
+                        if(identifierTokens.length == 2 && punctuatorToken.value == ':'){
+                            const spacesBeforeColon = punctuatorToken.range[0] - identifierTokens[0].range[1];
+                            const spacesAfterColon = identifierTokens[1].range[0] - punctuatorToken.range[1];
+                            if(spacesBeforeColon != rule.before || spacesAfterColon != rule.after){
+                                context.report({
+                                    node,
+                                    "message": `Wrong spacing used in TypeScript type annotation! Spaces needed before: ${rule.before}, after: ${rule.after}.`,
+                                    suggest: [
+                                        {
+                                            desc: `uaTd FIX: TypeScript type annotation spacing. (Expected ${rule.before} spaces before and ${rule.after} spaces after the colum, but found ${initialSpacing.before} before and ${initialSpacing.after} after).`,
+                                            fix: function(fixer){
+                                                return [
+                                                    fixer.replaceTextRange([identifierTokens[0].range[1], punctuatorToken.range[0]], ' '.repeat(rule.before)),
+                                                    fixer.replaceTextRange([punctuatorToken.range[1], identifierTokens[1].range[0]], ' '.repeat(rule.after))
+                                                ];
+                                            }
                                         }
+                                    ],
+                                    fix(fixer){
+                                        return [
+                                            fixer.replaceTextRange([identifierTokens[0].range[1], punctuatorToken.range[0]], ' '.repeat(rule.before)),
+                                            fixer.replaceTextRange([punctuatorToken.range[1], identifierTokens[1].range[0]], ' '.repeat(rule.after))
+                                        ];
                                     }
-                                ],
-                                fix(fixer){
-                                    return [
-                                        fixer.replaceTextRange([identifierTokens[0].range[1], punctuatorToken.range[0]], ' '.repeat(rule.before)),
-                                        fixer.replaceTextRange([punctuatorToken.range[1], identifierTokens[1].range[0]], ' '.repeat(rule.after))
-                                    ];
-                                }
-                            });
+                                });
+                            }
                         }
                     }
                 }

@@ -16,9 +16,9 @@
         "uatd-project"
     ],
     "rules": {
-        "uatd-project/no-template-literals": "warn",
-        "uatd-project/var-length": "warn",
-        "uatd-project/var-length-except-for": "warn",
+        "uatd-project/no-template-literals": "error",
+        "uatd-project/var-length": "error",
+        "uatd-project/var-length-except-for": "error",
         "uatd-project/ts-type-annotation-spacing": ["error", {"before": 0, "after": 1}],
 
         "no-use-before-define": "off",
@@ -54,16 +54,16 @@
         "no-undef": "warn",
         "no-unused-vars": "warn",
         
-        "no-duplicate-imports": "error",
-        "no-const-assign": "error",
-        "no-duplicate-case": "error",
-        "no-unexpected-multiline": "error",
-        "no-unmodified-loop-condition": "error",
-        "no-unreachable": "error",
-        "no-unreachable-loop": "error",
-        "yoda": "error",
-        "no-extra-parens": "error",
+        "no-duplicate-imports": "warn",
+        "no-const-assign": "warn",
+        "no-duplicate-case": "warn",
+        "no-unexpected-multiline": "warn",
+        "no-unmodified-loop-condition": "warn",
+        "no-unreachable": "warn",
+        "no-unreachable-loop": "warn",
+        "yoda": "warn",
+        "no-extra-parens": "warn",
         "no-console": ["warn", { "allow": ["warn", "error"] }],
-        "switch-colon-spacing": ["error", {"after": true, "before": false}]
+        "switch-colon-spacing": ["warn", {"after": true, "before": false}]
     }
 }
