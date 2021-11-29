@@ -54,7 +54,7 @@
                 </div>
                 <div class="header-controls">
                   <div class="control">
-                    <button *ngIf="gameState.wave > 0">
+                    <button *ngIf="gameState.wave > 0" (click)="previousRound()">
                       <div class="btn-content">
                         <div class="inner">
                           <i class="fas fa-undo"></i>
