@@ -254,9 +254,85 @@ body {
     position: relative;
 }
 
-.game-towers .title {
+.game-towers .header-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .5rem 1rem;
+}
+
+.game-towers .header-strip .title {
     color: #ffffff;
-    padding: .75rem calc(.5rem + 2px) 0;
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    font-weight: bold;
+    padding: .5rem;
+}
+
+.game-towers .header-strip .control {
+    display: flex;
+}
+
+.game-towers .header-strip .control button {
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    padding: .5rem .75rem;
+    border-radius: .5rem;
+}
+
+.game-towers .header-strip .control button .btn-content {
+  filter: drop-shadow(1px 0px 0 #4db01c);
+}
+
+.game-towers .header-strip .control button.btn-red .btn-content {
+  filter: drop-shadow(1px 0px 0 hsl(0, 73%, 40%));
+}
+
+.game-towers .header-strip .control button .inner {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    background: linear-gradient(#4db01c, #27580e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+
+.game-towers .header-strip .control button.btn-red .inner {
+    background: linear-gradient(hsl(0, 100%, 45%), hsl(0, 100%, 35%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.game-towers .header-strip .control button:hover .inner {
+  background: linear-gradient(hsl(100, 73%, 45%), hsl(100, 73%, 25%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.game-towers .header-strip .control button.btn-red:hover .inner {
+  background: linear-gradient(hsl(0, 100%, 50%), hsl(0, 100%, 40%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.game-towers .header-strip .control button:active .inner {
+  background: linear-gradient(hsl(100, 73%, 40%), hsl(105, 17%, 20%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.game-towers .header-strip .control button.btn-red:active .inner {
+  background: linear-gradient(hsl(0, 100%, 45%), hsl(0, 100%, 35%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.game-towers .header-strip .control button:active {
+  background: rgba(0, 0, 0, .15);
 }
 
 .towers-grid {

@@ -52,6 +52,23 @@ namespace uaTdServer.Class
             roundIsActive = false;
         }
 
+        public Memento Save() {
+            return new Memento(singleton.DeepCopy());
+        }
+
+        public void Restore(Memento memento) 
+        {
+            Money = memento.State.Money;
+            Score = memento.State.Score;
+            Health = memento.State.Health;
+            Wave = memento.State.Wave;
+            Map = memento.State.Map.Clone();
+            Bacterias = memento.State.Bacterias;
+            gameActiveState = memento.State.gameActiveState;
+            gameIsOver = memento.State.gameIsOver;
+            roundIsActive = memento.State.roundIsActive;
+        }
+
         public void ResetPlayers()
         {
             playersByUsername = new();

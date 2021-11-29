@@ -17,10 +17,13 @@ namespace uaTdServer.Hubs
         static GameState previousGameState;
         static GameState gameState = GameState.Get();
 
+        static GameStateHistory gameStateHistory = GameStateHistory.Get();
+
         public async Task ClientMessage(string jsonData)
         {
             var data = JsonConvert.DeserializeObject<dynamic>(jsonData);
             string messageType = (string)data.type;
+            gameStateHistory.SetOriginator(gameState);
 
             switch (messageType)
             {
@@ -60,12 +63,18 @@ namespace uaTdServer.Hubs
                     if (gameState.GetGameActiveState() && !gameState.GetRoundIsActive())
                     {
                         previousGameState = gameState.DeepCopy();
+                        gameStateHistory.AppendHistory();
                         Spawner.Get().SetClients(Clients);
 
                         Thread workerThread = new Thread(() => Spawner.SpawnEnemies(gameState));
                         workerThread.Start();
                     }
                     await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("GAMESTATE_UPDATE")));
+                    break;
+                case "RESET_PREVIOUS_ROUND":
+                    gameStateHistory.Undo();
+                    gameState.SwitchGameActiveState();
+                    await Clients.All.SendAsync("serverDataMessage", (string)JsonConvert.SerializeObject(GetGameState("RESET_PREVIOUS_ROUND")));
                     break;
                 case "TOWER_PURCHASE": //nebekvieciamas?
                     gameState.UpdateMoney((double)data.data.change);

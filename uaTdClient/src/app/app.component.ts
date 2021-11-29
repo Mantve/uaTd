@@ -9,12 +9,16 @@ interface ChatMessage {
   text: string
 }
 
+interface IMediator {
+  processServerMessage(encodedData: string);
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, IMediator {
   title = 'uaTdClient';
   shownScreen: string = 'meet';
   connection: any;
@@ -248,6 +252,12 @@ export class AppComponent implements OnInit {
         this.game.initializePreviousRound();
         break;
 
+      case 'RESET_PREVIOUS_ROUND':
+        this.gameState = serverMessage.data;
+        this.game.updateMapData(serverMessage.data.map);
+        this.game.initializePreviousRound();
+        break;
+
       case 'SPAWN_ENEMY':
         let serverEnemy = serverMessage.data as Bacteria;
         this.game.spawnNewBacteria(serverEnemy)
@@ -286,5 +296,11 @@ export class AppComponent implements OnInit {
         this.selectedIndex = -1;
       }
     }
+  }
+
+  previousRound() {
+    this.connection.send('clientMessage', JSON.stringify({
+      type: 'RESET_PREVIOUS_ROUND'
+    }));
   }
 }
