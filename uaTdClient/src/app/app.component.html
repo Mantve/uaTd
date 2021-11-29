@@ -47,7 +47,32 @@
         </div>
         <div class="game-sidebar">
             <div class="game-towers">
-                <div class="title">Bokšteliai</div>
+              <div class="header-strip">
+                <div class="title">
+                  <i class="fas fa-chess-rook"></i>
+                  <span>Bokšteliai</span>
+                </div>
+                <div class="header-controls">
+                  <div class="control">
+                    <button *ngIf="gameState.wave > 0">
+                      <div class="btn-content">
+                        <div class="inner">
+                          <i class="fas fa-undo"></i>
+                          <span>Praeitas<br/>raundas</span>
+                        </div>
+                      </div>
+                    </button>
+                    <button class="btn-red" *ngIf="false">
+                      <div class="btn-content">
+                        <div class="inner">
+                          <i class="fas fa-times"></i>
+                          <span>Naujas<br/>žaidimas</span>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
                 <div class="towers-grid" id="towers-store">
                     <button class="item" *ngFor="let tower of storeTowers; index as i" (click)="purchase(i + 1)" [class]="i + 1 == selectedIndex ? 'selected' : ''">
                       <div class="item-title">{{tower.name}}</div>
