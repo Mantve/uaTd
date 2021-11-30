@@ -21,10 +21,24 @@
                 <div class="overlay" *ngIf="gameState.gameIsOver || gameState.health == 0">
                     <div class="overlay-inner">
                         <div class="overlay-text">
-                            Game over
+                            Pralaimėjote
                         </div>
-                        <button type="button" (click)="resetGame()"> Naujas žaidimas </button>
-                        <button type="button" (click)="resetRound()"> Kartoti raundą </button>
+                        <button (click)="resetRound()">
+                          <div class="btn-content">
+                            <div class="inner">
+                              <i class="fas fa-undo"></i>
+                              <span>Kartoti praėjusį<br/>raundą</span>
+                            </div>
+                          </div>
+                        </button>
+                        <button class="btn-red" (click)="resetRound()">
+                          <div class="btn-content">
+                            <div class="inner">
+                              <i class="fas fa-times"></i>
+                              <span>Pradėti naują<br/>žaidimą</span>
+                            </div>
+                          </div>
+                        </button>
                     </div>
                 </div>
                 <div id="content"></div>
