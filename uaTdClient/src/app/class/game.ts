@@ -295,6 +295,14 @@ export class Scene extends Phaser.Scene implements IGame {
 
     this.enemies.clear();
     this.towers.clear();
+
+    this.bullets.getChildren().forEach(b => {
+      this.children.remove(b);
+    });
+    this.rockets.getChildren().forEach(b => {
+      this.children.remove(b);
+    });
+
     this.bullets.clear();
     this.rockets.clear();
   }
@@ -304,6 +312,14 @@ export class Scene extends Phaser.Scene implements IGame {
     this.nextBacteria = 0;
 
     this.enemies.clear();
+
+    this.bullets.getChildren().forEach(b => {
+      this.children.remove(b);
+    });
+    this.rockets.getChildren().forEach(b => {
+      this.children.remove(b);
+    });
+
     this.bullets.clear();
     this.rockets.clear();
     this.removeAllTowers(this.towers);
