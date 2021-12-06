@@ -11,3 +11,5 @@ export * from './rocket';
 export * from './tower';
 export * from './turret';
 export * from './_constants';
+export * from './plane';
+export * from './turretIterator';

@@ -1,5 +1,5 @@
-import { constants, LaserTurret, MultiTurret, WaveTurret } from ".";
-import Turret from "./turret";
+import { constants, LaserTurret, MultiTurret, TurretIterator, WaveTurret } from ".";
+import Turret, { PlaneElement } from "./turret";
 
 export interface Visitor { //Visitor
 
@@ -10,17 +10,18 @@ export interface Visitor { //Visitor
 }
 
 export class Plane extends Phaser.GameObjects.Image implements Visitor { //ConcreteVisitor
-    target: Turret;
+    target: PlaneElement;
     follower;
     path;
     constructor(scene) {
-        super(scene, 0, 0, 'sprites', 'shooter');
+        super(scene, 0, 0, 'sprites', 'plane');
         this.follower = { t: 0, vec: new Phaser.Math.Vector2() }
     }
 
     visit() {
+        let tempTarget = this.target as unknown as Turret;
         this.path = this.scene.add.path(this.x, this.y);
-        this.path.lineTo(this.target.x, this.target.y);
+        this.path.lineTo(tempTarget.x, tempTarget.y);
     }
 
     update(time, delta) {
@@ -28,9 +29,8 @@ export class Plane extends Phaser.GameObjects.Image implements Visitor { //Concr
         if (this.path) {
             if (this.follower.t >= 1 && this.target) {
                 (this.target as LaserTurret).changeMultiplier(100);
-                this.target = null;
+                this.target=null;
             }
-            console.log(this.follower.vec)
             this.path.getPoint(this.follower.t, this.follower.vec);
             this.setPosition(this.follower.vec.x, this.follower.vec.y);
         }

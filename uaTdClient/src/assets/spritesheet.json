@@ -575,6 +575,27 @@
 						"w": 64,
 						"h": 64
 					}
+				},
+				{
+					"filename": "plane",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 64,
+						"h": 64
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 64,
+						"h": 64
+					},
+					"frame": {
+						"x": 256,
+						"y": 192,
+						"w": 64,
+						"h": 64
+					}
 				}
 			]
 		}
