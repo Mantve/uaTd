@@ -14,7 +14,7 @@ export class Plane extends Phaser.GameObjects.Image implements Visitor { //Concr
     follower;
     path;
     constructor(scene) {
-        super(scene, 0, 0, 'sprites', 'shooter');
+        super(scene, 0, 0, 'sprites', 'plane');
         this.follower = { t: 0, vec: new Phaser.Math.Vector2() }
     }
 
