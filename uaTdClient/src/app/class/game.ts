@@ -7,7 +7,8 @@ import Map from './map';
 import Turret, { LaserTurret, MultiTurret, WaveTurret } from './turret';
 import Rocket from './rocket';
 import Crystal from './crystal';
-import { LavaPoolTile, MapData, MapObject, Pool, WaterPoolTile } from '.';
+import { IterableCollection, LavaPoolTile, MapData, MapObject, Pool, TurretColection, TurretIterator, WaterPoolTile } from '.';
+import { Plane } from './plane';
 
 var config = {
   type: Phaser.AUTO,
@@ -149,6 +150,7 @@ export class Scene extends Phaser.Scene implements IGame {
 
   enemies;
   towers;
+  turretCollection: IterableCollection = new TurretColection();
   bullets;
   rockets;
   obstacles;
@@ -166,7 +168,8 @@ export class Scene extends Phaser.Scene implements IGame {
   stage: number = 0;
 
   pool: Pool;
-
+  planes;
+  iterator: TurretIterator;
   constructor(config) {
     super(config);
   }
@@ -211,6 +214,14 @@ export class Scene extends Phaser.Scene implements IGame {
     this.purchasePreview.visible = false;
 
     this.physics.add.overlap(this.enemies, this.finTiles, this.updateHealth);
+
+    let plane = new Plane(this);
+    plane.depth = 1;
+    this.planes = this.add.group({ classType: Plane, runChildUpdate: true });
+    this.planes.add(plane)
+    this.children.add(plane);
+    this.iterator = new TurretIterator(this.turretCollection)
+
   }
 
   updateMapData(mapData) {
@@ -255,6 +266,7 @@ export class Scene extends Phaser.Scene implements IGame {
     this.towers.runChildUpdate = true;
     this.bullets.runChildUpdate = true;
     this.rockets.runChildUpdate = true;
+    this.planes.runChildUpdate = true;
   }
 
   stopGame() {
@@ -262,9 +274,21 @@ export class Scene extends Phaser.Scene implements IGame {
     this.towers.runChildUpdate = false;
     this.bullets.runChildUpdate = false;
     this.rockets.runChildUpdate = false;
+    this.planes.runChildUpdate = false;
   }
 
   update() {
+    let plane = this.planes.getChildren()[0];
+    if (!plane.target) {
+      let turret = this.iterator.getNext();
+      if (turret instanceof LaserTurret)
+        plane.visitLaser(turret)
+      else if (turret instanceof WaveTurret)
+        plane.visitWave(turret)
+      else if (turret instanceof MultiTurret)
+        plane.visitMulti(turret)
+      plane.follower.t = 0;
+    }
     let ix = Math.floor(this.input.activePointer.x / 64);
     let iy = Math.floor(this.input.activePointer.y / 64);
 
@@ -551,9 +575,10 @@ export class Scene extends Phaser.Scene implements IGame {
 
       if (towerType < 3)
         tower.setGameData(this.enemies, this.bullets, this.towers);
-      else
+      else {
         tower.setGameData(this.enemies, this.rockets, this.towers);
-
+        this.turretCollection.addItem(tower as Turret);
+      }
       tower.setActive(true);
       tower.setVisible(true);
       tower.place(y, x);
@@ -570,7 +595,6 @@ export class Scene extends Phaser.Scene implements IGame {
     for (let i = 0; i < upgrades; i++) {
       this.upgradeTower(x, y);
     }
-
   }
 
   placeObstacleFromServer(j, i, type) {
@@ -833,3 +857,4 @@ export class Scene extends Phaser.Scene implements IGame {
     //this.scene.pause();
   }
 }
+

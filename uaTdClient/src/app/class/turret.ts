@@ -10,6 +10,8 @@ export default class Turret extends Tower {
     towers;
     i;
     j;
+    multiplier;
+    multiplierUntil;
     rocketTypes: RocketType[] = [];
 
     modifier: 1;
@@ -38,7 +40,7 @@ export default class Turret extends Tower {
 
     update(time, delta) {
         if (time > this.nextTic) {
-            this.angle = this.shoot(this.enemies, this.rockets, this.x, this.y);
+            this.angle = this.shoot(this.enemies, this.rockets, this.x, this.y, this.multiplier);
             this.nextTic = time + 1000;
         }
     }
@@ -89,13 +91,26 @@ export default class Turret extends Tower {
     }
 }
 
-export class LaserTurret extends Turret {
+export interface PlaneElement {
+    changeMultiplier(mul: number)
+}
+
+export class LaserTurret extends Turret implements PlaneElement{
     constructor(scene) {
         super(scene, 'laserTurret');
     }
+
+    changeMultiplier(mul: number) {
+        this.multiplier = mul;
+        this.multiplierUntil = this.nextTic + 2000;
+    }
+
     override update(time, delta) {
+        if (this.multiplierUntil < time) {
+            this.multiplier = 1;
+        }
         if (time > this.nextTic) {
-            this.angle = this.shoot(this.enemies, this.rockets, this.x, this.y);
+            this.angle = this.shoot(this.enemies, this.rockets, this.x, this.y, this.multiplier);
             this.nextTic = time + 10;
         }
     }
@@ -111,17 +126,25 @@ export class LaserTurret extends Turret {
     }
 }
 
-export class WaveTurret extends Turret {
+export class WaveTurret extends Turret implements PlaneElement {
     shot: number = 0
     constructor(scene) {
         super(scene, 'waveTurret');
     }
 
+    changeMultiplier(mul: number) {
+        this.multiplier = mul;
+        this.multiplierUntil = this.nextTic + 2000;
+    }
+
     override update(time, delta) {
+        if (this.multiplierUntil < time) {
+            this.multiplier = 1;
+        }
         if (time > this.nextTic) {
             if (time - this.nextTic >= 1000)
                 this.shot = 0;
-            this.angle = this.shoot(this.enemies, this.rockets, this.x, this.y);
+            this.angle = this.shoot(this.enemies, this.rockets, this.x, this.y, this.multiplier);
             this.shot++
             if (this.shot == 3) {
                 this.shot = 0;
@@ -144,7 +167,7 @@ export class WaveTurret extends Turret {
     }
 }
 
-export class MultiTurret extends Turret {
+export class MultiTurret extends Turret implements PlaneElement{
     shootingState: ShootingState;
     public currentState: number = 3;
     constructor(scene) {
@@ -152,7 +175,15 @@ export class MultiTurret extends Turret {
         this.shootingState = new LaserShooting();
     }
 
+    changeMultiplier(mul: number) {
+        this.multiplier = mul;
+        this.multiplierUntil = this.nextTic + 2000;
+    }
+
     override update(time, delta) {
+        if (this.multiplierUntil < time) {
+            this.multiplier = 1;
+        }
         this.shootingState.action(time, delta, this)
     }
 
@@ -203,7 +234,7 @@ export interface ShootingState {
 class LaserShooting implements ShootingState {
     action(time, delta, turret: Turret) {
         if (time > turret.nextTic) {
-            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y);
+            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y, turret.multiplier);
             turret.nextTic = time + 10;
         }
     }
@@ -222,7 +253,7 @@ class LaserShooting implements ShootingState {
 class SimpleShooting implements ShootingState {
     action(time, delta, turret: Turret) {
         if (time > turret.nextTic) {
-            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y);
+            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y, turret.multiplier);
             turret.nextTic = time + 1000;
         }
     }
@@ -230,7 +261,7 @@ class SimpleShooting implements ShootingState {
         var rocket = rockets.get();
 
         if (rocket) {
-            var rocketType = turret.getBulletType(300, constants.BULLET_DAMAGE, 0.6)
+            var rocketType = turret.getBulletType(1000, constants.BULLET_DAMAGE, 0.6)
             rocket.rocket = rocketType;
             rocket.fire(x, y, angle);
         }
@@ -245,7 +276,7 @@ class WaveShooting implements ShootingState {
 
             if (time - turret.nextTic >= 1000)
                 this.shot = 0;
-            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y);
+            turret.shoot(turret.enemies, turret.rockets, turret.x, turret.y, turret.multiplier);
             this.shot++
             if (this.shot == 3) {
                 this.shot = 0;
@@ -261,7 +292,7 @@ class WaveShooting implements ShootingState {
         var rocket = rockets.get();
 
         if (rocket) {
-            var rocketType = turret.getBulletType(300, constants.BULLET_DAMAGE / 3, 0.6)
+            var rocketType = turret.getBulletType(1000, constants.BULLET_DAMAGE / 3, 0.6)
             rocket.rocket = rocketType;
             rocket.fire(x, y, angle);
         }
