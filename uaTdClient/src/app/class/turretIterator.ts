@@ -8,6 +8,8 @@ export interface Iterator {
 
 
 export interface IterableCollection {
+  clear();
+
   getItems(): Turret[];
 
   getCount(): number;
@@ -38,6 +40,11 @@ export class TurretColection implements IterableCollection {
   constructor() {
 
   }
+
+  public clear(){
+    this.turrets=[];
+  }
+
   public getItems(): Turret[] {
     return this.turrets;
   }

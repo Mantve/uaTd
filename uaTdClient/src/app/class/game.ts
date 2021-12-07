@@ -319,6 +319,7 @@ export class Scene extends Phaser.Scene implements IGame {
 
     this.enemies.clear();
     this.towers.clear();
+    this.turretCollection.clear();
 
     this.bullets.getChildren().forEach(b => {
       this.children.remove(b);
