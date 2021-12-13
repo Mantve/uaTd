@@ -3,10 +3,7 @@ import Turret, { PlaneElement } from "./turret";
 
 export interface Visitor { //Visitor
 
-    visitLaser(e: LaserTurret)
-    visitWave(e: WaveTurret)
-    visitMulti(e: MultiTurret)
-
+    visitTurret(e: (LaserTurret | WaveTurret | MultiTurret)); 
 }
 
 export class Plane extends Phaser.GameObjects.Image implements Visitor { //ConcreteVisitor
@@ -23,39 +20,31 @@ export class Plane extends Phaser.GameObjects.Image implements Visitor { //Concr
         this.path = this.scene.add.path(this.x, this.y);
         this.path.lineTo(tempTarget.x, tempTarget.y);
         let angle = Phaser.Math.Angle.Between(this.x, this.y, tempTarget.x, tempTarget.y);
-        this.setAngle((angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG-45);
-        console.log((angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG -45)
+        this.setAngle((angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG - 45);
     }
 
     update(time, delta) {
-        this.follower.t += constants.ENEMY_SPEED *10* delta;
+        this.follower.t += constants.ENEMY_SPEED * 10 * delta;
         if (this.path) {
-            this.visible=true;
+            this.visible = true;
             if (this.follower.t >= 1 && this.target) {
-                (this.target as LaserTurret).changeMultiplier(100);
-                this.target=null;
+                if (this.target instanceof LaserTurret)
+                    (this.target as LaserTurret).changeMultiplier(this);
+                else if (this.target instanceof WaveTurret)
+                    (this.target as WaveTurret).changeMultiplier(this);
+                else if (this.target instanceof MultiTurret)
+                    (this.target as MultiTurret).changeMultiplier(this);
+                this.target = null;
             }
             this.path.getPoint(this.follower.t, this.follower.vec);
             this.setPosition(this.follower.vec.x, this.follower.vec.y);
         }
-        else{
-            this.visible=false;
+        else {
+            this.visible = false;
         }
     }
 
-    visitLaser(e: LaserTurret) {
-        if (!this.target) {
-            this.target = e;
-            this.visit();
-        }
-    }
-    visitWave(e: WaveTurret) {
-        if (!this.target) {
-            this.target = e;
-            this.visit();
-        }
-    }
-    visitMulti(e: MultiTurret) {
+    visitTurret(e: (LaserTurret | WaveTurret | MultiTurret)) {
         if (!this.target) {
             this.target = e;
             this.visit();

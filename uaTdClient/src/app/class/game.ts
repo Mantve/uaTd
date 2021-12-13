@@ -281,13 +281,10 @@ export class Scene extends Phaser.Scene implements IGame {
     let plane = this.planes.getChildren()[0];
     if (!plane.target) {
       let turret = this.iterator.getNext();
-      if (turret instanceof LaserTurret)
-        plane.visitLaser(turret)
-      else if (turret instanceof WaveTurret)
-        plane.visitWave(turret)
-      else if (turret instanceof MultiTurret)
-        plane.visitMulti(turret)
-      plane.follower.t = 0;
+      if (turret) {
+        plane.visitTurret(turret);
+        plane.follower.t = 0;
+      }
     }
     let ix = Math.floor(this.input.activePointer.x / 64);
     let iy = Math.floor(this.input.activePointer.y / 64);

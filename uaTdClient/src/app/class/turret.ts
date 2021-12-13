@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { constants } from './_constants';
 import Bullet, { RocketType } from './rocket';
 import Tower from './tower';
+import { Visitor } from '@angular/compiler/src/i18n/i18n_ast';
 
 export default class Turret extends Tower {
     nextTic;
@@ -92,7 +93,7 @@ export default class Turret extends Tower {
 }
 
 export interface PlaneElement {
-    changeMultiplier(mul: number)
+    changeMultiplier(mul)
 }
 
 export class LaserTurret extends Turret implements PlaneElement{
@@ -100,8 +101,8 @@ export class LaserTurret extends Turret implements PlaneElement{
         super(scene, 'laserTurret');
     }
 
-    changeMultiplier(mul: number) {
-        this.multiplier = mul;
+    changeMultiplier(mul) {
+        this.multiplier = 10;
         this.multiplierUntil = this.nextTic + 2000;
     }
 
@@ -132,8 +133,8 @@ export class WaveTurret extends Turret implements PlaneElement {
         super(scene, 'waveTurret');
     }
 
-    changeMultiplier(mul: number) {
-        this.multiplier = mul;
+    changeMultiplier(mul) {
+        this.multiplier = 10;
         this.multiplierUntil = this.nextTic + 2000;
     }
 
@@ -175,8 +176,8 @@ export class MultiTurret extends Turret implements PlaneElement{
         this.shootingState = new LaserShooting();
     }
 
-    changeMultiplier(mul: number) {
-        this.multiplier = mul;
+    changeMultiplier(mul) {
+        this.multiplier = 10;
         this.multiplierUntil = this.nextTic + 2000;
     }
 
